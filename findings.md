@@ -1,0 +1,124 @@
+# Findings
+
+## Verified
+- `skills.sh` is a public discovery platform with a leaderboard, searchable skill pages, docs, and a public sitemap at `https://skills.sh/sitemap.xml`.
+- `skills.sh` docs state that leaderboard ranking is based on anonymous telemetry from the `skills` CLI.
+- `skills.sh` docs state that routine security audits are performed, but this is not the same as user reviews.
+- `skills.sh` skill pages expose useful machine-readable signals such as weekly installs, first seen date, repository, and installed-on agent counts.
+- Sample skill pages checked:
+  - `onewave-ai/claude-skills/job-application-optimizer` showed weekly installs, first seen date, repository, and installed-on counts.
+  - `claude-office-skills/skills/cover-letter` showed the same type of metadata.
+- I did not find a public user review / rating / comment system on the sampled `skills.sh` pages.
+- The `skills.sh` homepage payload exposes structured `source`, `skillId`, `name`, and `installs` data in the page source.
+- The sampled homepage payload contained 71 unique source repositories, indicating that `skills.sh` already aggregates from many GitHub-based sources rather than only a single curated repository.
+- `skills.sh` exposes install commands that point back to GitHub repositories, which suggests GitHub is the underlying source of truth for many skills.
+- Trustpilot publicly describes multiple review sources and its fraud-detection / moderation approach.
+- G2 publicly describes authenticity checks and contributor profiles for reviewers.
+- Google Search Central documents review snippet structured data, which is relevant if a public review site wants organic star-rich results where eligible.
+- DNS A-record checks on 2026-03-10 showed:
+  - `skilljury.com`, `skilljury.io`, `skilljury.sh`, and `skilljury.co` had no A record at check time and were marked **likely available**
+  - `skillindex.com`, `skillindex.io`, `skillindex.sh`, and `skillindex.co` had no A record at check time and were marked **likely available**
+  - `skillscorecard.com` had an A record and was marked **likely taken**
+  - `skillverdict.com` had an A record and was marked **likely taken**
+  - `skillbench.com`, `skillbench.io`, and `skillbench.co` had A records and were marked **likely taken**
+- GitHub users API checks on 2026-03-10 showed:
+  - `SkillJury`, `SkillIndex`, `SkillScorecard`, and `SkillVerdict` returned `404` and therefore **appear available** as GitHub org names
+  - `SkillBench` returned `200` and is therefore **taken** as a GitHub user/org name
+- The revised v1 review form can be made materially lighter without losing usefulness by requiring only overall rating, would-recommend, pros, and cons.
+- Moving comparison pages and claim-skill flow out of v1 reduces launch complexity without damaging the core value proposition.
+- The hosted Supabase JWTs decode to project ref `yqalyaaetcwrhkmxivbh`, which implies hosted base URL `https://yqalyaaetcwrhkmxivbh.supabase.co`.
+- After the hosted SQL migrations were applied, the hosted project accepted Phase 1 writes from the sync pipeline.
+- The Phase 1 manual sync completed successfully on 2026-03-11 with 12 skills imported, 0 parser errors, and raw sync snapshots stored under `skills-sh/2026-03-11T10-26-57-656Z`.
+- The live `skills.sh` sitemap currently exposes 4000 skill URLs, so the earlier 12-skill import count was not a sitemap limitation.
+- The earlier 12-skill result came from the explicit `--limit=12` validation run, not from parser truncation or upstream pagination.
+- After importer hardening, a full hosted sync completed successfully on 2026-03-11 with 4000 skills imported, 0 parser errors, and raw sync snapshots stored under `skills-sh/2026-03-11T11-08-43-211Z`.
+- The hosted catalog now contains 4000 skills, 743 sources, 742 repositories, 24 agents, and 17,792 skill-agent compatibility rows.
+- The current importer can complete full-catalog syncs without failing on duplicate repositories, oversized snapshot files, oversized lookup filters, or single-statement write timeouts.
+- GitHub enrichment degrades gracefully when the unauthenticated GitHub API rate limit is reached; the full sync still completes, but some repositories keep partial metadata until a later sync or a token-backed enrichment pass.
+- The starter taxonomy layer is now persisted in hosted Supabase with 14 category rows and 15,636 skill-category links derived from public skill text and install metadata.
+- Hosted Supabase now contains live `skills` rows, including `azure-ai` with imported fields such as `short_summary`, `install_command`, `weekly_installs`, and `canonical_source_url`.
+- The production build renders the homepage with live imported skills from Supabase.
+- The production build renders skill detail pages from hosted Supabase data; `/skills/azure-ai` includes the imported summary, install command, weekly installs, and canonical source URL.
+- `robots.txt` and `sitemap.xml` are live and the sitemap includes imported skill URLs.
+- Public pages include canonical tags, Open Graph tags, and Twitter Card tags in the rendered HTML.
+- The Phase 3 production build now includes additional public routes for `/login`, `/account`, `/admin/moderation`, `/skills/[skillSlug]/review`, `/skills/[skillSlug]/reviews`, `/api/reviews`, and `/api/moderation`.
+- The public homepage renders Organization JSON-LD, and skill detail pages render FAQPage JSON-LD plus AggregateRating JSON-LD only when approved review data exists.
+- Skill detail pages now render a Quick Facts block near the top with the requested summary fields: skill name, short summary, agent compatibility, category, source, install command, review count, rating, recommendation percentage, and last updated date.
+- Category pages now render a review-oriented summary sentence, visible last-updated date, and a top-picks block. Agent pages now render a reviewed-skills summary sentence and visible last-updated date.
+- Anonymous visitors are redirected away from `/admin/moderation` to `/login`, while public review pages remain accessible.
+- Phase 3 hosted verification passed on 2026-03-11:
+  - magic-link login for `jmanav2000@gmail.com` reached `/account`
+  - the auth callback completed successfully
+  - a `user_profiles` row exists in hosted Supabase for that user
+  - `/admin/moderation` redirects anonymous users to `/login`
+  - `/admin/moderation` loads for an authenticated moderator user
+  - `/skills/azure-ai/reviews` loads without errors
+  - `/skills/azure-ai/review` redirects anonymous users and loads for authenticated users
+- The production build now renders live Phase 2 browse pages from hosted Supabase data:
+  - `/search`
+  - `/categories/software-engineering`
+  - `/agents/claude-code`
+  - `/sources/0xbigboss%2Fclaude-code`
+  - `/top-rated`
+  - `/new`
+  - `/trending`
+- Search returns real skill links from the database, pagination works on search and listing pages, and skill detail pages now link back to category, agent, and source context.
+- Source pages work with URL-encoded source slugs, which avoids adding a second source slug field to the database while keeping the planned `/sources/[sourceSlug]` route structure.
+- `005_submissions_and_reports.sql` has been added and applied directly to hosted Supabase through the session-pooler connection. Hosted Supabase now contains `skill_submissions`, `reports`, and `review_requests` with RLS, indexes, and queue integration.
+- Skill pages now show a visible request-review CTA and request count, with different CTAs for zero-review vs reviewed skills.
+- Submissions now support URL-based prefill from GitHub repository URLs, and approved submissions can create new catalog skills through the moderation flow.
+- Reports can now be filed against review cards and skill pages for the supported reasons: spam, fake review, off-topic, abuse/harassment, wrong listing data, copyright issue, and other.
+- Public trust and policy pages are now live in the app:
+  - `/how-scores-work`
+  - `/review-guidelines`
+  - `/moderation-policy`
+  - `/about`
+  - `/privacy`
+  - `/terms`
+- The site footer now links to the public trust and policy pages.
+- Final V1 production smoke tests passed on 2026-03-11 for:
+  - `/`
+  - `/login`
+  - `/search`
+  - `/skills/azure-ai`
+  - `/skills/azure-ai/reviews`
+  - `/categories/software-engineering`
+  - `/agents/claude-code`
+  - `/top-rated`
+  - `/new`
+  - `/trending`
+  - `/submit-skill` (protected redirect verified)
+  - `/how-scores-work`
+  - `/review-guidelines`
+  - `/moderation-policy`
+  - `/about`
+  - `/privacy`
+  - `/terms`
+  - `/sitemap.xml`
+- Production-mode checks also verified:
+  - `/admin/moderation` redirects anonymous users to `/login`
+  - `/submit-skill` redirects anonymous users to `/login`
+  - `/submit-skill` loads for an authenticated user
+  - `/admin/moderation` loads for an authenticated moderator
+- `npm run lint` passes on the Phase 4 codebase.
+- `npm run build` passes on the Phase 4 codebase.
+
+## Likely Inferences
+- A competing product cannot win by simple aggregation alone, because `skills.sh` already aggregates broadly across many source repositories.
+- The strongest wedge is a better trust layer: real reviews, reviewer identity quality, proof-of-use, moderation, comparisons, and better task-oriented discovery.
+- Email-only login is not enough to keep review quality high if the site gets traction.
+- A hard limit of 3 comments per day is helpful, but on its own it will not stop low-quality or coordinated spam.
+- The site has strong SEO/GEO upside if it creates high-quality entity pages, comparison pages, category pages, and review pages with structured data.
+- `SkillJury` is the strongest final name among the newly checked candidates because it matches the review/trust positioning better than `SkillIndex` while keeping a cleaner availability picture than `SkillVerdict`, `SkillBench`, and `SkillScorecard`.
+- The catalog should not rely forever on `skills.sh` as the only upstream source; direct GitHub-based discovery is a sensible v2 fallback.
+- skills from shared repositories can produce duplicate repository rows during batch syncs, so repository upserts must be deduplicated by `repository_url` before writing to Postgres.
+- A controlled starter taxonomy derived from public skill text is a workable interim solution for browse pages until the ecosystem exposes richer first-party category data or SkillJury collects enough editorial curation to replace heuristics.
+- Treating `AuthSessionMissingError` as an anonymous viewer state is necessary for public Supabase-SSR pages; otherwise public routes fail even when auth is optional.
+- Skill detail pages can trigger PostgREST query planner errors if the same relationship is selected twice at the same query level; aliased inner joins avoid that failure pattern.
+- Turnstile is now a hard deployment dependency for live write flows. Without real site and secret keys, review, report, and submission forms are intentionally disabled in production mode with an explicit warning rather than failing at submission time.
+
+## Unknowns
+- I cannot verify cross-platform republication rights for every skills source publicly without checking each platform or repo license / terms individually.
+- I cannot verify whether there are private or invite-only skill ecosystems that would be commercially important but not publicly indexable.
+- I cannot verify whether public star snippets would be granted for every review-page design; Google eligibility depends on implementation and policy compliance.
+- I cannot verify live magic-link delivery, GitHub linking, moderation actions, or public review aggregation against the hosted Supabase project until the Phase 3 SQL migrations are applied in that project.

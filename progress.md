@@ -1,0 +1,173 @@
+# Progress Log
+
+- Created a dedicated planning workspace for the skills review platform research.
+- Verified the current `skills.sh` discovery platform, docs, sitemap, and skill-page metadata patterns.
+- Verified that `skills.sh` already aggregates from many source repositories visible in homepage payload data.
+- Verified review-platform trust signals from Trustpilot, G2, and Google Search Central to inform moderation and structured-data design.
+- Saved the full planning document to `C:\Users\jmana\codex-research\skills-review-platform\PRODUCT_PLAN.md`.
+- Re-opened the planning workspace and verified the existing `PRODUCT_PLAN.md` before editing.
+- Re-checked naming candidates with DNS A-record lookups and the GitHub users API, then updated the naming recommendation to `SkillJury`.
+- Patched `PRODUCT_PLAN.md` with the eight requested revisions: naming comparison, v2 sitemap additions, `AuditLog`, lighter v1 review form, magic-link failure and appeals, ingestion dependency risk, SEO metadata templates, and revised v1/v2 scope.
+- Created `C:\Users\jmana\codex-research\skills-review-platform\BUILD_READY_PRD.md` with phased implementation steps, route/file breakdowns, dependencies, definitions of done, and ship checkpoints.
+- Started Phase 1 implementation.
+- Verified the workspace contains only planning documents and no existing Next.js app or git repository.
+- Verified local tool availability: Node `v24.13.0`, npm `11.6.2`, pnpm `10.29.1`; `yarn` is not installed.
+- Paused before scaffolding because the build plan does not lock two implementation details: package manager choice and whether Supabase should target a local dev stack or an existing hosted project.
+- Resumed Phase 1 with locked decisions: `npm` and an existing hosted Supabase project.
+- Added `.gitignore` and `.env.local`, keeping the Supabase credentials local-only.
+- Scaffolded the Next.js App Router project with TypeScript, Tailwind, and ESLint into the workspace root.
+- Installed Phase 1 dependencies: Supabase clients, dotenv, fast-xml-parser, tsx, and server-only.
+- Built the Phase 1 code paths:
+  - Supabase config and client/server factories
+  - Phase 1 SQL migrations
+  - skills.sh parser, GitHub enrichment, sync orchestration, and manual sync scripts
+  - shared layout, homepage, skill detail page, and Phase 1 components
+  - metadata helpers, robots, sitemap, Open Graph image, Twitter image, and not-found route
+  - cron sync endpoint
+- Verified `npm run lint` passes.
+- Verified `npm run build` passes.
+- Verified the sync runner reaches the hosted Supabase project and fails specifically because the SQL schema has not been applied yet: `public.sync_runs` does not exist in the hosted project.
+- Resumed after the hosted SQL migrations were applied in Supabase.
+- Fixed the Phase 1 ingestion bug where duplicate repository rows caused `ON CONFLICT DO UPDATE command cannot affect row a second time`.
+- Verified `npm run sync:skills -- --limit=12` completes successfully against hosted Supabase and stores a raw snapshot under `skills-sh/2026-03-11T10-26-57-656Z`.
+- Verified `npm run build` still passes after the ingestion fix.
+- Queried hosted Supabase and confirmed imported skill rows exist, including `azure-ai`.
+- Started the app locally in production mode with `npm.cmd run start -- --hostname 127.0.0.1 --port 3000`.
+- Verified the homepage renders live imported content and includes a real skill listing (`azure-ai`).
+- Verified the skill detail page at `/skills/azure-ai` renders real Supabase-backed fields including the short summary, install command, weekly installs, and canonical source URL.
+- Verified `robots.txt` responds with a sitemap reference and `sitemap.xml` includes both the homepage and imported skill URLs.
+- Verified public pages output canonical tags, Open Graph tags, and Twitter Card tags.
+- Phase 1 definition of done is now satisfied. Work stopped before Phase 2.
+- Investigated the earlier 12-skill import count and verified it was caused by the explicit `--limit=12` validation run, not by the upstream sitemap or parser.
+- Verified the live `skills.sh` sitemap currently exposes 4000 skill URLs.
+- Hardened the ingestion pipeline for full-catalog sync:
+  - cached GitHub repository metadata requests
+  - graceful fallback when GitHub rate limits hit
+  - concurrent skill-page fetching
+  - chunked raw snapshot uploads
+  - paged reads for existing skills
+  - batched `skills` and `skill_agent_compatibility` writes
+- Completed a full hosted sync with `itemsFound: 4000`, `errorsCount: 0`, and raw snapshots stored under `skills-sh/2026-03-11T11-08-43-211Z`.
+- Verified hosted catalog counts after the full sync: 4000 skills, 743 sources, 742 repositories, 24 agents, and 17,792 skill-agent compatibility rows.
+- Added a deterministic starter taxonomy derived from public skill data, persisted 14 categories, and wrote 15,636 skill-category links to hosted Supabase.
+- Built Phase 2 routes and data layers:
+  - search page with database-backed filters and pagination
+  - category pages
+  - agent pages
+  - source pages with encoded source slugs
+  - top-rated, new, and trending listing pages
+  - metadata title/description templates
+  - taxonomy links and related-skills block on skill pages
+  - expanded sitemap coverage
+- Verified `npm run lint` passes.
+- Verified `npm run build` passes with all Phase 2 routes.
+- Verified live production-mode responses for:
+  - `/search`
+  - `/categories/software-engineering`
+  - `/agents/claude-code`
+  - `/sources/0xbigboss%2Fclaude-code`
+  - `/top-rated`
+  - `/new`
+  - `/trending`
+  - `/skills/azure-ai`
+- Verified search returns live skill links, pagination works on search and listing pages, and skill pages now link to category, agent, and source context.
+- Verified `sitemap.xml` now includes the new Phase 2 public routes and dynamic taxonomy pages.
+- Phase 2 definition of done is satisfied. Work stopped before Phase 3.
+- Started Phase 3 implementation.
+- Drafted the manual SQL migrations for Phase 3:
+  - `supabase/migrations/003_users_and_reviews.sql`
+  - `supabase/migrations/004_moderation_and_audit.sql`
+- Added SSR-aware auth helpers, passwordless magic-link login, auth callback handling, and an account page with optional GitHub identity linking.
+- Built the Phase 3 review system:
+  - review submission API with Turnstile verification
+  - low-friction required review fields with optional detail fields behind progressive disclosure
+  - public review summary, distribution, recommendation, and review-feed components
+  - `/skills/[skillSlug]/review` and `/skills/[skillSlug]/reviews` routes
+- Built the moderation and audit layer:
+  - server-side review rate limits
+  - automatic moderation queueing for the first two reviews from a new account
+  - private moderation queue page
+  - moderation action API for approve, reject, and escalate
+  - audit-log writes for moderation actions and account-status helper changes
+- Upgraded public GEO/schema coverage:
+  - machine-readable Quick Facts block on skill pages
+  - FAQ section and FAQPage JSON-LD on skill pages
+  - conditional AggregateRating JSON-LD on reviewed skill pages
+  - Organization JSON-LD on the homepage
+  - descriptive single-`h1` page titles across updated routes
+  - category and agent summary sentences, top picks, and visible last-updated dates
+- Updated shared UI to reflect Phase 3 state, including account entry points in the header and review-aware skill cards.
+- Verified `npm run lint` passes.
+- Verified `npm run build` passes with all Phase 3 routes.
+- Verified runtime production-mode responses for:
+  - `/`
+  - `/login`
+  - `/skills/azure-ai`
+  - `/skills/azure-ai/reviews`
+  - `/categories/software-engineering`
+  - `/agents/claude-code`
+  - `/sitemap.xml`
+- Verified the private moderation page redirects anonymous visitors to login.
+- Phase 3 code is complete and runtime-clean on the public routes. Work stopped before Phase 4.
+- Reopened the app for Phase 3 hosted verification before starting the final build phase.
+- Verified the local auth callback route originally failed for Supabase magic links that delivered session tokens in the URL hash; replaced the route handler with a browser-aware callback page plus a profile-sync API.
+- Generated a hosted Supabase magic link for `jmanav2000@gmail.com`, completed the callback locally, and verified the flow lands on `/account` with a synced `user_profiles` row.
+- Verified `/skills/azure-ai/review` redirects anonymous visitors to login and loads for the authenticated user.
+- Created a dedicated moderator test account in hosted Supabase, assigned the `moderator` role, and verified `/admin/moderation` loads for that authenticated moderator while still redirecting anonymous visitors.
+- Applied the Phase 3 migration history repair against hosted Supabase via the session-pooler connection, then confirmed the remote schema is aligned with the local migration set.
+- Started Phase 4 implementation.
+- Added `supabase/migrations/005_submissions_and_reports.sql` and applied it directly to hosted Supabase through the session-pooler connection.
+- Built the Phase 4 submission flow:
+  - protected `/submit-skill` page
+  - GitHub-repo URL prefill endpoint and helper
+  - submission API and moderation-queue insertion
+  - approval path that creates catalog skill entries from approved submissions
+- Built request-review support:
+  - visible request CTA on skill pages
+  - request counts on skill pages
+  - login redirect for signed-out visitors
+- Built the report/flag flow:
+  - report dialog component
+  - report API and moderation-queue insertion
+  - report entry points on review cards and skill pages
+- Added public trust and info pages with a shared policy layout:
+  - `/how-scores-work`
+  - `/review-guidelines`
+  - `/moderation-policy`
+  - `/about`
+  - `/privacy`
+  - `/terms`
+- Added shared UI polish for Phase 4:
+  - empty-state prompt component
+  - toast feedback component
+  - footer links to the public trust/info pages
+- Centralized structured-data generation in `lib/seo/schema.ts` and added a lightweight analytics helper in `lib/analytics/events.ts`.
+- Added production-safe handling for missing Turnstile keys so review, report, and submission forms show a warning and disable submission instead of silently failing.
+- Verified `npm run lint` passes after the full Phase 4 implementation.
+- Verified `npm run build` passes after the full Phase 4 implementation.
+- Started the app locally in production mode on port `3002` for final V1 smoke testing.
+- Verified public production-mode responses for:
+  - `/`
+  - `/login`
+  - `/search`
+  - `/skills/azure-ai`
+  - `/skills/azure-ai/reviews`
+  - `/categories/software-engineering`
+  - `/agents/claude-code`
+  - `/top-rated`
+  - `/new`
+  - `/trending`
+  - `/how-scores-work`
+  - `/review-guidelines`
+  - `/moderation-policy`
+  - `/about`
+  - `/privacy`
+  - `/terms`
+  - `/sitemap.xml`
+- Verified protected-route redirects in production mode:
+  - `/submit-skill` redirects anonymous visitors to `/login?next=%2Fsubmit-skill`
+  - `/admin/moderation` redirects anonymous visitors to `/login?next=%2Fadmin%2Fmoderation`
+- Verified `/submit-skill` loads for the authenticated `jmanav2000@gmail.com` account in production mode.
+- Verified `/admin/moderation` loads for the authenticated moderator account in production mode.
+- Verified footer links to the trust and policy pages are present on the homepage.
+- Phase 4 definition of done is satisfied. SkillJury v1 is implementation-complete and stopped before any post-v1 work.
