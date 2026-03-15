@@ -4,66 +4,81 @@ type RecommendationSummaryProps = {
   summary: ReviewAggregateSummary;
 };
 
+function renderStars(rating: number) {
+  const rounded = Math.round(rating);
+
+  return Array.from({ length: 5 }, (_, index) => (
+    <span
+      className={index < rounded ? "text-foreground" : "text-muted-foreground/40"}
+      key={`star:${index}`}
+    >
+      ★
+    </span>
+  ));
+}
+
 export function RecommendationSummary({
   summary,
 }: RecommendationSummaryProps) {
+  if (summary.approvedCount === 0 || summary.overallAverage === null) {
+    return null;
+  }
+
   const visibleSubscores = summary.subscores.filter(
     (subscore) => subscore.count >= 5 && subscore.average !== null,
   );
 
   return (
-    <section className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-      <div className="grid gap-5 md:grid-cols-3">
-        <div className="rounded-[1.25rem] bg-slate-50 p-4">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
-            Average rating
-          </div>
-          <div className="mt-3 font-mono text-3xl font-semibold text-slate-950">
-            {summary.overallAverage ? `${summary.overallAverage.toFixed(2)}/5` : "No rating yet"}
-          </div>
-        </div>
-        <div className="rounded-[1.25rem] bg-slate-50 p-4">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
-            Confidence-adjusted
-          </div>
-          <div className="mt-3 font-mono text-3xl font-semibold text-slate-950">
-            {summary.confidenceAdjusted
-              ? `${summary.confidenceAdjusted.toFixed(2)}/5`
-              : "Pending"}
-          </div>
-        </div>
-        <div className="rounded-[1.25rem] bg-slate-50 p-4">
-          <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
-            Would recommend
-          </div>
-          <div className="mt-3 font-mono text-3xl font-semibold text-slate-950">
-            {summary.recommendationPercentage !== null
-              ? `${summary.recommendationPercentage}%`
-              : "Pending"}
-          </div>
-        </div>
+    <section className="space-y-5">
+      <div className="text-[11px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+        Review summary
       </div>
-
-      <div className="mt-5 grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
-        <div>Yes: {summary.recommendationBreakdown.yes}</div>
-        <div>With caveats: {summary.recommendationBreakdown.withCaveats}</div>
-        <div>No: {summary.recommendationBreakdown.no}</div>
+      <div className="space-y-3">
+        <div className="font-mono text-5xl font-bold text-foreground">
+          {summary.overallAverage.toFixed(2)}
+        </div>
+        <div className="flex items-center gap-1 text-lg">
+          {renderStars(summary.overallAverage)}
+        </div>
+        <p className="text-xs font-mono uppercase tracking-[0.24em] text-muted-foreground">
+          Based on {summary.approvedCount.toLocaleString("en-US")} reviews
+        </p>
+        {summary.recommendationPercentage !== null ? (
+          <p className="text-sm text-foreground">
+            Would recommend:{" "}
+            <span className="font-mono text-foreground">
+              {summary.recommendationPercentage}%
+            </span>
+          </p>
+        ) : null}
+        {summary.confidenceAdjusted !== null ? (
+          <p className="text-sm text-muted-foreground">
+            Confidence-adjusted score:{" "}
+            <span className="font-mono text-foreground">
+              {summary.confidenceAdjusted.toFixed(2)}
+            </span>
+          </p>
+        ) : null}
       </div>
 
       {visibleSubscores.length > 0 ? (
-        <div className="mt-6 space-y-3">
-          <h3 className="text-sm font-semibold text-slate-950">Subscores</h3>
+        <div className="space-y-3">
           {visibleSubscores.map((subscore) => (
-            <div key={subscore.key} className="grid grid-cols-[9rem_1fr_4rem] items-center gap-3 text-sm">
-              <span className="text-slate-700">{subscore.label}</span>
-              <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="grid grid-cols-[8rem_minmax(0,1fr)_3.5rem] items-center gap-3"
+              key={subscore.key}
+            >
+              <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                {subscore.label}
+              </span>
+              <div className="h-2 rounded-full bg-secondary">
                 <div
-                  className="h-full rounded-full bg-amber-400"
+                  className="h-2 rounded-full bg-muted"
                   style={{ width: `${((subscore.average ?? 0) / 5) * 100}%` }}
                 />
               </div>
-              <span className="text-right font-mono text-slate-950">
-                {subscore.average?.toFixed(2)}
+              <span className="text-right font-mono text-sm text-foreground">
+                {subscore.average?.toFixed(1)}
               </span>
             </div>
           ))}

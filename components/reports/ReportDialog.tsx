@@ -88,7 +88,7 @@ export function ReportDialog({
   if (!isSignedIn) {
     return (
       <button
-        className="text-xs font-medium text-slate-600 underline decoration-slate-300 underline-offset-4"
+        className="text-xs font-medium text-zinc-400 underline decoration-white/20 underline-offset-4"
         onClick={() => router.push(loginHref)}
         type="button"
       >
@@ -108,7 +108,7 @@ export function ReportDialog({
       ) : null}
 
       <button
-        className="text-xs font-medium text-slate-600 underline decoration-slate-300 underline-offset-4"
+        className="text-xs font-medium text-zinc-400 underline decoration-white/20 underline-offset-4"
         onClick={() => setIsOpen((value) => !value)}
         type="button"
       >
@@ -117,13 +117,13 @@ export function ReportDialog({
 
       {isOpen ? (
         <form
-          className="rounded-[1.5rem] border border-slate-200 bg-slate-50/90 p-4 text-sm"
+          className="rounded-lg border border-white/10 bg-zinc-950/85 p-4 text-sm"
           onSubmit={handleSubmit}
         >
           <label className="grid gap-2">
-            <span className="font-medium text-slate-900">Reason</span>
+            <span className="font-medium text-white">Reason</span>
             <select
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+              className="rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
               defaultValue="spam"
               name="reason"
               required
@@ -137,9 +137,9 @@ export function ReportDialog({
           </label>
 
           <label className="mt-4 grid gap-2">
-            <span className="font-medium text-slate-900">Notes</span>
+            <span className="font-medium text-white">Notes</span>
             <textarea
-              className="min-h-24 rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm leading-7 text-slate-950 outline-none transition focus:border-slate-400"
+              className="min-h-24 rounded-lg border border-white/10 bg-zinc-900 px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-white/20"
               name="notes"
               placeholder="Add any context that will help a moderator review this report."
             />
@@ -152,13 +152,13 @@ export function ReportDialog({
               data-sitekey={turnstileSiteKey}
             />
           ) : (
-            <div className="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900">
+            <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm leading-7 text-amber-200">
               Reporting is disabled until Turnstile is configured for this environment.
             </div>
           )}
 
           <button
-            className="mt-4 rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:bg-slate-400"
+            className="mt-4 rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:bg-zinc-500 disabled:text-zinc-900"
             disabled={isPending || !turnstileReady}
             type="submit"
           >

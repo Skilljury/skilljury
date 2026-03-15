@@ -3,13 +3,15 @@ import { notFound } from "next/navigation";
 
 import { SortSelect } from "@/components/listing/SortSelect";
 import { PaginationNav } from "@/components/listing/PaginationNav";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ResultGrid } from "@/components/search/ResultGrid";
 import { SourceHero } from "@/components/sources/SourceHero";
 import { searchSkills } from "@/lib/db/search";
 import { getSourceBySlug } from "@/lib/db/sourcePages";
 import { normalizePageParam, normalizeSortParam } from "@/lib/routing/browseParams";
 import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
-import { buildPageMetadata } from "@/lib/seo/metadata";
+import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
+import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
 import { buildSourceMetadataText } from "@/lib/seo/titleTemplates";
 
 type SourcePageProps = {
@@ -38,6 +40,7 @@ export async function generateMetadata({
   return buildPageMetadata({
     title,
     description,
+    indexable: (source.skillCount ?? 0) > 3,
     pathname: `/sources/${encodeSourceSlug(source.slug)}`,
   });
 }
@@ -62,22 +65,41 @@ export default async function SourcePage({
     page,
     sort,
   });
+  const canonicalPath = `/sources/${encodeSourceSlug(source.slug)}`;
+  const breadcrumbItems = [
+    { name: "Home", path: "/" },
+    { name: source.name, path: canonicalPath },
+  ];
+  const resultItems = results.items.map((item) => ({
+    name: item.name,
+    url: buildCanonicalUrl(`/skills/${item.slug}`),
+  }));
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
+      {resultItems.length > 0 ? (
+        <JsonLd
+          data={buildItemListJsonLd({
+            canonicalPath,
+            itemName: `${source.name} skills on SkillJury`,
+            items: resultItems,
+          })}
+        />
+      ) : null}
       <SourceHero source={source} />
 
       <form
         action={`/sources/${encodeSourceSlug(source.slug)}`}
-        className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)]"
+        className="rounded-lg border border-white/10 bg-white/[0.04] p-5 shadow-md"
         method="get"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
+            <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
               Source listing
             </div>
-            <h2 className="mt-3 font-display text-4xl tracking-tight text-slate-950">
+            <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-white">
               {results.totalCount.toLocaleString("en-US")} imported skills
             </h2>
           </div>

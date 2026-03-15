@@ -20,7 +20,7 @@ export default function PrivacyPage() {
         {
           title: "What data SkillJury stores",
           body: [
-            "When you sign in, SkillJury stores your email-based account identifier and the reviewer profile fields needed to show your public reviews. If you link GitHub, SkillJury also stores the GitHub username used as a trust signal.",
+            "When you create an account, SkillJury stores your email-based account identifier plus the reviewer profile fields needed to show your public reviews. If you link GitHub, SkillJury also stores the GitHub username used as a trust signal.",
             "When you submit reviews, reports, or skill submissions, SkillJury stores the content you provide plus moderation and audit metadata needed to operate the queue safely.",
           ],
         },

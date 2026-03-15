@@ -34,7 +34,7 @@ export default function AboutPage() {
         {
           title: "How trust is handled",
           body: [
-            "SkillJury uses passwordless accounts, optional GitHub linking, moderation queues, private audit logs, and clearly labeled sponsored placement rules. Paid placement must never change organic ratings or unlabeled ranking surfaces.",
+            "SkillJury uses real accounts with Google or email-and-password access, public reviewer IDs, optional GitHub linking, moderation queues, private audit logs, and clearly labeled sponsored placement rules. Paid placement must never change organic ratings or unlabeled ranking surfaces.",
             "The product is still early, but the intent is already clear: trust is the product, not a cosmetic feature added later.",
           ],
         },

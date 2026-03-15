@@ -4,15 +4,15 @@ type ToastProps = {
 };
 
 const toneClasses: Record<NonNullable<ToastProps["tone"]>, string> = {
-  error: "border-rose-200 bg-rose-50/90 text-rose-800",
-  success: "border-emerald-200 bg-emerald-50/90 text-emerald-900",
+  error: "border-rose-500/20 bg-rose-500/10 text-rose-100",
+  success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-100",
 };
 
 export function Toast({ message, tone = "success" }: ToastProps) {
   return (
     <div
       aria-live="polite"
-      className={`rounded-[1.5rem] border p-5 text-sm leading-7 shadow-[0_20px_55px_rgba(15,23,42,0.05)] ${toneClasses[tone]}`}
+      className={`rounded-lg border p-5 text-sm leading-7 shadow-md ${toneClasses[tone]}`}
       role="status"
     >
       {message}

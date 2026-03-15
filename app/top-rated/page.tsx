@@ -33,14 +33,14 @@ export default async function TopRatedPage({
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-[0_25px_70px_rgba(15,23,42,0.08)]">
-        <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
+      <section className="rounded-xl border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,22,0.96),rgba(10,10,12,0.92))] p-7 shadow-lg">
+        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
           Listing page
         </div>
-        <h1 className="mt-4 font-display text-5xl tracking-tight text-slate-950">
+        <h1 className="mt-4 font-display text-5xl font-semibold tracking-tight text-white">
           Top rated skills
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-400">
           Rankings prioritize confidence-adjusted public ratings, then use current
           catalog signals to stabilize ties between similarly reviewed skills.
         </p>

@@ -14,9 +14,10 @@ function firstParam(value: string | string[] | undefined) {
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
-    title: "Completing your SkillJury sign-in",
+    title: "Completing your SkillJury account flow",
     description:
-      "Complete your SkillJury magic-link sign-in and sync your reviewer profile.",
+      "Complete your SkillJury login, signup confirmation, or social sign-in and sync your reviewer profile.",
+    indexable: false,
     pathname: "/auth/callback",
   });
 }
@@ -29,16 +30,16 @@ export default async function AuthCallbackPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(247,212,138,0.16),transparent_35%),linear-gradient(135deg,#0f172a,#050816_65%)] px-6 py-8 text-white shadow-[0_45px_120px_rgba(0,0,0,0.45)] lg:px-10">
-        <div className="text-xs uppercase tracking-[0.28em] text-slate-400">
-          Magic link callback
+      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_35%),linear-gradient(135deg,#18181b,#09090b_70%)] px-6 py-8 text-white shadow-xl lg:px-10">
+        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+          Auth callback
         </div>
-        <h1 className="mt-4 font-display text-5xl tracking-tight sm:text-6xl">
-          Completing your SkillJury sign-in
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight sm:text-6xl">
+          Completing your SkillJury account flow
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
-          SkillJury is verifying your sign-in link and restoring your reviewer
-          session before you continue.
+        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+          SkillJury is restoring your session, syncing your account, and routing you
+          to the next step.
         </p>
       </section>
 

@@ -21,14 +21,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (
+      viewer.profile?.accountStatus === "suspended" ||
+      viewer.profile?.accountStatus === "banned"
+    ) {
+      throw new AppError(
+        403,
+        "This account cannot request reviews right now.",
+        "account_blocked",
+      );
+    }
+
     const body = (await request.json()) as ReviewRequestBody;
 
-    if (!body.skillSlug) {
+    const skillSlug = body.skillSlug?.trim();
+
+    if (!skillSlug) {
       throw new AppError(400, "Skill slug is required.", "invalid_payload");
     }
 
     const result = await createReviewRequest({
-      skillSlug: body.skillSlug,
+      skillSlug,
       userId: viewer.user.id,
     });
 

@@ -6,6 +6,20 @@ type InstalledAgent = {
   installCount: number;
 };
 
+export type SecurityAuditStatus =
+  | "critical"
+  | "fail"
+  | "high_risk"
+  | "pass"
+  | "safe"
+  | "warn";
+
+export type ParsedSecurityAudits = {
+  gen?: SecurityAuditStatus;
+  socket?: SecurityAuditStatus;
+  snyk?: SecurityAuditStatus;
+};
+
 export type ParsedSkillPage = {
   sourceSlug: string;
   sourceName: string;
@@ -21,6 +35,7 @@ export type ParsedSkillPage = {
   githubStars: number | null;
   firstSeenAt: string | null;
   installedAgents: InstalledAgent[];
+  securityAudits: ParsedSecurityAudits;
 };
 
 const parser = new XMLParser({
@@ -124,6 +139,71 @@ function normalizeFirstSeen(value: string | null) {
   }
 
   return parsed.toISOString().slice(0, 10);
+}
+
+function normalizeSecurityAuditLabel(
+  value: string,
+): keyof ParsedSecurityAudits | null {
+  const normalized = stripHtml(value).toLowerCase();
+
+  if (normalized.includes("gen agent trust hub")) {
+    return "gen";
+  }
+
+  if (normalized.includes("socket")) {
+    return "socket";
+  }
+
+  if (normalized.includes("snyk")) {
+    return "snyk";
+  }
+
+  return null;
+}
+
+function normalizeSecurityAuditStatus(
+  value: string,
+): SecurityAuditStatus | null {
+  const normalized = stripHtml(value)
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+  switch (normalized) {
+    case "pass":
+    case "fail":
+    case "safe":
+    case "critical":
+      return normalized;
+    case "warn":
+    case "warning":
+      return "warn";
+    case "high risk":
+    case "high-risk":
+    case "high_risk":
+      return "high_risk";
+    default:
+      return null;
+  }
+}
+
+function extractSecurityAudits(html: string): ParsedSecurityAudits {
+  const audits: ParsedSecurityAudits = {};
+
+  for (const match of html.matchAll(
+    /href="[^"]*\/security\/[^"]+"[^>]*>[\s\S]*?<span[^>]*>([^<]+)<\/span>\s*<span[^>]*>([^<]+)<\/span>/gi,
+  )) {
+    const key = normalizeSecurityAuditLabel(match[1]);
+    const status = normalizeSecurityAuditStatus(match[2]);
+
+    if (!key || !status || audits[key]) {
+      continue;
+    }
+
+    audits[key] = status;
+  }
+
+  return audits;
 }
 
 function extractInstalledAgents(html: string): InstalledAgent[] {
@@ -245,5 +325,6 @@ export function parseSkillsShSkillPage(
     githubStars: toInteger(extractMetricValue(html, "GitHub Stars")),
     firstSeenAt: normalizeFirstSeen(extractMetricValue(html, "First Seen")),
     installedAgents: extractInstalledAgents(html),
+    securityAudits: extractSecurityAudits(html),
   };
 }

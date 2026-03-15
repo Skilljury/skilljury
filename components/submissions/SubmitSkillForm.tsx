@@ -1,8 +1,8 @@
 "use client";
 
 import Script from "next/script";
-import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 import { Toast } from "@/components/ui/Toast";
 import { trackBrowserEvent } from "@/lib/analytics/events";
@@ -148,14 +148,14 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
       ) : null}
 
       <form
-        className="space-y-5 rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]"
+        className="space-y-5 rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md"
         onSubmit={handleSubmit}
       >
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Repository URL</span>
+            <span className="text-sm font-medium text-white">Repository URL</span>
             <input
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               name="repositoryUrl"
               onBlur={handlePrefill}
               onChange={(event) => setRepositoryUrl(event.target.value)}
@@ -167,9 +167,9 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Skill URL</span>
+            <span className="text-sm font-medium text-white">Skill URL</span>
             <input
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               name="sourceUrl"
               onChange={(event) => setSourceUrl(event.target.value)}
               placeholder="https://example.com/skill-page"
@@ -181,9 +181,9 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Proposed name</span>
+            <span className="text-sm font-medium text-white">Proposed name</span>
             <input
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               name="proposedName"
               onChange={(event) => setProposedName(event.target.value)}
               placeholder="What should the skill be called?"
@@ -193,9 +193,9 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Suggested category</span>
+            <span className="text-sm font-medium text-white">Suggested category</span>
             <input
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               name="proposedCategory"
               placeholder="Example: software engineering, research, writing"
               type="text"
@@ -204,9 +204,9 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
         </div>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Why it belongs in SkillJury</span>
+          <span className="text-sm font-medium text-white">Why it belongs in SkillJury</span>
           <textarea
-            className="min-h-32 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+            className="min-h-32 rounded-lg border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
             name="proposedSummary"
             onChange={(event) => setProposedSummary(event.target.value)}
             placeholder="Add a concise summary, use case, or note for the moderator."
@@ -214,8 +214,8 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
           />
         </label>
 
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5 text-sm leading-7 text-slate-700">
-          <div className="font-semibold text-slate-950">
+        <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-5 text-sm leading-7 text-zinc-300">
+          <div className="font-semibold text-white">
             {isPrefillPending ? "Checking repository metadata..." : "Auto-fill preview"}
           </div>
           {prefill ? (
@@ -249,13 +249,13 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
             data-sitekey={turnstileSiteKey}
           />
         ) : (
-          <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900">
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm leading-7 text-amber-200">
             Skill submission is disabled until Turnstile is configured for this environment.
           </div>
         )}
 
         <button
-          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
           disabled={isSubmitPending || !turnstileReady}
           type="submit"
         >

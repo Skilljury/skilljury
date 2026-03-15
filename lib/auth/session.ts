@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { isMissingRelationError, logDataAccessError } from "@/lib/db/errors";
+import { normalizeUsername } from "@/lib/auth/username";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 import {
   getAdminEmail,
@@ -62,18 +63,11 @@ function isAuthSessionMissingError(error: { message?: string; name?: string }) {
   );
 }
 
-function normalizeUsername(value: string | null | undefined) {
-  if (!value) {
-    return null;
-  }
-
-  const sanitized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 32);
-
-  return sanitized || null;
+function isUniqueViolation(error: { code?: string; message?: string }) {
+  return (
+    error.code === "23505" ||
+    error.message?.includes("duplicate key value violates unique constraint") === true
+  );
 }
 
 function mapProfile(row: ProfileRow | null): ViewerProfile | null {
@@ -158,8 +152,23 @@ export async function syncUserProfileFromAuthUser(user: User) {
   const serviceSupabase = createServiceRoleSupabaseClient();
   const githubIdentity = extractGitHubIdentity(user);
   const metadata = user.user_metadata as Record<string, unknown> | undefined;
+  const { data: existingProfile, error: existingProfileError } = await serviceSupabase
+    .from("user_profiles")
+    .select(
+      "id, username, display_name, avatar_url, bio, github_username, is_github_linked, role, trust_score, badge_summary, account_status, joined_at, last_active_at",
+    )
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (existingProfileError && !isMissingRelationError(existingProfileError.message)) {
+    throw existingProfileError;
+  }
+
+  const existing = existingProfile as ProfileRow | null;
   const derivedDisplayName =
-    typeof metadata?.full_name === "string"
+    typeof metadata?.display_name === "string"
+      ? metadata.display_name
+      : typeof metadata?.full_name === "string"
       ? metadata.full_name
       : typeof metadata?.name === "string"
         ? metadata.name
@@ -169,23 +178,38 @@ export async function syncUserProfileFromAuthUser(user: User) {
       ? metadata.avatar_url
       : githubIdentity?.avatarUrl;
   const derivedUsername = normalizeUsername(
-    typeof metadata?.user_name === "string"
-      ? metadata.user_name
-      : githubIdentity?.username ?? user.email?.split("@")[0] ?? null,
+    typeof metadata?.username === "string"
+      ? metadata.username
+      : typeof metadata?.user_name === "string"
+        ? metadata.user_name
+        : githubIdentity?.username ?? user.email?.split("@")[0] ?? null,
   );
+  const basePayload = {
+    id: user.id,
+    avatar_url: existing?.avatar_url ?? derivedAvatarUrl ?? null,
+    display_name: existing?.display_name ?? derivedDisplayName,
+    github_username: githubIdentity?.username ?? existing?.github_username ?? null,
+    is_github_linked: Boolean(githubIdentity),
+    last_active_at: new Date().toISOString(),
+  };
+  const preferredUsername = existing?.username ?? derivedUsername ?? null;
 
-  const { error } = await serviceSupabase.from("user_profiles").upsert(
-    {
-      id: user.id,
-      avatar_url: derivedAvatarUrl ?? null,
-      display_name: derivedDisplayName,
-      github_username: githubIdentity?.username ?? null,
-      is_github_linked: Boolean(githubIdentity),
-      last_active_at: new Date().toISOString(),
-      username: derivedUsername,
-    },
-    { onConflict: "id" },
-  );
+  const writeProfile = async (username: string | null) => {
+    const payload = username ? { ...basePayload, username } : basePayload;
+    return serviceSupabase.from("user_profiles").upsert(payload, { onConflict: "id" });
+  };
+
+  const { error } = await writeProfile(preferredUsername);
+
+  if (error && preferredUsername && !existing?.username && isUniqueViolation(error)) {
+    const fallbackWrite = await writeProfile(null);
+
+    if (fallbackWrite.error) {
+      throw fallbackWrite.error;
+    }
+
+    return;
+  }
 
   if (error) {
     throw error;

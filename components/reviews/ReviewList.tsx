@@ -1,7 +1,6 @@
 import type { ReviewListItem } from "@/lib/reviews/getSkillReviews";
 
 import { ReviewCard } from "@/components/reviews/ReviewCard";
-import { EmptyStatePrompt } from "@/components/ui/EmptyStatePrompt";
 
 type ReviewListProps = {
   actionHref?: string;
@@ -16,26 +15,17 @@ type ReviewListProps = {
 };
 
 export function ReviewList({
-  actionHref,
-  actionLabel,
-  emptyCopy = "No approved reviews are live for this skill yet.",
+  emptyCopy = "No community reviews yet. Be the first to review.",
   items,
   loginHref,
   reportTarget,
 }: ReviewListProps) {
   if (items.length === 0) {
-    return (
-      <EmptyStatePrompt
-        actionHref={actionHref}
-        actionLabel={actionLabel}
-        description={emptyCopy}
-        title="No public reviews yet"
-      />
-    );
+    return <p className="text-sm text-muted-foreground">{emptyCopy}</p>;
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {items.map((review) => (
         <ReviewCard
           key={review.id}

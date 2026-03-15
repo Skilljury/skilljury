@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type PaginationNavProps = {
   basePath: string;
   page: number;
@@ -37,26 +39,26 @@ export function PaginationNav({
   }
 
   return (
-    <div className="flex flex-col items-start justify-between gap-4 rounded-[1.5rem] border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-[0_20px_55px_rgba(15,23,42,0.08)] sm:flex-row sm:items-center">
-      <div>
+    <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-border bg-card/70 p-5 text-sm text-muted-foreground sm:flex-row sm:items-center">
+      <div className="font-mono">
         Page {page} of {totalPages}
       </div>
       <div className="flex items-center gap-3">
         {page > 1 ? (
-          <a
-            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 transition hover:border-slate-300 hover:bg-white"
+          <Link
+            className="rounded-lg border border-border px-4 py-2 transition-default hover:bg-surface-hover hover:text-foreground"
             href={buildHref(basePath, page - 1, query)}
           >
             Previous
-          </a>
+          </Link>
         ) : null}
         {page < totalPages ? (
-          <a
-            className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800"
+          <Link
+            className="rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-default hover:opacity-90"
             href={buildHref(basePath, page + 1, query)}
           >
             Next
-          </a>
+          </Link>
         ) : null}
       </div>
     </div>

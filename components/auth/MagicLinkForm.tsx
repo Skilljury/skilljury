@@ -6,12 +6,22 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 type MagicLinkFormProps = {
   adminEmail: string | null;
-  redirectTo: string;
+  nextPath: string;
 };
 
 const COOLDOWN_MS = 30_000;
 
-export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
+function buildBrowserRedirectUrl(nextPath: string) {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const url = new URL("/auth/callback", window.location.origin);
+  url.searchParams.set("next", nextPath);
+  return url.toString();
+}
+
+export function MagicLinkForm({ adminEmail, nextPath }: MagicLinkFormProps) {
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sentEmail, setSentEmail] = useState<string | null>(null);
@@ -49,6 +59,7 @@ export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
     setErrorMessage(null);
 
     startTransition(async () => {
+      const redirectTo = buildBrowserRedirectUrl(nextPath);
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
@@ -72,15 +83,15 @@ export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
   return (
     <div className="space-y-5">
       <form
-        className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]"
+        className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md"
         onSubmit={handleSubmit}
       >
         <div className="grid gap-4">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Email address</span>
+            <span className="text-sm font-medium text-white">Email address</span>
             <input
               autoComplete="email"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               name="email"
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
@@ -91,7 +102,7 @@ export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
           </label>
 
           <button
-            className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
             disabled={isPending || isCoolingDown}
             type="submit"
           >
@@ -105,7 +116,7 @@ export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
       </form>
 
       {sentEmail ? (
-        <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/80 p-5 text-sm leading-7 text-emerald-900">
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-5 text-sm leading-7 text-emerald-100">
           <div className="font-semibold">Check your inbox</div>
           <p className="mt-2">
             A sign-in link was sent to <strong>{sentEmail}</strong>. Open the email on
@@ -115,7 +126,7 @@ export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
       ) : null}
 
       {errorMessage ? (
-        <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-5 text-sm leading-7 text-amber-950">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-7 text-amber-100">
           <div className="font-semibold">Email delivery may have failed</div>
           <p className="mt-2">
             SkillJury could not send the magic link on this attempt: {errorMessage}
@@ -127,8 +138,8 @@ export function MagicLinkForm({ adminEmail, redirectTo }: MagicLinkFormProps) {
           </p>
         </div>
       ) : (
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5 text-sm leading-7 text-slate-700">
-          <div className="font-semibold text-slate-900">If the email does not arrive</div>
+        <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-zinc-300">
+          <div className="font-semibold text-white">If the email does not arrive</div>
           <p className="mt-2">
             Wait a minute, check spam, then use the retry option. Repeated failures can
             indicate a typo or a bounced address.

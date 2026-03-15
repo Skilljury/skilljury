@@ -35,61 +35,80 @@ export function QuickFacts({
   summary,
   supportsAgents,
 }: QuickFactsProps) {
+  const hasSummary = Boolean(summary);
+  const hasReviews = reviewCount > 0;
+
   return (
-    <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-      <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
+    <section className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md">
+      <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
         Quick facts
       </div>
       <dl className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Skill name</dt>
-          <dd className="mt-2 text-sm leading-7 text-slate-950">{skillName}</dd>
+          <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Skill name</dt>
+          <dd className="mt-2 text-sm leading-7 text-white">{skillName}</dd>
+        </div>
+        {hasSummary ? (
+          <div>
+            <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
+              What it does
+            </dt>
+            <dd className="mt-2 text-sm leading-7 text-zinc-300">{summary}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Agent compatibility</dt>
+          <dd className="mt-2 text-sm leading-7 text-zinc-300">{supportsAgents}</dd>
         </div>
         <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">What it does</dt>
-          <dd className="mt-2 text-sm leading-7 text-slate-950">
-            {summary ?? "A short imported summary is not available yet."}
-          </dd>
+          <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Category</dt>
+          <dd className="mt-2 text-sm leading-7 text-zinc-300">{categoryLabel}</dd>
         </div>
         <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Agent compatibility</dt>
-          <dd className="mt-2 text-sm leading-7 text-slate-950">{supportsAgents}</dd>
+          <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Source</dt>
+          <dd className="mt-2 text-sm leading-7 text-zinc-300">{sourceLabel}</dd>
         </div>
         <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Category</dt>
-          <dd className="mt-2 text-sm leading-7 text-slate-950">{categoryLabel}</dd>
-        </div>
-        <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Source</dt>
-          <dd className="mt-2 text-sm leading-7 text-slate-950">{sourceLabel}</dd>
-        </div>
-        <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Install command</dt>
-          <dd className="mt-2 break-all text-sm leading-7 text-slate-950">
+          <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Install command</dt>
+          <dd className="mt-2 break-all text-sm leading-7 text-zinc-300">
             {installCommand ?? "Install command not available from the source."}
           </dd>
         </div>
+        {hasReviews ? (
+          <div>
+            <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Review count</dt>
+            <dd className="mt-2 font-mono text-sm text-white">
+              {reviewCount.toLocaleString("en-US")}
+            </dd>
+          </div>
+        ) : null}
+        {hasReviews ? (
+          <div>
+            <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Average rating</dt>
+            <dd
+              className={`mt-2 font-mono text-sm ${
+                averageRating !== null ? "text-white" : "text-zinc-500"
+              }`}
+            >
+              {averageRating ? `${averageRating.toFixed(2)}/5` : "No rating yet"}
+            </dd>
+          </div>
+        ) : null}
+        {hasReviews ? (
+          <div>
+            <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Would recommend</dt>
+            <dd
+              className={`mt-2 font-mono text-sm ${
+                recommendationPercentage !== null ? "text-white" : "text-zinc-500"
+              }`}
+            >
+              {recommendationPercentage !== null ? `${recommendationPercentage}%` : "Pending"}
+            </dd>
+          </div>
+        ) : null}
         <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Review count</dt>
-          <dd className="mt-2 font-mono text-sm text-slate-950">
-            {reviewCount.toLocaleString("en-US")}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Average rating</dt>
-          <dd className="mt-2 font-mono text-sm text-slate-950">
-            {averageRating ? `${averageRating.toFixed(2)}/5` : "No rating yet"}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Would recommend</dt>
-          <dd className="mt-2 font-mono text-sm text-slate-950">
-            {recommendationPercentage !== null ? `${recommendationPercentage}%` : "Pending"}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[11px] uppercase tracking-[0.24em] text-slate-400">Last updated</dt>
-          <dd className="mt-2 text-sm leading-7 text-slate-950">{formatDate(lastUpdatedAt)}</dd>
+          <dt className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Last updated</dt>
+          <dd className="mt-2 text-sm leading-7 text-zinc-300">{formatDate(lastUpdatedAt)}</dd>
         </div>
       </dl>
     </section>

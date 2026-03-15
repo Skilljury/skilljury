@@ -19,12 +19,72 @@ export function buildOrganizationJsonLd({
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    alternateName: ["Skill Jury", "skilljury.com"],
     description:
-      "SkillJury is the public review and discovery layer for AI agent skills.",
+      "SkillJury is a live directory of AI agent skills with public reviews, source metadata, and install context.",
     knowsAbout: ["AI agent skills", "software reviews", "tool discovery"],
+    logo: buildCanonicalUrl("/icon.svg"),
     name: "SkillJury",
-    slogan: `Browse ${liveSkillCount} imported skills across ${liveSourceCount} active sources.`,
+    slogan: `Browse ${liveSkillCount} imported skills across ${liveSourceCount} active sources with public review and trust signals.`,
     url: buildCanonicalUrl("/"),
+  };
+}
+
+export function buildWebsiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    alternateName: ["Skill Jury", "skilljury.com"],
+    description:
+      "A live directory of AI agent skills with reviews, install context, source repositories, and compatibility pages.",
+    name: "SkillJury",
+    potentialAction: {
+      "@type": "SearchAction",
+      "query-input": "required name=search_term_string",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${buildCanonicalUrl("/search")}?q={search_term_string}`,
+      },
+    },
+    url: buildCanonicalUrl("/"),
+  };
+}
+
+export function buildItemListJsonLd({
+  canonicalPath,
+  itemName,
+  items,
+}: {
+  canonicalPath: string;
+  itemName: string;
+  items: Array<{ name: string; url: string }>;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      name: item.name,
+      position: index + 1,
+      url: item.url,
+    })),
+    name: itemName,
+    url: buildCanonicalUrl(canonicalPath),
+  };
+}
+
+export function buildBreadcrumbJsonLd(
+  items: Array<{ name: string; path: string }>,
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      item: buildCanonicalUrl(item.path),
+      name: item.name,
+      position: index + 1,
+    })),
   };
 }
 

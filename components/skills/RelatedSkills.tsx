@@ -17,14 +17,14 @@ export function RelatedSkills({
   return (
     <section className="space-y-5">
       <div>
-        <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
-          Internal links
+        <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+          Related skills
         </div>
-        <h2 className="mt-3 font-display text-4xl tracking-tight text-slate-950">
+        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
           {title}
         </h2>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {skills.map((skill) => (
           <SkillCard key={skill.id} skill={skill} />
         ))}

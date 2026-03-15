@@ -3,6 +3,8 @@ import "server-only";
 import { AppError } from "@/lib/errors/appError";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 
+const REVIEW_REQUESTS_PER_DAY_LIMIT = 10;
+
 export type ReviewRequestSummary = {
   totalCount: number;
   viewerHasRequested: boolean;
@@ -50,6 +52,26 @@ export async function createReviewRequest({
   userId: string;
 }) {
   const supabase = createServiceRoleSupabaseClient();
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const { count: dailyCount, error: dailyCountError } = await supabase
+    .from("review_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", dayStart.toISOString());
+
+  if (dailyCountError) {
+    throw dailyCountError;
+  }
+
+  if ((dailyCount ?? 0) >= REVIEW_REQUESTS_PER_DAY_LIMIT) {
+    throw new AppError(
+      429,
+      "Daily review request limit reached. Please try again tomorrow.",
+      "review_request_rate_limited",
+    );
+  }
+
   const { data: skill, error: skillError } = await supabase
     .from("skills")
     .select("id, slug")

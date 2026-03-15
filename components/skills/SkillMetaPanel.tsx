@@ -25,6 +25,12 @@ function formatDate(value: string | null) {
   });
 }
 
+function metricValueClass(hasNumericValue: boolean) {
+  return hasNumericValue
+    ? "mt-2 font-mono text-3xl font-semibold text-white"
+    : "mt-2 text-sm leading-7 text-zinc-500";
+}
+
 export function SkillMetaPanel({
   canReport,
   lastUpdatedAt,
@@ -36,58 +42,66 @@ export function SkillMetaPanel({
 }: SkillMetaPanelProps) {
   return (
     <aside className="space-y-5">
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md">
         <div className="grid gap-5">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
-              Overall rating
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
+              SkillJury rating
             </div>
-            <div className="mt-2 font-mono text-3xl font-semibold text-slate-950">
+            <div
+              className={metricValueClass(
+                reviewSummary.overallAverage !== null,
+              )}
+            >
               {reviewSummary.overallAverage
                 ? `${reviewSummary.overallAverage.toFixed(2)}/5`
-                : "Pending"}
+                : "Not reviewed yet"}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Public reviews
             </div>
-            <div className="mt-2 font-mono text-sm text-slate-950">
+            <div
+              className={`mt-2 font-mono text-sm ${
+                reviewSummary.approvedCount > 0 ? "text-white" : "text-zinc-500"
+              }`}
+            >
               {reviewSummary.approvedCount.toLocaleString("en-US")}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Weekly installs
             </div>
-            <div className="mt-2 font-mono text-3xl font-semibold text-slate-950">
+            <div className={metricValueClass(true)}>
               {(skill.weeklyInstalls ?? 0).toLocaleString("en-US")}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Last updated
             </div>
-            <div className="mt-2 font-mono text-sm text-slate-950">
+            <div className="mt-2 font-mono text-sm text-white">
               {formatDate(lastUpdatedAt)}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               First seen
             </div>
-            <div className="mt-2 font-mono text-sm text-slate-950">
+            <div className="mt-2 font-mono text-sm text-white">
               {formatDate(skill.firstSeenAt)}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Repository
             </div>
-            <div className="mt-2 text-sm text-slate-700">
+            <div className="mt-2 text-sm text-zinc-500">
               {skill.repository?.repositoryUrl ? (
                 <a
-                  className="break-all text-slate-950 underline decoration-slate-300 underline-offset-4"
+                  className="break-all text-white underline decoration-white/20 underline-offset-4"
                   href={skill.repository.repositoryUrl}
                   rel="noreferrer"
                   target="_blank"
@@ -100,19 +114,19 @@ export function SkillMetaPanel({
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               GitHub stars
             </div>
-            <div className="mt-2 font-mono text-sm text-slate-950">
+            <div className="mt-2 font-mono text-sm text-white">
               {(skill.repository?.stars ?? 0).toLocaleString("en-US")}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Canonical source
             </div>
             <a
-              className="mt-2 block break-all text-sm text-slate-950 underline decoration-slate-300 underline-offset-4"
+              className="mt-2 block break-all text-sm text-white underline decoration-white/20 underline-offset-4"
               href={skill.canonicalSourceUrl}
               rel="noreferrer"
               target="_blank"
@@ -121,28 +135,34 @@ export function SkillMetaPanel({
             </a>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Would recommend
             </div>
-            <div className="mt-2 font-mono text-sm text-slate-950">
+            <div
+              className={`mt-2 font-mono text-sm ${
+                reviewSummary.recommendationPercentage !== null
+                  ? "text-white"
+                  : "text-zinc-500"
+              }`}
+            >
               {reviewSummary.recommendationPercentage !== null
                 ? `${reviewSummary.recommendationPercentage}%`
-                : "Pending"}
+                : "Not enough reviews"}
             </div>
           </div>
           <div>
-            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
               Review requests
             </div>
-            <div className="mt-2 font-mono text-sm text-slate-950">
+            <div className="mt-2 font-mono text-sm text-white">
               {requestCount.toLocaleString("en-US")}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-        <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md">
+        <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
           Installed on
         </div>
         {skill.agentInstallData.length > 0 ? (
@@ -150,29 +170,29 @@ export function SkillMetaPanel({
             {skill.agentInstallData.map((agent) => (
               <div
                 key={`${agent.agentSlug}-${agent.installCount}`}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-lg bg-zinc-950/70 px-4 py-3"
               >
-                <span className="text-sm font-medium text-slate-900">
+                <span className="text-sm font-medium text-white">
                   {agent.agentName}
                 </span>
-                <span className="font-mono text-sm text-slate-600">
+                <span className="font-mono text-sm text-zinc-400">
                   {agent.installCount.toLocaleString("en-US")}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm leading-7 text-slate-600">
+          <p className="mt-4 text-sm leading-7 text-zinc-500">
             Agent install distribution is not available yet for this skill.
           </p>
         )}
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-        <div className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md">
+        <div className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
           Report listing
         </div>
-        <div className="mt-4 text-sm leading-7 text-slate-600">
+        <div className="mt-4 text-sm leading-7 text-zinc-400">
           Flag wrong metadata, spam, or copyright issues if the public listing needs a moderator review.
         </div>
         <div className="mt-4">

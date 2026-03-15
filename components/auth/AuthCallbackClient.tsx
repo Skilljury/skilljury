@@ -30,7 +30,7 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [statusMessage, setStatusMessage] = useState(
-    "Validating your sign-in link and preparing your reviewer session.",
+    "Restoring your SkillJury session.",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -47,9 +47,10 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
           searchParams.get("error_description") ?? searchParams.get("error");
         const hashError =
           hashParams.get("error_description") ?? hashParams.get("error");
+        const authType = searchParams.get("type") ?? hashParams.get("type");
 
         if (queryError || hashError) {
-          throw new Error(queryError ?? hashError ?? "Magic link verification failed.");
+          throw new Error(queryError ?? hashError ?? "SkillJury could not finish the auth flow.");
         }
 
         if (queryCode) {
@@ -76,7 +77,15 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
           }
         }
 
-        setStatusMessage("Syncing your SkillJury reviewer profile.");
+        if (authType === "recovery") {
+          if (isActive) {
+            router.replace(`/reset-password?next=${encodeURIComponent(nextPath)}`);
+          }
+
+          return;
+        }
+
+        setStatusMessage("Syncing your SkillJury profile.");
 
         const syncResponse = await fetch("/api/auth/sync-profile", {
           method: "POST",
@@ -84,16 +93,20 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
             "Content-Type": "application/json",
           },
         });
+        const syncPayload = (await syncResponse.json().catch(() => null)) as
+          | { error?: string; needsProfileSetup?: boolean }
+          | null;
 
         if (!syncResponse.ok) {
-          const payload = (await syncResponse.json().catch(() => null)) as
-            | { error?: string }
-            | null;
-
-          throw new Error(payload?.error ?? "SkillJury could not sync your profile.");
+          throw new Error(syncPayload?.error ?? "SkillJury could not sync your profile.");
         }
 
         if (isActive) {
+          if (syncPayload?.needsProfileSetup) {
+            router.replace(`/account/setup?next=${encodeURIComponent(nextPath)}`);
+            return;
+          }
+
           router.replace(nextPath);
         }
       } catch (error) {
@@ -114,24 +127,27 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
 
   if (errorMessage) {
     return (
-      <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6 text-sm leading-7 text-rose-900 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-        <div className="text-xs uppercase tracking-[0.24em] text-rose-500">
-          Sign-in failed
+      <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-sm leading-7 text-rose-100 shadow-md">
+        <div className="text-xs uppercase tracking-[0.24em] text-rose-300">
+          Auth failed
         </div>
         <p className="mt-3">{errorMessage}</p>
         <p className="mt-3">
           Return to the{" "}
-          <Link className="font-medium underline underline-offset-4" href="/login">
+          <Link
+            className="font-medium text-white underline underline-offset-4 transition hover:text-rose-100"
+            href="/login"
+          >
             login page
           </Link>{" "}
-          and request a fresh magic link.
+          and try again.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 text-sm leading-7 text-slate-700 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-6 text-sm leading-7 text-zinc-300 shadow-md">
       {statusMessage}
     </div>
   );

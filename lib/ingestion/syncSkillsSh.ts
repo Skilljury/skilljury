@@ -412,6 +412,10 @@ async function upsertSkills(
       status: "active",
       first_seen_at: record.skill.firstSeenAt,
       last_synced_at: syncedAt,
+      security_audits: {
+        ...record.skill.securityAudits,
+        scraped_at: syncedAt,
+      },
       weekly_installs: record.skill.weeklyInstalls ?? 0,
       total_installs: null,
       claimed: false,

@@ -24,11 +24,11 @@ export function SortSelect({
 }: SortSelectProps) {
   return (
     <label className="grid gap-2">
-      <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+      <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
         Sort
       </span>
       <select
-        className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+        className="w-full min-w-0 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition-default focus:border-white/20"
         defaultValue={value}
         name={name}
       >

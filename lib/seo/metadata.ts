@@ -2,9 +2,19 @@ import type { Metadata } from "next";
 
 import { getSiteUrl } from "@/lib/supabase/config";
 
-const siteName = "SkillJury";
+export const siteName = "SkillJury";
+export const siteKeywords = [
+  "AI agent skills",
+  "agent skill reviews",
+  "AI skill directory",
+  "Claude Code skills",
+  "Codex skills",
+  "Cursor skills",
+  "AI tool reviews",
+  "developer workflow tools",
+];
 const defaultDescription =
-  "SkillJury is the public review and discovery layer for AI agent skills.";
+  "SkillJury is a live directory of AI agent skills with reviews, install context, source repositories, and compatibility pages.";
 
 function trimSlashes(pathname: string) {
   if (!pathname || pathname === "/") {
@@ -27,6 +37,7 @@ type PageMetadataOptions = {
   description?: string;
   pathname: string;
   imagePath?: string;
+  indexable?: boolean;
 };
 
 export function buildPageMetadata({
@@ -34,6 +45,7 @@ export function buildPageMetadata({
   description = defaultDescription,
   pathname,
   imagePath = "/opengraph-image",
+  indexable = true,
 }: PageMetadataOptions): Metadata {
   const canonical = buildCanonicalUrl(pathname);
 
@@ -41,8 +53,20 @@ export function buildPageMetadata({
     metadataBase: getMetadataBase(),
     title,
     description,
+    keywords: siteKeywords,
     alternates: {
       canonical,
+    },
+    robots: {
+      index: indexable,
+      follow: indexable,
+      googleBot: {
+        index: indexable,
+        follow: indexable,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
     openGraph: {
       type: "website",
@@ -65,12 +89,16 @@ export function buildPageMetadata({
       description,
       images: [imagePath],
     },
+    icons: {
+      icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+      shortcut: ["/icon.svg"],
+    },
   };
 }
 
 export const rootMetadata = buildPageMetadata({
-  title: "SkillJury | AI agent skill reviews and discovery",
+  title: "SkillJury | AI agent skill reviews, ratings, and discovery",
   description:
-    "Browse live AI agent skill listings, inspect source repositories, and read structured user reviews on SkillJury.",
+    "Browse AI agent skill reviews, install commands, source repositories, and compatibility pages across the live SkillJury directory.",
   pathname: "/",
 });

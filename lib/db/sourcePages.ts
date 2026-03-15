@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cleanCatalogDescription, cleanCatalogLabel, labelFromSlug } from "@/lib/catalog/clean";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type BrowseSource = {
@@ -9,6 +10,11 @@ export type BrowseSource = {
   homepageUrl: string | null;
   attributionText: string | null;
   skillCount?: number;
+};
+
+export type SourceSitemapEntry = {
+  skillCount: number;
+  slug: string;
 };
 
 export async function getAllSources(): Promise<BrowseSource[]> {
@@ -25,10 +31,10 @@ export async function getAllSources(): Promise<BrowseSource[]> {
 
   return (data ?? []).map((row) => ({
     id: row.id as number,
-    name: row.name as string,
+    name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
     slug: row.slug as string,
     homepageUrl: (row.homepage_url as string | null) ?? null,
-    attributionText: (row.attribution_text as string | null) ?? null,
+    attributionText: cleanCatalogDescription(row.attribution_text as string | null),
   }));
 }
 
@@ -63,10 +69,10 @@ export async function getSourceBySlug(
 
   return {
     id: data.id as number,
-    name: data.name as string,
+    name: cleanCatalogLabel(data.name as string, labelFromSlug(data.slug as string)),
     slug: data.slug as string,
     homepageUrl: (data.homepage_url as string | null) ?? null,
-    attributionText: (data.attribution_text as string | null) ?? null,
+    attributionText: cleanCatalogDescription(data.attribution_text as string | null),
     skillCount: count ?? 0,
   };
 }
@@ -74,4 +80,46 @@ export async function getSourceBySlug(
 export async function getAllSourceSlugs(): Promise<string[]> {
   const sources = await getAllSources();
   return sources.map((source) => source.slug);
+}
+
+export async function getAllSourceSitemapEntries(): Promise<SourceSitemapEntry[]> {
+  const supabase = createServerSupabaseClient();
+  const [{ data: sourceRows, error: sourceError }, { data: skillRows, error: skillError }] =
+    await Promise.all([
+      supabase
+        .from("sources")
+        .select("id, slug")
+        .eq("is_active", true)
+        .order("slug", { ascending: true }),
+      supabase
+        .from("skills")
+        .select("source_id")
+        .eq("status", "active")
+        .not("source_id", "is", null),
+    ]);
+
+  if (sourceError) {
+    throw sourceError;
+  }
+
+  if (skillError) {
+    throw skillError;
+  }
+
+  const skillCounts = new Map<number, number>();
+
+  for (const row of skillRows ?? []) {
+    const sourceId = row.source_id as number | null;
+
+    if (!sourceId) {
+      continue;
+    }
+
+    skillCounts.set(sourceId, (skillCounts.get(sourceId) ?? 0) + 1);
+  }
+
+  return (sourceRows ?? []).map((row) => ({
+    slug: row.slug as string,
+    skillCount: skillCounts.get(row.id as number) ?? 0,
+  }));
 }

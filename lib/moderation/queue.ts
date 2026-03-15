@@ -127,6 +127,75 @@ function deriveCanonicalSourceUrl(submission: {
   );
 }
 
+async function findExistingSkillForSubmission(
+  canonicalSourceUrl: string,
+  repositoryUrl: string,
+) {
+  const supabase = createServiceRoleSupabaseClient();
+  const { data: sourceMatch, error: sourceError } = await supabase
+    .from("skills")
+    .select("id, slug")
+    .eq("canonical_source_url", canonicalSourceUrl)
+    .limit(1)
+    .maybeSingle();
+
+  if (sourceError) {
+    throw sourceError;
+  }
+
+  if (sourceMatch) {
+    return sourceMatch;
+  }
+
+  const { data: repositoryMatch, error: repositoryError } = await supabase
+    .from("skills")
+    .select("id, slug")
+    .eq("repository_url", repositoryUrl)
+    .limit(1)
+    .maybeSingle();
+
+  if (repositoryError) {
+    throw repositoryError;
+  }
+
+  return repositoryMatch;
+}
+
+async function findMatchedCategory(categoryValue: string) {
+  const supabase = createServiceRoleSupabaseClient();
+  const slugCandidate = slugify(categoryValue);
+
+  if (slugCandidate) {
+    const { data: slugMatch, error: slugError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", slugCandidate)
+      .limit(1)
+      .maybeSingle();
+
+    if (slugError) {
+      throw slugError;
+    }
+
+    if (slugMatch) {
+      return slugMatch;
+    }
+  }
+
+  const { data: nameMatch, error: nameError } = await supabase
+    .from("categories")
+    .select("id")
+    .ilike("name", categoryValue)
+    .limit(1)
+    .maybeSingle();
+
+  if (nameError) {
+    throw nameError;
+  }
+
+  return nameMatch;
+}
+
 async function createModerationAwareSkillFromSubmission(
   submissionId: number,
   decisionNotes: string | null,
@@ -150,16 +219,10 @@ async function createModerationAwareSkillFromSubmission(
   }
 
   const canonicalSourceUrl = deriveCanonicalSourceUrl(submission);
-  const { data: existingSkill, error: existingSkillError } = await supabase
-    .from("skills")
-    .select("id, slug")
-    .or(`canonical_source_url.eq.${canonicalSourceUrl},repository_url.eq.${submission.repository_url}`)
-    .limit(1)
-    .maybeSingle();
-
-  if (existingSkillError) {
-    throw existingSkillError;
-  }
+  const existingSkill = await findExistingSkillForSubmission(
+    canonicalSourceUrl,
+    submission.repository_url,
+  );
 
   let createdSkillId = existingSkill?.id as number | undefined;
 
@@ -250,16 +313,7 @@ async function createModerationAwareSkillFromSubmission(
     const categoryValue = submission.proposed_category?.trim();
 
     if (categoryValue) {
-      const { data: matchedCategory, error: categoryError } = await supabase
-        .from("categories")
-        .select("id")
-        .or(`slug.eq.${slugify(categoryValue)},name.ilike.${categoryValue}`)
-        .limit(1)
-        .maybeSingle();
-
-      if (categoryError) {
-        throw categoryError;
-      }
+      const matchedCategory = await findMatchedCategory(categoryValue);
 
       if (matchedCategory?.id) {
         const { error: categoryInsertError } = await supabase

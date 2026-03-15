@@ -26,14 +26,20 @@ export function FilterPanel({
   sources,
 }: FilterPanelProps) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card/70 p-5">
+      <div className="mb-4">
+        <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+          Filters
+        </div>
+        <h2 className="mt-3 text-lg font-semibold text-foreground">Refine results</h2>
+      </div>
+      <div className="grid gap-4">
         <label className="grid gap-2">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+          <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             Category
           </span>
           <select
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+            className="w-full min-w-0 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition-default focus:border-white/20"
             defaultValue={selectedCategory}
             name="category"
           >
@@ -47,11 +53,11 @@ export function FilterPanel({
         </label>
 
         <label className="grid gap-2">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+          <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             Agent
           </span>
           <select
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+            className="w-full min-w-0 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition-default focus:border-white/20"
             defaultValue={selectedAgent}
             name="agent"
           >
@@ -65,11 +71,11 @@ export function FilterPanel({
         </label>
 
         <label className="grid gap-2">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
+          <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             Source
           </span>
           <select
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+            className="w-full min-w-0 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition-default focus:border-white/20"
             defaultValue={selectedSource}
             name="source"
           >
@@ -87,13 +93,13 @@ export function FilterPanel({
 
       <div className="mt-4 flex flex-wrap gap-3">
         <button
-          className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-card px-4 text-[11px] uppercase tracking-[0.28em] text-foreground transition-default hover:border-white/20 hover:bg-surface-hover"
           type="submit"
         >
           Apply filters
         </button>
         <a
-          className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-white"
+          className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-default hover:bg-surface-hover hover:text-foreground"
           href="/search"
         >
           Reset

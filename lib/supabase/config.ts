@@ -88,8 +88,23 @@ export function getServiceRoleConfig() {
 export function getSiteUrl() {
   const configuredSiteUrl = sanitizeEnvValue(process.env.NEXT_PUBLIC_SITE_URL);
 
-  if (configuredSiteUrl.startsWith("https://")) {
-    return configuredSiteUrl;
+  if (
+    configuredSiteUrl.startsWith("https://") ||
+    configuredSiteUrl.startsWith("http://")
+  ) {
+    return configuredSiteUrl.replace(/\/+$/, "");
+  }
+
+  const vercelSiteUrl =
+    sanitizeEnvValue(process.env.VERCEL_PROJECT_PRODUCTION_URL) ||
+    sanitizeEnvValue(process.env.VERCEL_URL);
+
+  if (vercelSiteUrl) {
+    const normalizedVercelUrl = vercelSiteUrl.startsWith("http")
+      ? vercelSiteUrl
+      : `https://${vercelSiteUrl}`;
+
+    return normalizedVercelUrl.replace(/\/+$/, "");
   }
 
   return "http://localhost:3000";

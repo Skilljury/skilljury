@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cleanCatalogDescription, cleanCatalogLabel, labelFromSlug } from "@/lib/catalog/clean";
 import type { SkillListItem } from "@/lib/db/skills";
 import { searchSkills } from "@/lib/db/search";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -41,9 +42,9 @@ export async function getAllCategories(): Promise<BrowseCategory[]> {
 
       return {
         id: row.id as number,
-        name: row.name as string,
+        name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
         slug: row.slug as string,
-        description: (row.description as string | null) ?? null,
+        description: cleanCatalogDescription(row.description as string | null),
         skillCount: count ?? 0,
         reviewedSkillCount: 0,
         lastUpdatedAt: null,
@@ -152,9 +153,9 @@ export async function getCategoryBySlug(
 
   return {
     id: categoryId,
-    name: data.name as string,
+    name: cleanCatalogLabel(data.name as string, labelFromSlug(data.slug as string)),
     slug: data.slug as string,
-    description: (data.description as string | null) ?? null,
+    description: cleanCatalogDescription(data.description as string | null),
     skillCount: skillCountResult.count ?? 0,
     reviewedSkillCount: reviewedSkillCountResult.count ?? 0,
     lastUpdatedAt,

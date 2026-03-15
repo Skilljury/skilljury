@@ -1,5 +1,14 @@
 import "server-only";
 
+import {
+  cleanCatalogDescription,
+  cleanCatalogLabel,
+  cleanCatalogSummary,
+  isGenericCatalogName,
+  isMeaningfulCatalogSummary,
+  isSuspiciousCatalogLabel,
+  labelFromSlug,
+} from "@/lib/catalog/clean";
 import { isMissingRelationError, logDataAccessError } from "@/lib/db/errors";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -8,6 +17,23 @@ export type SkillCategory = {
   name: string;
   slug: string;
 };
+
+export type SkillSecurityAuditStatus =
+  | "critical"
+  | "fail"
+  | "high_risk"
+  | "pass"
+  | "safe"
+  | "warn";
+
+export type SkillSecurityAudits = {
+  gen?: SkillSecurityAuditStatus | null;
+  scraped_at?: string | null;
+  snyk?: SkillSecurityAuditStatus | null;
+  socket?: SkillSecurityAuditStatus | null;
+};
+
+export type LeaderboardTab = "all" | "hot" | "trending";
 
 export type SkillListItem = {
   approvedReviewCount: number;
@@ -47,7 +73,36 @@ export type SkillDetail = SkillListItem & {
   claimed: boolean;
   documentationUrl: string | null;
   longDescription: string | null;
+  securityAudits: SkillSecurityAudits;
   totalInstalls: number | null;
+};
+
+export type SkillSitemapEntry = {
+  approvedReviewCount: number;
+  lastModified: string | null;
+  slug: string;
+};
+
+export type LeaderboardSkill = {
+  createdAt: string | null;
+  id: number;
+  installCountLabel: string;
+  name: string;
+  securityAudits: SkillSecurityAudits;
+  slug: string;
+  source: {
+    name: string;
+    slug: string;
+  } | null;
+  weeklyInstalls: number | null;
+};
+
+export type LeaderboardResult = {
+  items: LeaderboardSkill[];
+  page: number;
+  pageSize: number;
+  tab: LeaderboardTab;
+  total: number;
 };
 
 export type SupabaseSkillRow = {
@@ -78,6 +133,7 @@ export type SupabaseSkillRow = {
       }[]
     | null;
   review_count?: number | null;
+  security_audits?: SkillSecurityAudits | null;
   skill_agent_compatibility?:
     | Array<{
         install_count: number;
@@ -127,12 +183,180 @@ export type SupabaseSkillRow = {
   weekly_installs: number | null;
 };
 
+type SupabaseLeaderboardSkillRow = {
+  created_at?: string | null;
+  id: number;
+  name: string;
+  security_audits?: SkillSecurityAudits | null;
+  slug: string;
+  sources:
+    | {
+        name: string;
+        slug: string;
+      }
+    | {
+        name: string;
+        slug: string;
+      }[]
+    | null;
+  weekly_installs: number | null;
+};
+
 function coerceObject<T>(value: T | T[] | null | undefined): T | null {
   if (!value) {
     return null;
   }
 
   return Array.isArray(value) ? value[0] ?? null : value;
+}
+
+function isFeaturedSkillCandidate(skill: SkillListItem) {
+  const hasStrongSignals =
+    skill.approvedReviewCount > 0 ||
+    (skill.weeklyInstalls ?? 0) >= 250 ||
+    (skill.repository?.stars ?? 0) >= 25;
+
+  return (
+    !isGenericCatalogName(skill.name) &&
+    isMeaningfulCatalogSummary(skill.shortSummary) &&
+    hasStrongSignals &&
+    skill.categories.length > 0 &&
+    Boolean(skill.source)
+  );
+}
+
+function pickDiverseFeaturedSkills(
+  skills: SkillListItem[],
+  limit: number,
+): SkillListItem[] {
+  const buckets = new Map<string, SkillListItem[]>();
+
+  for (const skill of skills) {
+    const key = skill.source?.slug ?? `source-${skill.sourceId ?? skill.id}`;
+    const existing = buckets.get(key);
+
+    if (existing) {
+      existing.push(skill);
+      continue;
+    }
+
+    buckets.set(key, [skill]);
+  }
+
+  const selected: SkillListItem[] = [];
+  let roundIndex = 0;
+
+  while (selected.length < limit) {
+    let addedThisRound = 0;
+
+    for (const bucket of buckets.values()) {
+      const candidate = bucket[roundIndex];
+
+      if (!candidate) {
+        continue;
+      }
+
+      selected.push(candidate);
+      addedThisRound += 1;
+
+      if (selected.length >= limit) {
+        break;
+      }
+    }
+
+    if (addedThisRound === 0) {
+      break;
+    }
+
+    roundIndex += 1;
+  }
+
+  return selected;
+}
+
+function normalizeSecurityAuditStatus(
+  value: unknown,
+): SkillSecurityAuditStatus | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  switch (value) {
+    case "critical":
+    case "fail":
+    case "high_risk":
+    case "pass":
+    case "safe":
+    case "warn":
+      return value;
+    default:
+      return null;
+  }
+}
+
+function normalizeSecurityAudits(
+  value: SkillSecurityAudits | null | undefined,
+): SkillSecurityAudits {
+  return {
+    gen: normalizeSecurityAuditStatus(value?.gen),
+    socket: normalizeSecurityAuditStatus(value?.socket),
+    snyk: normalizeSecurityAuditStatus(value?.snyk),
+    scraped_at: typeof value?.scraped_at === "string" ? value.scraped_at : null,
+  };
+}
+
+function formatCompactNumber(value: number) {
+  return value.toFixed(value >= 100 ? 0 : 1).replace(/\.0$/, "");
+}
+
+export function formatInstallCount(value: number | null | undefined) {
+  if (!value || value <= 0) {
+    return "0";
+  }
+
+  if (value >= 1_000_000) {
+    return `${formatCompactNumber(value / 1_000_000)}M`;
+  }
+
+  if (value >= 1_000) {
+    return `${formatCompactNumber(value / 1_000)}K`;
+  }
+
+  return value.toLocaleString("en-US");
+}
+
+function buildLeaderboardSelect() {
+  return `
+    id,
+    slug,
+    name,
+    weekly_installs,
+    created_at,
+    security_audits,
+    sources(name, slug)
+  `;
+}
+
+function normalizeLeaderboardRow(
+  row: SupabaseLeaderboardSkillRow,
+): LeaderboardSkill {
+  const source = coerceObject(row.sources);
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: cleanCatalogLabel(row.name, labelFromSlug(row.slug)),
+    weeklyInstalls: row.weekly_installs ?? null,
+    installCountLabel: formatInstallCount(row.weekly_installs ?? null),
+    createdAt: row.created_at ?? null,
+    securityAudits: normalizeSecurityAudits(row.security_audits),
+    source: source
+      ? {
+          name: cleanCatalogLabel(source.name, labelFromSlug(source.slug)),
+          slug: source.slug,
+        }
+      : null,
+  };
 }
 
 export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
@@ -149,7 +373,7 @@ export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
       return [
         {
           id: category.id,
-          name: category.name,
+          name: cleanCatalogLabel(category.name, labelFromSlug(category.slug)),
           slug: category.slug,
         },
       ];
@@ -158,13 +382,14 @@ export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
   return {
     id: row.id,
     sourceId: row.source_id ?? null,
-    name: row.name,
+    name: cleanCatalogLabel(row.name, labelFromSlug(row.slug)),
     slug: row.slug,
-    shortSummary: row.short_summary ?? null,
-    longDescription: row.long_description ?? null,
+    shortSummary: cleanCatalogSummary(row.short_summary),
+    longDescription: cleanCatalogDescription(row.long_description, row.short_summary),
     installCommand: row.install_command ?? null,
     canonicalSourceUrl: row.canonical_source_url,
     documentationUrl: row.documentation_url ?? null,
+    securityAudits: normalizeSecurityAudits(row.security_audits),
     weeklyInstalls: row.weekly_installs ?? null,
     totalInstalls: row.total_installs ?? null,
     firstSeenAt: row.first_seen_at ?? null,
@@ -188,14 +413,18 @@ export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
     categories,
     source: source
       ? {
-          name: source.name,
+          name: cleanCatalogLabel(source.name, labelFromSlug(source.slug)),
           slug: source.slug,
         }
       : null,
     repository: repository
       ? {
-          ownerName: repository.owner_name ?? null,
-          repositoryName: repository.repository_name ?? null,
+          ownerName: repository.owner_name
+            ? cleanCatalogLabel(repository.owner_name, repository.owner_name)
+            : null,
+          repositoryName: repository.repository_name
+            ? cleanCatalogLabel(repository.repository_name, repository.repository_name)
+            : null,
           repositoryUrl: repository.repository_url ?? null,
           stars: repository.stars ?? null,
         }
@@ -208,9 +437,13 @@ export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
           return [];
         }
 
+        if (isSuspiciousCatalogLabel(agent.name)) {
+          return [];
+        }
+
         return [
           {
-            agentName: agent.name,
+            agentName: cleanCatalogLabel(agent.name, labelFromSlug(agent.slug)),
             agentSlug: agent.slug,
             installCount: compatibility.install_count ?? 0,
             supportType: compatibility.support_type,
@@ -237,6 +470,7 @@ function buildSkillSelect() {
     last_synced_at,
     review_count,
     approved_review_count,
+    security_audits,
     overall_score,
     confidence_adjusted_score,
     claimed,
@@ -262,7 +496,7 @@ export async function getFeaturedSkills(limit = 6): Promise<SkillListItem[]> {
     .order("confidence_adjusted_score", { ascending: false, nullsFirst: false })
     .order("overall_score", { ascending: false, nullsFirst: false })
     .order("weekly_installs", { ascending: false, nullsFirst: false })
-    .limit(limit);
+    .limit(Math.max(limit * 10, 60));
 
   if (error) {
     logDataAccessError("featured-skills", error);
@@ -274,9 +508,15 @@ export async function getFeaturedSkills(limit = 6): Promise<SkillListItem[]> {
     throw error;
   }
 
-  return ((data ?? []) as unknown as SupabaseSkillRow[]).map((row) =>
+  const normalized = ((data ?? []) as unknown as SupabaseSkillRow[]).map((row) =>
     normalizeSkillRow(row),
   );
+  const featured = pickDiverseFeaturedSkills(
+    normalized.filter(isFeaturedSkillCandidate),
+    limit,
+  );
+
+  return featured;
 }
 
 export async function getSkillBySlug(
@@ -307,11 +547,11 @@ export async function getSkillBySlug(
   return normalizeSkillRow(data as unknown as SupabaseSkillRow);
 }
 
-export async function getAllSkillSlugs(): Promise<string[]> {
+export async function getAllSkillSitemapEntries(): Promise<SkillSitemapEntry[]> {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")
-    .select("slug")
+    .select("slug, approved_review_count, last_synced_at, updated_at")
     .eq("status", "active")
     .order("weekly_installs", { ascending: false, nullsFirst: false });
 
@@ -325,7 +565,16 @@ export async function getAllSkillSlugs(): Promise<string[]> {
     throw error;
   }
 
-  return data.map((item) => item.slug);
+  return (data ?? []).map((item) => ({
+    slug: item.slug,
+    approvedReviewCount: item.approved_review_count ?? 0,
+    lastModified: item.last_synced_at ?? item.updated_at ?? null,
+  }));
+}
+
+export async function getAllSkillSlugs(): Promise<string[]> {
+  const entries = await getAllSkillSitemapEntries();
+  return entries.map((entry) => entry.slug);
 }
 
 export async function getSkillCount() {
@@ -346,6 +595,94 @@ export async function getSkillCount() {
   }
 
   return count ?? 0;
+}
+
+export async function getLeaderboardSkills(
+  tab: LeaderboardTab,
+  page: number,
+  pageSize: number,
+): Promise<LeaderboardResult> {
+  const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+  const safePageSize =
+    Number.isFinite(pageSize) && pageSize > 0 ? Math.min(Math.floor(pageSize), 50) : 25;
+  const start = (safePage - 1) * safePageSize;
+  const end = start + safePageSize - 1;
+  const supabase = createServerSupabaseClient();
+  const trendingCutoff = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  let countQuery = supabase
+    .from("skills")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active");
+  let dataQuery = supabase
+    .from("skills")
+    .select(buildLeaderboardSelect())
+    .eq("status", "active")
+    .range(start, end);
+
+  if (tab === "trending") {
+    countQuery = countQuery.gte("last_synced_at", trendingCutoff);
+    dataQuery = dataQuery
+      .gte("last_synced_at", trendingCutoff)
+      .order("weekly_installs", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false, nullsFirst: false });
+  } else if (tab === "hot") {
+    dataQuery = dataQuery
+      .order("created_at", { ascending: false, nullsFirst: false })
+      .order("weekly_installs", { ascending: false, nullsFirst: false });
+  } else {
+    dataQuery = dataQuery
+      .order("weekly_installs", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false, nullsFirst: false });
+  }
+
+  const [{ count, error: countError }, { data, error: dataError }] = await Promise.all([
+    countQuery,
+    dataQuery,
+  ]);
+
+  if (countError) {
+    logDataAccessError("leaderboard-count", countError);
+
+    if (isMissingRelationError(countError.message)) {
+      return {
+        tab,
+        page: safePage,
+        pageSize: safePageSize,
+        total: 0,
+        items: [],
+      };
+    }
+
+    throw countError;
+  }
+
+  if (dataError) {
+    logDataAccessError("leaderboard-items", dataError);
+
+    if (isMissingRelationError(dataError.message)) {
+      return {
+        tab,
+        page: safePage,
+        pageSize: safePageSize,
+        total: count ?? 0,
+        items: [],
+      };
+    }
+
+    throw dataError;
+  }
+
+  return {
+    tab,
+    page: safePage,
+    pageSize: safePageSize,
+    total: count ?? 0,
+    items: ((data ?? []) as unknown as SupabaseLeaderboardSkillRow[]).map(
+      normalizeLeaderboardRow,
+    ),
+  };
 }
 
 export async function getRelatedSkillsBySource(

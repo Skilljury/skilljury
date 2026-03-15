@@ -79,7 +79,7 @@ function normalizePageSize(pageSize?: number, fallback = 24) {
 }
 
 function sanitizeSearchTerm(value: string) {
-  return value.replace(/[%_,()]/g, " ").replace(/\s+/g, " ").trim();
+  return value.replace(/[%_,().:]/g, " ").replace(/\s+/g, " ").trim();
 }
 
 export async function searchSkills(

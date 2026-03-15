@@ -19,25 +19,27 @@ function formatDate(value: string | null) {
 
 export function CategoryHero({ category }: CategoryHeroProps) {
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.14),transparent_30%),linear-gradient(135deg,#ffffff,#f8f5ef)] p-7 shadow-[0_25px_70px_rgba(15,23,42,0.08)]">
-      <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
+    <section className="rounded-xl border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,22,0.96),rgba(10,10,12,0.92))] p-7 shadow-lg">
+      <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
         Category
       </div>
-      <h1 className="mt-4 font-display text-5xl tracking-tight text-slate-950">
+      <h1 className="mt-4 font-display text-5xl font-semibold tracking-tight text-white">
         Best {category.name} skills for AI agents
       </h1>
-      <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
+      <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-400">
         {category.description ??
           "Catalog view generated from the public skill dataset and SkillJury's starter taxonomy rules."}
       </p>
-      <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-700">
-        The best {category.name} skills for AI agents, ranked by user reviews.{" "}
-        {category.reviewedSkillCount.toLocaleString("en-US")} skills reviewed.
-      </p>
-      <div className="mt-6 inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">
+      {category.reviewedSkillCount > 0 ? (
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-300">
+          The best {category.name} skills for AI agents, ranked by user reviews.{" "}
+          {category.reviewedSkillCount.toLocaleString("en-US")} skills reviewed.
+        </p>
+      ) : null}
+      <div className="mt-6 inline-flex rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm text-zinc-200">
         {category.skillCount.toLocaleString("en-US")} skills in this category
       </div>
-      <div className="mt-4 text-sm text-slate-600">
+      <div className="mt-4 text-sm text-zinc-500">
         Last updated: {formatDate(category.lastUpdatedAt)}
       </div>
 
@@ -46,11 +48,11 @@ export function CategoryHero({ category }: CategoryHeroProps) {
           {category.topPicks.map((skill) => (
             <Link
               key={skill.id}
-              className="rounded-[1.25rem] border border-slate-200 bg-white px-4 py-4 text-sm shadow-[0_15px_35px_rgba(15,23,42,0.06)] transition hover:border-slate-300"
+              className="rounded-lg border border-white/10 bg-white/[0.04] px-4 py-4 text-sm shadow-md transition hover:border-white/20"
               href={`/skills/${skill.slug}`}
             >
-              <div className="font-semibold text-slate-950">{skill.name}</div>
-              <p className="mt-2 line-clamp-3 leading-7 text-slate-600">
+              <div className="font-semibold text-white">{skill.name}</div>
+              <p className="mt-2 line-clamp-3 leading-7 text-zinc-400">
                 {skill.shortSummary ?? "No imported summary yet."}
               </p>
             </Link>

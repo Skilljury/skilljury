@@ -39,6 +39,20 @@
 - Hosted Supabase now contains live `skills` rows, including `azure-ai` with imported fields such as `short_summary`, `install_command`, `weekly_installs`, and `canonical_source_url`.
 - The production build renders the homepage with live imported skills from Supabase.
 - The production build renders skill detail pages from hosted Supabase data; `/skills/azure-ai` includes the imported summary, install command, weekly installs, and canonical source URL.
+- Live `skills.sh` skill pages expose a `Security Audits` block in the HTML with vendor-level badges for `Gen Agent Trust Hub`, `Socket`, and `Snyk`, which makes the audit data scrapeable during sync without calling a separate API.
+- A live sample sweep across `skills.sh` skill pages showed these normalized top-level badge values in the public HTML:
+  - `Gen Agent Trust Hub`: `pass`, `warn`, `fail`
+  - `Socket`: `pass`, `warn`, `fail`
+  - `Snyk`: `pass`, `warn`, `fail`
+- The local sync pipeline now includes normalized `security_audits` data on each parsed skill record and writes it into `public.skills.security_audits` together with a `scraped_at` timestamp during skill upserts.
+- A new migration now exists at [008_security_audit_fields.sql](C:\Users\jmana\codex-research\skills-review-platform\supabase\migrations\008_security_audit_fields.sql), adding `public.skills.security_audits jsonb not null default '{}'::jsonb`.
+- A targeted local parser check against `https://skills.sh/obra/superpowers/brainstorming` extracted:
+  - `gen: pass`
+  - `socket: fail`
+  - `snyk: pass`
+- The hosted `security_audits` column is now live and writable: limited and full hosted sync runs on 2026-03-14 completed successfully without schema errors while writing `security_audits` payloads into `public.skills`.
+- Hosted security-audit coverage after the full 2026-03-14 sync is `4000 / 4212` active skills with non-empty `security_audits`, which lines up with the `skills.sh` source inventory rather than every record in SkillJury.
+- The public skill detail page now renders a dedicated `Security Audits` panel when vendor audit data exists and suppresses the section entirely when `security_audits` is `{}`.
 - `robots.txt` and `sitemap.xml` are live and the sitemap includes imported skill URLs.
 - Public pages include canonical tags, Open Graph tags, and Twitter Card tags in the rendered HTML.
 - The Phase 3 production build now includes additional public routes for `/login`, `/account`, `/admin/moderation`, `/skills/[skillSlug]/review`, `/skills/[skillSlug]/reviews`, `/api/reviews`, and `/api/moderation`.
@@ -102,6 +116,91 @@
   - `/admin/moderation` loads for an authenticated moderator
 - `npm run lint` passes on the Phase 4 codebase.
 - `npm run build` passes on the Phase 4 codebase.
+- The current public skill-card layout is visually polished but structurally weak for a catalog product: high-contrast display titles, tall fixed cards, and oversized monospace stats amplify low-quality entries and produce awkward wrapping on dense datasets.
+- The current `RecommendationSummary` component uses `font-mono text-3xl` inside tight metric boxes, which explains the overflow/truncation shown in the bug screenshots when values like `No rating yet` or `Pending` render on smaller widths.
+- `skills.sh` publicly positions itself as a discovery/telemetry product rather than a community-review product: the docs state leaderboard ranking comes from anonymous install telemetry, and the docs mention routine security audits while explicitly not guaranteeing every listed skill.
+- Official web-performance guidance remains directly relevant to the redesign:
+  - MDN recommends lazy loading and reducing critical rendering-path work to shorten time-to-interactive.
+  - Google continues to center page experience on Core Web Vitals, especially LCP, INP, and CLS.
+- Spline's public positioning is explicitly interactive 3D for the web, which makes it useful as visual inspiration but a likely performance risk if used heavily on a catalog product that should stay fast and indexable.
+- Google Search guidance continues to matter for SkillJury's trust layer:
+  - review markup should only reflect genuine first-party reviews
+  - user-generated content needs active anti-spam controls
+  - organization/entity markup should be clean and unambiguous
+- ClawHub/OpenClaw-style ecosystems publicly emphasize richer operational signals such as ratings, stars, forks, audit dates, and security-status style badges, which supports adding a separate `External Signals` or `Safety` block without mixing those inputs into SkillJury's own review score.
+- The selected Lovable-style dark direction is now applied to the live SkillJury product surfaces rather than only the isolated `/designs/*` concept routes.
+- The redesigned live surfaces now include:
+  - homepage and browse/search flows
+  - skill detail and review pages
+  - login and account
+  - submit-skill
+  - moderation
+  - trust/policy pages
+  - auth callback and not-found
+- A self-audit after implementation found a real redesign bug: `app/globals.css` still pointed `code` elements at `--font-plex-mono` even though the redesign switched the mono font system to `--font-jetbrains-mono`.
+- That mono-font bug has been fixed and the post-fix build and lint checks both pass.
+- The fail-open cron authorization has been fixed. A fresh local production check on port `3006` returned `503 Service Unavailable` for unauthenticated `GET /api/cron/sync?limit=1` when `CRON_SECRET` is unset, instead of allowing the sync to run.
+- The JSON-LD sink now escapes `<`, `>`, `&`, and line-separator characters before writing into `dangerouslySetInnerHTML`, which closes the previously verified script-breakout path.
+- The moderation approval flow no longer interpolates user-influenced values into raw PostgREST `.or(...)` strings when matching existing skills and categories.
+- Public production responses now include a `Content-Security-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy`, and `Strict-Transport-Security` header, and the `X-Powered-By` header is no longer present.
+- The `/designs/*` prototype sandbox is now blocked in production mode unless `ENABLE_DESIGN_SANDBOX=true`; live checks on port `3006` returned `404` for `/designs` and `/designs/trust-ledger`.
+- Catalog display text is now normalized before it reaches the public UI:
+  - markdown-style labels are stripped from taxonomy names
+  - imported summaries and long descriptions are cleaned and truncated for readability
+  - suspicious facet labels such as `Click Me` are filtered out of the public agent list
+- Homepage featured skills now use a higher-signal filter and updated copy, which removed low-quality entries like `fix` from the featured block in live checks.
+- Review-request writes now reject suspended/banned users and enforce a per-user daily cap before creating new request rows.
+- A fresh Playwright console pass on `/search` after the CSP update reported `0` console errors and `0` warnings.
+- No remaining verified public-launch blockers were left open at the end of the final fix-and-audit loop.
+- The live auth system no longer depends on magic-link-first UX. `www.skilljury.com/login` now exposes:
+  - email/password login
+  - email/password signup with a public reviewer username / ID
+  - password reset
+  - account setup routing for users who still need to choose a public username
+- Signed-in-but-incomplete users are now forced through `/account/setup` before they can create reviews or submit skills, and the server-side write APIs reject review/submission attempts from users without a public username.
+- Live auth guard checks on 2026-03-13 verified:
+  - `GET /account/setup` redirects anonymous visitors to `/login?next=%2Faccount%2Fsetup`
+  - anonymous `POST /api/auth/profile` returns `401`
+  - anonymous `POST /api/reviews` returns `401`
+  - anonymous `POST /api/submissions` returns `401`
+- A real browser-level Google OAuth attempt against the live site reached the Supabase authorize endpoint and returned `Unsupported provider: provider is not enabled`, which confirms the production Supabase project does not currently have Google auth enabled.
+- The app-side auth UX now shields users from that broken provider state: the live login page hides the Google CTA unless `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true` and instead shows a clear email/password fallback message. This closes the verified app-side auth UX blocker, but Google login itself still requires a Supabase dashboard change before it can be re-enabled.
+- The large count in the Supabase Advisor panel is not a set of critical runtime errors. The screenshot showed `0 errors`, with the visible entries being repeated `Auth RLS Initialization Plan` warnings across multiple tables/policies.
+- Those repeated warnings come from the same policy style being used in many places: direct `auth.uid()` checks and repeated role lookups inside RLS policies.
+- A focused cleanup migration now exists at [006_rls_policy_advisor_cleanup.sql](C:\Users\jmana\codex-research\skills-review-platform\supabase\migrations\006_rls_policy_advisor_cleanup.sql). It:
+  - centralizes auth lookups into helper functions
+  - recreates the flagged policies with `to authenticated`
+  - replaces the repeated direct auth checks in policy bodies with helper-based expressions
+- The migration is repo-audited and app-safe, but it has not been applied to the hosted Supabase database from this environment. Until it is applied in Supabase, the live advisor warning count will not change.
+- The existing linked Vercel team project is still blocked for direct CLI deploys because Vercel checks the latest git author identity and rejects `local@skilljury.dev` as a non-member of the target team.
+- SkillJury has now been published through a separate no-input Vercel project named `skilljury-manual-deploy`, with a live public production alias at `https://skilljury-manual-deploy.vercel.app`.
+- The manual Vercel project now has persisted production env values for:
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+  - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+  - `TURNSTILE_SECRET_KEY`
+  - `CRON_SECRET`
+  - `NEXT_PUBLIC_ADMIN_EMAIL`
+  - `NEXT_PUBLIC_SITE_URL`
+- The public custom domain is now live at `https://www.skilljury.com`, with `https://skilljury.com` redirecting to `https://www.skilljury.com`.
+- The live `/search` overflow bug was caused by native select controls sizing themselves against long imported option labels instead of the filter sidebar width.
+- Constraining the search selects and shared sort control with `w-full min-w-0` fixes the overflow without changing the filter data model.
+- Review wording is clearer after the latest live pass:
+  - `Rating` is now labeled `SkillJury rating`
+  - unrated states now show `Not reviewed yet`
+  - low-evidence recommendation copy now reads `Not enough reviews`
+- The live auth flow now builds Supabase callback URLs from the active browser origin in the client, which prevents new magic-link and identity-link flows from pointing at the stale Vercel hostname when the user signs in from `www.skilljury.com`.
+- A fresh live-domain audit confirmed:
+  - `https://www.skilljury.com` returns `200`
+  - `https://www.skilljury.com/api/cron/sync?limit=1` returns `401`
+  - `https://www.skilljury.com/designs` returns `404`
+  - public responses on the live domain include the expected security headers
+  - canonical and social URLs on public pages now point at `https://www.skilljury.com`
+- Fresh live HTML and screenshot checks confirmed that the deployed search page now renders fixed-width filter controls and the updated review wording.
+- The latest live search audit artifact is stored at:
+  - `output/live-search-audit.png`
 
 ## Likely Inferences
 - A competing product cannot win by simple aggregation alone, because `skills.sh` already aggregates broadly across many source repositories.
@@ -116,9 +215,159 @@
 - Treating `AuthSessionMissingError` as an anonymous viewer state is necessary for public Supabase-SSR pages; otherwise public routes fail even when auth is optional.
 - Skill detail pages can trigger PostgREST query planner errors if the same relationship is selected twice at the same query level; aliased inner joins avoid that failure pattern.
 - Turnstile is now a hard deployment dependency for live write flows. Without real site and secret keys, review, report, and submission forms are intentionally disabled in production mode with an explicit warning rather than failing at submission time.
+- A stronger public ranking model should likely separate three concepts instead of collapsing them:
+  - community sentiment (`SkillJury reviews`)
+  - ecosystem traction (`stars`, installs, repo activity)
+  - safety confidence (`verifiable checks and warnings`)
+- The redesign should stay mostly 2D even if it borrows some premium visual cues from Spline-like interfaces, because heavy embedded 3D would likely hurt load speed, scanability, and SEO/GEO clarity on a directory-style site.
+- Non-English skills can be retained in the catalog without disappearing, but they should be demoted in sort order and clearly treated as lower-confidence discovery results until English summaries or reviews exist.
+- Low-information skills such as generic one-word entries with sparse summaries should not necessarily be deleted, but they need strong ranking penalties and lower visual prominence so the catalog does not look noisy or untrustworthy.
+- The production-readiness audit found that the global `a { color: inherit; }` rule in `app/globals.css` was overriding utility-based link colors on CTA links, which explains the near-invisible white-on-white `Sign in` and `Sign in to review` buttons shown in the screenshots.
+- Restricting color inheritance to unclassed anchors fixes the CTA rendering problem without giving plain content links browser-default blue styling.
+- The skill review archive page now includes a direct backlink to the parent skill page, removing the dead-end navigation state that remained after the redesign.
+- Empty-state metric cards now distinguish between numeric values and fallback copy: unrated states such as `No rating yet` and `Pending` no longer use oversized monospace number styling in `RecommendationSummary` and `SkillMetaPanel`.
+- Recreating the Supabase helper functions with `set search_path = public` is the correct fix for the remaining `Function Search Path Mutable` Security Advisor warnings; it hardens the functions without changing the app-side auth model.
+- The review-summary layout bug came from forcing a three-column metric grid inside a panel that only gets about half the page width on skill review screens.
+- Moving that summary block to a `1 -> 2 -> 3` responsive grid and reducing the label tracking fixes the empty-state cards in the real route layout instead of only in isolation.
+- `getSiteUrl()` now honors Vercel-provided environment variables (`VERCEL_PROJECT_PRODUCTION_URL` and `VERCEL_URL`) before falling back to localhost, which makes metadata generation safer for production deployments that do not explicitly define `NEXT_PUBLIC_SITE_URL`.
+- Fresh headless-browser screenshots captured against a rebuilt local production server on port `3004` confirm the corrected CTA rendering and the new review-archive backlink.
+- Fresh audit screenshots now confirm the corrected review-summary layout both locally and on the live domain:
+  - `output/review-summary-ui-audit-3010.png`
+  - `output/review-summary-live-audit-20260313.png`
+- The homepage featured section was still leaking raw sort-order bias back into a block that promised "high-signal public listings" because `getFeaturedSkills()` backfilled from the unfiltered result set.
+- Tightening the featured-skill thresholds and selecting entries in a source-diversified round-robin produces a cleaner homepage mix and avoids repeatedly surfacing multiple skills from the same upstream source too early.
+- Homepage and browse cards looked more broken than they were because they rendered `0 reviews` and `0 GitHub stars` as primary card signals for many imported skills. Reframing those cases as `Awaiting first review`, `Open`, and `Linked` makes the catalog feel intentional instead of empty.
+- Fresh rendered checks confirmed the updated featured/card states locally and on the live site:
+  - `output/homepage-featured-audit-before.png`
+  - `output/homepage-featured-audit-after.png`
+  - `output/homepage-featured-live-after.png`
+  - `output/homepage-cards-after.png`
+  - `output/homepage-cards-live-after.png`
+- The current Google `No information is available for this page.` result for `skilljury.com` is not explained by a present-day crawl block:
+  - `https://www.skilljury.com` returns `200`
+  - the homepage ships title, description, canonical, OG, and Twitter metadata
+  - `robots.txt` allows `/`
+  - `sitemap.xml` is live
+- The better explanation is weak or stale Google understanding of the domain rather than a current noindex or robots failure.
+- Homepage entity clarity is stronger after the latest SEO/GEO pass:
+  - richer root title/description
+  - explicit robots/googlebot snippet directives
+  - Organization schema with alternate names and logo
+  - WebSite schema with `SearchAction`
+  - ItemList schema for featured skills
+  - visible FAQ + FAQ schema for high-intent brand/entity questions
+- Internal search should not be treated as a primary SEO landing page:
+  - `/search` is now explicitly `noindex`
+  - `/search` was removed from the sitemap
+  - public taxonomy/entity pages remain indexable (`/skills/*`, `/categories/*`, `/agents/*`, `/sources/*`)
+- Public directory pages now expose stronger machine-readable structure:
+  - breadcrumb schema on skill and category pages
+  - item-list schema on category pages
+- The live audit after redeploy confirmed:
+  - homepage contains `SearchAction`, featured ItemList schema, and the new entity copy
+  - `/search` contains `noindex`
+  - `sitemap.xml` no longer includes `/search`
+  - live skill/category pages now expose breadcrumb/item-list schema
+- If old-host magic-link emails still appear after the current live deploy, the remaining issue is likely Supabase Auth dashboard configuration (`Site URL` / redirect allowlist) rather than the repo code path.
+- The current indexing-control cleanup is now implemented in the repo:
+  - `app/robots.ts` disallows `/search`
+  - `app/sitemap.ts` no longer emits `/skills/[slug]/reviews`
+  - skill sitemap entries now use `last_synced_at ?? updated_at` when available instead of a universal `new Date()`
+  - `app/skills/[skillSlug]/reviews/page.tsx` now marks empty review archive pages as non-indexable
+- `npm run build` and `npm run lint` both pass after the indexing-control cleanup.
+- Removing empty review archive pages from sitemap priority and stopping universal freshness timestamps should reduce thin-page crawl pressure on the next deploy, even though the larger quality problem still depends on better summaries and real review content.
+- The current catalog-summary cleanup is now implemented in the repo:
+  - `cleanCatalogSummary()` rejects `You are ...` prompt-style lead-ins, colon-ended setup fragments, and other low-signal imported summaries under a stricter quality floor
+  - `cleanCatalogDescription()` now drops low-signal excerpts instead of echoing weak prompt/setup fragments back onto public pages
+  - the repeated fallback sentence about sparse/cleaned summaries no longer appears across skill cards, hero, quick facts, and about sections
+  - the `About this skill` block is now hidden when it would only repeat the cleaned summary rather than add new information
+- Sample cleaner checks now behave correctly:
+  - `You are an expert debugger ...` -> `null`
+  - `When Azure MCP is enabled:` -> `null`
+  - `When Azure MCP is enabled: If Azure MCP is not enabled: Run /azure:setup ...` -> `null`
+  - `Zero-config linting and formatting for JS/TS projects` still passes
+- `npm run build` and `npm run lint` both pass after the catalog-summary cleanup.
+- The current thin-page quality cleanup is now implemented in the repo:
+  - skill detail metadata now sets `indexable: false` when a skill has no short summary, no long description, and `approvedReviewCount === 0`
+  - `SkillCard` no longer repeats the static trust-note copy and instead surfaces `First seen` using the existing date formatter
+  - `QuickFacts` now hides `Review count`, `Average rating`, and `Would recommend` when `reviewCount === 0`
+- `npm run build` and `npm run lint` both pass after the thin-page quality cleanup.
+- The pending indexing-control, catalog-summary, and thin-page quality batches are now deployed to the manual Vercel production project and live on `https://www.skilljury.com`.
+- Live production audit on 2026-03-14 confirmed:
+  - `GET /robots.txt` returns `200` and contains `Disallow: /search`
+  - `GET /sitemap.xml` returns `200` and no longer contains `/skills/.../reviews` URLs
+  - `GET /skills/azure-ai/reviews` returns `200` and ships `meta name="robots" content="noindex, nofollow"`
+  - `GET /skills/azure-ai` returns `200`, does not contain the old sparse-summary fallback, and does not render the `About this skill` section for that thin page
+  - `GET /` returns `200`, homepage featured cards now show `First seen`, and the old `Community score stays separate from catalog signals.` copy is absent
+- The manual Vercel deploy for this pass completed successfully and re-aliased the public production domain to:
+  - `https://www.skilljury.com`
+- The current local SkillHero zero-state cleanup is now implemented in the repo:
+  - the hero no longer renders a prominent `0 reviews` badge when `approvedCount === 0`
+  - the secondary `Browse all reviews` CTA is now hidden when `approvedCount === 0`, so zero-review skills do not funnel users into an empty review archive
+- `npm run build` and `npm run lint` both pass after the local SkillHero zero-state cleanup.
+- The current local empty-state UI cleanup is now implemented in the repo:
+  - `RecommendationSummary` only renders the `Yes / With caveats / No` recommendation breakdown row when the total breakdown count is greater than `0`
+  - the `About this skill` disclaimer now uses visitor-facing copy instead of internal engineering language
+- `npm run build` and `npm run lint` both pass after the local empty-state UI cleanup.
+- The pending local `SkillHero` and empty-state UI cleanup batches are now deployed to the manual Vercel production project and live on `https://www.skilljury.com`.
+- Live production audit on 2026-03-14 confirmed for `https://www.skilljury.com/skills/azure-ai`:
+  - no `0 reviews` text is visible in the hero section
+  - no `Browse all reviews` link is visible in the hero
+  - no `Yes: 0 / With caveats: 0 / No: 0` recommendation breakdown is visible
+  - the old engineering-style About disclaimer is absent, and the `About this skill` section is hidden entirely on that thin page
+  - the Quick Facts block no longer shows `Review count`, `Average rating`, or `Would recommend`
+- Live production audit on 2026-03-14 confirmed for `https://www.skilljury.com/`:
+  - featured cards still show `First seen` (6 visible matches in the rendered HTML)
+  - the old trust-note copy is absent
+  - no `0 reviews` text is visible on the featured cards
+- The manual Vercel deploy for this pass completed successfully and kept the public production alias at:
+  - `https://www.skilljury.com`
+- The category-content depth batch is now implemented in the repo:
+  - a new [categoryDescriptions.ts](C:\Users\jmana\codex-research\skills-review-platform\lib\catalog\categoryDescriptions.ts) file maps the existing 14 category slugs to editorial descriptions
+  - the slugs were derived from the existing taxonomy source in [categories.ts](C:\Users\jmana\codex-research\skills-review-platform\lib\taxonomy\categories.ts), not invented ad hoc
+  - category pages now render an `About this category` section after the hero when a mapped description exists
+  - category metadata now uses the editorial description when one exists, falling back to the generic metadata template otherwise
+- `npm run build` and `npm run lint` both pass after the category-content depth batch.
+- The pending category-content depth batch is now deployed to the manual Vercel production project and live on `https://www.skilljury.com`.
+- Live production audit on 2026-03-14 confirmed:
+  - `GET /categories/software-engineering` returns `200`, contains `About this category`, and includes the new software-engineering editorial description
+  - `GET /categories/ai-automation` returns `200`, contains `About this category`, and includes the new ai-automation editorial description
+- The new agent-content depth batch is now implemented in the repo:
+  - a new [agentDescriptions.ts](C:\Users\jmana\codex-research\skills-review-platform\lib\catalog\agentDescriptions.ts) file maps the real live agent slugs extracted from the current sitemap, including `claude-code`, `codex`, `cursor`, `github-copilot`, `windsurf`, `replit`, `openclaw`, and the rest of the 24 live agent routes
+  - agent pages now render an `About this agent` section after the hero when a mapped description exists
+  - agent metadata now uses the editorial description when one exists, falling back to the generic agent metadata template otherwise
+- `npm run build` and `npm run lint` both pass after the local agent-content depth batch.
+- The pending agent-content depth batch is now deployed to the manual Vercel production project and live on `https://www.skilljury.com`.
+- Live production audit on 2026-03-14 confirmed:
+  - `GET /agents/claude-code` returns `200`, contains `About this agent`, and includes the new Claude Code editorial description
+  - `GET /agents/cursor` returns `200`, contains `About this agent`, and includes the new Cursor editorial description
+- Source-page research findings on 2026-03-14:
+  - the live sitemap currently contains `774` source pages
+  - the current source-page template in [page.tsx](C:\Users\jmana\codex-research\skills-review-platform\app\sources\[sourceSlug]\page.tsx) still renders only a hero, a count/sort card, a result grid, and pagination; there is no equivalent editorial `About this source` block yet
+  - sampled live source pages all behaved as listing-only surfaces with the fallback attribution copy from [SourceHero.tsx](C:\Users\jmana\codex-research\skills-review-platform\components\sources\SourceHero.tsx), not richer source-specific text:
+    - `flutter/skills` -> `40` linked skills
+    - `microsoft/github-copilot-for-azure` -> `26` linked skills
+    - `facebook/react` -> `7` linked skills
+    - `haydenbleasel/ultracite` -> `1` linked skill
+  - even the larger sampled source pages are still mostly a hero plus imported skill cards, while a one-skill source page like `haydenbleasel/ultracite` is clearly too thin to justify index priority
+  - the next likely SEO move is to noindex thin source pages with very low linked-skill counts unless they later gain richer source-level context
+- The thin-source index-gating batch is now implemented in the repo:
+  - [page.tsx](C:\Users\jmana\codex-research\skills-review-platform\app\sources\[sourceSlug]\page.tsx) now marks source pages as non-indexable when `skillCount <= 3`
+  - [sourcePages.ts](C:\Users\jmana\codex-research\skills-review-platform\lib\db\sourcePages.ts) now exposes `getAllSourceSitemapEntries()` so sitemap generation can evaluate real linked-skill counts instead of emitting all sources blindly
+  - [sitemap.ts](C:\Users\jmana\codex-research\skills-review-platform\app\sitemap.ts) now excludes source pages with `3` or fewer linked skills from the sitemap
+- `npm run build` and `npm run lint` both pass after the thin-source index-gating batch.
+- This batch has not been deployed yet; it is repo-local only.
+- The repo-local `.env.local` still stores Supabase values in angle brackets, but the values are usable once sanitized with the same helper logic already present in [config.ts](C:\Users\jmana\codex-research\skills-review-platform\lib\supabase\config.ts); the raw file is not directly usable by naive scripts.
+- A live review-bootstrap research pass against the active skills table returned `4,212` active skills total and `3,423` zero-review skills with both a cleaned short summary of at least `40` characters and a non-null cleaned long description.
+- The saved shortlist in [review-bootstrap-candidates.md](C:\Users\jmana\codex-research\skills-review-platform\review-bootstrap-candidates.md) intentionally favors:
+  - zero-review pages that already have enough content depth to support a useful first review
+  - recognizable sources such as OpenAI, Anthropic, Microsoft, Vercel, Flutter, Figma, Trail of Bits, and Apify
+  - a more diverse mix of categories than a raw top-10 by description length would provide
 
 ## Unknowns
 - I cannot verify cross-platform republication rights for every skills source publicly without checking each platform or repo license / terms individually.
 - I cannot verify whether there are private or invite-only skill ecosystems that would be commercially important but not publicly indexable.
 - I cannot verify whether public star snippets would be granted for every review-page design; Google eligibility depends on implementation and policy compliance.
-- I cannot verify live magic-link delivery, GitHub linking, moderation actions, or public review aggregation against the hosted Supabase project until the Phase 3 SQL migrations are applied in that project.
+- I cannot verify an exact non-English-skill count or build a clean allowlist/blocklist from the local shell right now because direct Supabase auditing fails with `Invalid API key` when using the placeholder-wrapped values currently stored in `.env.local`.
+- I cannot verify third-party republication rights for external review scores or safety ratings on a site-by-site basis yet, so any external-rating feature should start with public facts/signals and explicit source attribution rather than blindly importing all scores.
+- I did not fetch the deployed Vercel URL after publishing because the deployment workflow for this session explicitly avoided post-deploy HTTP checks against the public URL. The Vercel build and aliasing completed successfully, but live-route verification on the hosted domain is still a separate check.

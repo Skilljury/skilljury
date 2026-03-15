@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -7,21 +7,10 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { rootMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-});
-
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = rootMetadata;
@@ -33,18 +22,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html className="dark" lang="en">
       <head>{gaMeasurementId ? <GoogleAnalytics measurementId={gaMeasurementId} /> : null}</head>
-      <body
-        className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} antialiased`}
-      >
-        <div className="relative min-h-screen">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.15),transparent_60%)]" />
-          <div className="relative flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
+      <body className={`${jetbrainsMono.variable} bg-background text-foreground antialiased`}>
+        <div className="flex min-h-screen flex-col">
+          <a
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+            href="#main-content"
+          >
+            Skip to main content
+          </a>
+          <SiteHeader />
+          <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12" id="main-content">{children}</main>
+          <SiteFooter />
         </div>
       </body>
     </html>

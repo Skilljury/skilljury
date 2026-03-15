@@ -15,6 +15,16 @@ export async function requireSignedInUser(nextPath?: string) {
   return viewer;
 }
 
+export async function requireProfileIdentity(nextPath?: string) {
+  const viewer = await requireSignedInUser(nextPath);
+
+  if (!viewer.profile?.username) {
+    redirect(`/account/setup?next=${encodeURIComponent(getSafeNextPath(nextPath))}`);
+  }
+
+  return viewer;
+}
+
 export async function requireModerator(nextPath = "/admin/moderation") {
   const viewer = await requireSignedInUser(nextPath);
 

@@ -1,0 +1,48 @@
+import type { Metadata } from "next";
+
+import { PasswordUpdateForm } from "@/components/auth/PasswordUpdateForm";
+import { getSafeNextPath } from "@/lib/auth/redirects";
+import { buildPageMetadata } from "@/lib/seo/metadata";
+
+type ResetPasswordPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata({
+    title: "Reset your SkillJury password",
+    description:
+      "Set a new password for your SkillJury account after opening the recovery link.",
+    indexable: false,
+    pathname: "/reset-password",
+  });
+}
+
+export default async function ResetPasswordPage({
+  searchParams,
+}: ResetPasswordPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
+
+  return (
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_35%),linear-gradient(135deg,#18181b,#09090b_70%)] px-6 py-8 text-white shadow-xl lg:px-10">
+        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+          Password recovery
+        </div>
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight sm:text-6xl">
+          Reset your SkillJury password
+        </h1>
+        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+          Set a new password to restore access to your SkillJury account.
+        </p>
+      </section>
+
+      <PasswordUpdateForm nextPath={nextPath} />
+    </div>
+  );
+}

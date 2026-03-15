@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AgentHero } from "@/components/agents/AgentHero";
 import { PaginationNav } from "@/components/listing/PaginationNav";
-import { SortSelect } from "@/components/listing/SortSelect";
+import { SortButtonGroup } from "@/components/listing/SortButtonGroup";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ResultGrid } from "@/components/search/ResultGrid";
+import { getAgentDescription } from "@/lib/catalog/agentDescriptions";
 import { getAgentBySlug } from "@/lib/db/agents";
 import { searchSkills } from "@/lib/db/search";
 import { normalizePageParam, normalizeSortParam } from "@/lib/routing/browseParams";
-import { buildPageMetadata } from "@/lib/seo/metadata";
+import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
+import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
 import { buildAgentMetadataText } from "@/lib/seo/titleTemplates";
 
 type AgentPageProps = {
@@ -32,10 +35,11 @@ export async function generateMetadata({
     });
   }
 
+  const editorialDescription = getAgentDescription(agent.slug);
   const { title, description } = buildAgentMetadataText(agent.name);
   return buildPageMetadata({
     title,
-    description,
+    description: editorialDescription ?? description,
     pathname: `/agents/${agent.slug}`,
   });
 }
@@ -59,32 +63,62 @@ export default async function AgentPage({
     page,
     sort,
   });
+  const canonicalPath = `/agents/${agent.slug}`;
+  const breadcrumbItems = [
+    { name: "Home", path: "/" },
+    { name: agent.name, path: canonicalPath },
+  ];
+  const editorialDescription = getAgentDescription(agent.slug);
+  const resultItems = results.items.map((item) => ({
+    name: item.name,
+    url: buildCanonicalUrl(`/skills/${item.slug}`),
+  }));
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <AgentHero agent={agent} />
-
-      <form
-        action={`/agents/${agent.slug}`}
-        className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.08)]"
-        method="get"
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
-              Compatibility catalog
-            </div>
-            <h2 className="mt-3 font-display text-4xl tracking-tight text-slate-950">
-              {results.totalCount.toLocaleString("en-US")} linked skills
-            </h2>
-          </div>
-          <div className="w-full max-w-xs">
-            <SortSelect value={sort} />
-          </div>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
+      {resultItems.length > 0 ? (
+        <JsonLd
+          data={buildItemListJsonLd({
+            canonicalPath,
+            itemName: `${agent.name} compatible skills on SkillJury`,
+            items: resultItems,
+          })}
+        />
+      ) : null}
+      <section className="space-y-4">
+        <Link
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-default hover:text-foreground"
+          href="/"
+        >
+          <span aria-hidden="true">←</span>
+          <span>Back to registry</span>
+        </Link>
+        <div className="space-y-3">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {agent.name}
+          </h1>
+          {(editorialDescription ?? agent.description) ? (
+            <p className="max-w-3xl text-lg text-foreground/80">
+              {editorialDescription ?? agent.description}
+            </p>
+          ) : null}
         </div>
-      </form>
+      </section>
 
-      <ResultGrid items={results.items} />
+      <section className="space-y-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
+            Skills compatible with {agent.name}
+          </h2>
+          <SortButtonGroup basePath={`/agents/${agent.slug}`} value={sort} />
+        </div>
+        <ResultGrid
+          emptyCopy="No compatible skills found."
+          emptyTitle="No compatible skills"
+          items={results.items}
+        />
+      </section>
 
       <PaginationNav
         basePath={`/agents/${agent.slug}`}

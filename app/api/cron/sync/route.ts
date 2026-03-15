@@ -5,18 +5,25 @@ import { runSkillsShSync } from "@/lib/ingestion/syncSkillsSh";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-function isAuthorized(request: NextRequest) {
-  const expectedSecret = process.env.CRON_SECRET?.trim();
+function getCronSecret() {
+  return process.env.CRON_SECRET?.trim() || null;
+}
 
-  if (!expectedSecret) {
-    return true;
-  }
-
+function isAuthorized(request: NextRequest, expectedSecret: string) {
   return request.headers.get("authorization") === `Bearer ${expectedSecret}`;
 }
 
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request)) {
+  const expectedSecret = getCronSecret();
+
+  if (!expectedSecret) {
+    return NextResponse.json(
+      { error: "Cron sync is not configured for this environment." },
+      { status: 503 },
+    );
+  }
+
+  if (!isAuthorized(request, expectedSecret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

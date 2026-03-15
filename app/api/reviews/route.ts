@@ -33,6 +33,14 @@ export async function POST(request: NextRequest) {
       throw new AppError(401, "You must sign in before submitting a review.", "unauthorized");
     }
 
+    if (!viewer.profile?.username) {
+      throw new AppError(
+        403,
+        "Finish your SkillJury profile before submitting a review.",
+        "profile_incomplete",
+      );
+    }
+
     const body = (await request.json()) as ReviewRequestBody;
 
     if (

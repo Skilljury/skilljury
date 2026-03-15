@@ -2,18 +2,19 @@ import type { MetadataRoute } from "next";
 
 import { getAllAgentSlugs } from "@/lib/db/agents";
 import { getAllCategorySlugs } from "@/lib/db/categories";
-import { getAllSkillSlugs } from "@/lib/db/skills";
-import { getAllSourceSlugs } from "@/lib/db/sourcePages";
+import { getAllSkillSitemapEntries } from "@/lib/db/skills";
+import { getAllSourceSitemapEntries } from "@/lib/db/sourcePages";
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 import { buildCanonicalUrl } from "@/lib/seo/metadata";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [skillSlugs, categorySlugs, agentSlugs, sourceSlugs] = await Promise.all([
-    getAllSkillSlugs(),
+  const [skillEntries, categorySlugs, agentSlugs, sourceEntries] = await Promise.all([
+    getAllSkillSitemapEntries(),
     getAllCategorySlugs(),
     getAllAgentSlugs(),
-    getAllSourceSlugs(),
+    getAllSourceSitemapEntries(),
   ]);
+  const staticLastModified = new Date("2026-03-14T00:00:00.000Z");
   const staticRoutes = [
     "",
     "/about",
@@ -22,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/new",
     "/privacy",
     "/review-guidelines",
-    "/search",
     "/terms",
     "/top-rated",
     "/trending",
@@ -31,39 +31,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes.map((pathname) => ({
       url: buildCanonicalUrl(pathname || "/"),
-      lastModified: new Date(),
+      lastModified: staticLastModified,
       changeFrequency: pathname ? ("weekly" as const) : ("daily" as const),
       priority: pathname ? 0.7 : 1,
     })),
-    ...skillSlugs.map((slug) => ({
-      url: buildCanonicalUrl(`/skills/${slug}`),
-      lastModified: new Date(),
+    ...skillEntries.map((entry) => ({
+      url: buildCanonicalUrl(`/skills/${entry.slug}`),
+      lastModified: entry.lastModified ? new Date(entry.lastModified) : undefined,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
-    ...skillSlugs.map((slug) => ({
-      url: buildCanonicalUrl(`/skills/${slug}/reviews`),
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    })),
     ...categorySlugs.map((slug) => ({
       url: buildCanonicalUrl(`/categories/${slug}`),
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
     ...agentSlugs.map((slug) => ({
       url: buildCanonicalUrl(`/agents/${slug}`),
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
-    ...sourceSlugs.map((slug) => ({
-      url: buildCanonicalUrl(`/sources/${encodeSourceSlug(slug)}`),
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    })),
+    ...sourceEntries
+      .filter((entry) => entry.skillCount > 3)
+      .map((entry) => ({
+        url: buildCanonicalUrl(`/sources/${encodeSourceSlug(entry.slug)}`),
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      })),
   ];
 }

@@ -1,0 +1,15 @@
+.next
+.playwright-cli
+output
+*.png
+*.html
+*.md
+!README.md
+tmp-*
+.tmp-*
+lovable-*
+findings.md
+progress.md
+task_plan.md
+review-bootstrap-candidates.md
+tailwind.config.ts

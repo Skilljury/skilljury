@@ -28,6 +28,7 @@ export async function generateMetadata({
   return buildPageMetadata({
     title,
     description,
+    indexable: false,
     pathname: "/search",
   });
 }
@@ -62,23 +63,25 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(247,212,138,0.18),transparent_35%),linear-gradient(135deg,#0f172a,#050816_65%)] px-6 py-8 text-white shadow-[0_45px_120px_rgba(0,0,0,0.45)] lg:px-10">
-        <div className="text-xs uppercase tracking-[0.28em] text-slate-400">
-          Search and filters
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <section className="space-y-4">
+        <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+          Search
         </div>
-        <h1 className="mt-4 font-display text-5xl tracking-tight sm:text-6xl">
-          Search the live skill catalog.
+        <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          Search the live skill catalog
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
-          Query by skill name, then narrow the results by category, agent, or
-          source repository. The results below come directly from the hosted
-          Supabase catalog.
+        <p className="max-w-3xl text-lg leading-8 text-foreground/80">
+          Search by skill name, then narrow the registry by category, agent, or
+          source repository.
         </p>
       </section>
 
-      <form action="/search" className="space-y-5" method="get">
-        <SearchBar defaultValue={query} />
+      <form
+        action="/search"
+        className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]"
+        method="get"
+      >
         <FilterPanel
           agents={agents.map((item) => ({ name: item.name, slug: item.slug }))}
           categories={categories.map((item) => ({
@@ -94,21 +97,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             slug: encodeSourceSlug(item.slug),
           }))}
         />
+        <SearchBar defaultValue={query} />
       </form>
 
       <section className="space-y-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
-              Results
-            </div>
-            <h2 className="mt-3 font-display text-4xl tracking-tight text-slate-950">
-              {results.totalCount.toLocaleString("en-US")} matching skills
-            </h2>
+        <div className="flex flex-col gap-2">
+          <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+            Results
           </div>
-          <p className="max-w-xl text-sm leading-7 text-slate-600">
-            Sort order is stable across pagination. Search is database-backed and
-            falls back to live catalog popularity when multiple entries match.
+          <p className="text-sm text-muted-foreground">
+            {results.totalCount.toLocaleString("en-US")} results
+            {query ? (
+              <>
+                {" "}
+                for <span className="font-mono text-foreground">{query}</span>
+              </>
+            ) : null}
           </p>
         </div>
 

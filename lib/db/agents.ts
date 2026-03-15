@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  cleanCatalogDescription,
+  cleanCatalogLabel,
+  isSuspiciousCatalogLabel,
+  labelFromSlug,
+} from "@/lib/catalog/clean";
 import type { SkillListItem } from "@/lib/db/skills";
 import { searchSkills } from "@/lib/db/search";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -16,6 +22,34 @@ export type BrowseAgent = {
   topPicks: SkillListItem[];
 };
 
+export type AgentRailAgent = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
+export async function getAgentRailAgents(limit = 24): Promise<AgentRailAgent[]> {
+  const supabase = createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("agents")
+    .select("id, name, slug")
+    .eq("status", "active")
+    .order("name", { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? [])
+    .filter((row) => !isSuspiciousCatalogLabel(row.name as string))
+    .map((row) => ({
+      id: row.id as number,
+      name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
+      slug: row.slug as string,
+    }));
+}
+
 export async function getAllAgents(): Promise<BrowseAgent[]> {
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
@@ -30,7 +64,9 @@ export async function getAllAgents(): Promise<BrowseAgent[]> {
 
   const rows = data ?? [];
   const agents = await Promise.all(
-    rows.map(async (row) => {
+    rows
+      .filter((row) => !isSuspiciousCatalogLabel(row.name as string))
+      .map(async (row) => {
       const { count, error: countError } = await supabase
         .from("skill_agent_compatibility")
         .select("*", { count: "exact", head: true })
@@ -42,16 +78,16 @@ export async function getAllAgents(): Promise<BrowseAgent[]> {
 
       return {
         id: row.id as number,
-        name: row.name as string,
+        name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
         slug: row.slug as string,
-        description: (row.short_description as string | null) ?? null,
+        description: cleanCatalogDescription(row.short_description as string | null),
         skillCount: count ?? 0,
         reviewedSkillCount: 0,
         lastUpdatedAt: null,
         topPicks: [],
         highestRatedSkill: null,
       } satisfies BrowseAgent;
-    }),
+      }),
   );
 
   return agents;
@@ -114,6 +150,10 @@ export async function getAgentBySlug(agentSlug: string): Promise<BrowseAgent | n
     return null;
   }
 
+  if (isSuspiciousCatalogLabel(data.name as string)) {
+    return null;
+  }
+
   const agentId = data.id as number;
   const [
     skillCountResult,
@@ -153,9 +193,9 @@ export async function getAgentBySlug(agentSlug: string): Promise<BrowseAgent | n
 
   return {
     id: agentId,
-    name: data.name as string,
+    name: cleanCatalogLabel(data.name as string, labelFromSlug(data.slug as string)),
     slug: data.slug as string,
-    description: (data.short_description as string | null) ?? null,
+    description: cleanCatalogDescription(data.short_description as string | null),
     skillCount: skillCountResult.count ?? 0,
     reviewedSkillCount: reviewedSkillCountResult.count ?? 0,
     lastUpdatedAt,

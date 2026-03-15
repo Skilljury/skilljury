@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { createAuthServerClient, syncUserProfileFromAuthUser } from "@/lib/auth/session";
+import {
+  createAuthServerClient,
+  syncUserProfileFromAuthUser,
+} from "@/lib/auth/session";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 
 export async function POST() {
   const supabase = await createAuthServerClient();
@@ -20,5 +24,15 @@ export async function POST() {
 
   await syncUserProfileFromAuthUser(user);
 
-  return NextResponse.json({ ok: true });
+  const serviceSupabase = createServiceRoleSupabaseClient();
+  const { data: profile } = await serviceSupabase
+    .from("user_profiles")
+    .select("username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return NextResponse.json({
+    needsProfileSetup: !profile?.username,
+    ok: true,
+  });
 }

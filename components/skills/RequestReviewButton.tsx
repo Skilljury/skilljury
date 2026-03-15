@@ -67,7 +67,7 @@ export function RequestReviewButton({
   return (
     <div className="space-y-3">
       <button
-        className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/8 disabled:cursor-not-allowed disabled:border-white/8 disabled:text-slate-400"
+        className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/8 disabled:cursor-not-allowed disabled:border-white/8 disabled:text-zinc-500"
         disabled={isPending || hasRequested}
         onClick={handleClick}
         type="button"
@@ -78,7 +78,7 @@ export function RequestReviewButton({
             ? "Recording request..."
             : "Request a review"}
       </button>
-      <div className="text-xs uppercase tracking-[0.24em] text-slate-400">
+      <div className="text-xs uppercase tracking-[0.24em] text-zinc-500">
         {count} review request{count === 1 ? "" : "s"}
       </div>
       {errorMessage ? <p className="text-sm text-rose-300">{errorMessage}</p> : null}

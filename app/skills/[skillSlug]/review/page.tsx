@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ReviewForm } from "@/components/reviews/ReviewForm";
-import { requireSignedInUser } from "@/lib/auth/guards";
+import { requireProfileIdentity } from "@/lib/auth/guards";
 import { getSkillBySlug } from "@/lib/db/skills";
 import { getSkillReviews } from "@/lib/reviews/getSkillReviews";
 import { getTurnstileSiteKey } from "@/lib/supabase/config";
@@ -28,13 +28,14 @@ export async function generateMetadata({
     description: skill
       ? `Share your experience with ${skill.name} on SkillJury.`
       : "Share your experience with a SkillJury catalog entry.",
+    indexable: false,
     pathname: `/skills/${skillSlug}/review`,
   });
 }
 
 export default async function SkillReviewPage({ params }: ReviewPageProps) {
   const { skillSlug } = await params;
-  const viewer = await requireSignedInUser(`/skills/${skillSlug}/review`);
+  const viewer = await requireProfileIdentity(`/skills/${skillSlug}/review`);
   const user = viewer.user!;
   const skill = await getSkillBySlug(skillSlug);
 
@@ -49,23 +50,26 @@ export default async function SkillReviewPage({ params }: ReviewPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-        <div className="text-xs uppercase tracking-[0.28em] text-slate-500">
+      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_35%),linear-gradient(135deg,rgba(20,20,24,0.98),rgba(8,8,10,0.96))] p-7 shadow-xl">
+        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
           Review submission
         </div>
-        <h1 className="mt-4 font-display text-5xl tracking-tight text-slate-950">
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-white">
           Write a review for {skill.name}
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
           Required fields stay minimal so the form is fast to finish. Optional detail
           fields are available inside the expandable section.
         </p>
       </section>
 
       {reviewBundle.viewerReview ? (
-        <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-5 text-sm leading-7 text-amber-950">
+        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-7 text-amber-100">
           You have already submitted a review for this skill. Go back to the{" "}
-          <Link className="underline underline-offset-4" href={`/skills/${skill.slug}`}>
+          <Link
+            className="underline decoration-white/30 underline-offset-4"
+            href={`/skills/${skill.slug}`}
+          >
             skill page
           </Link>{" "}
           to see its current public status.

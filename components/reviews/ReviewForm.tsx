@@ -1,10 +1,11 @@
 "use client";
 
 import Script from "next/script";
-import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
 import { OptionalDetailFields } from "@/components/reviews/OptionalDetailFields";
+import { Toast } from "@/components/ui/Toast";
 import { trackBrowserEvent } from "@/lib/analytics/events";
 
 type ReviewFormProps = {
@@ -105,14 +106,12 @@ export function ReviewForm({
       ) : null}
 
       <form
-        className="space-y-5 rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_55px_rgba(15,23,42,0.08)]"
+        className="space-y-5 rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md"
         onSubmit={handleSubmit}
       >
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-slate-950">
-            Review {skillName}
-          </h2>
-          <p className="text-sm leading-7 text-slate-600">
+          <h2 className="text-2xl font-semibold text-white">Review {skillName}</h2>
+          <p className="text-sm leading-7 text-zinc-400">
             Only four fields are required. Everything else is optional and hidden
             behind the expandable section.
           </p>
@@ -120,9 +119,9 @@ export function ReviewForm({
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Overall rating</span>
+            <span className="text-sm font-medium text-white">Overall rating</span>
             <select
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               defaultValue="5"
               name="overallRating"
               required
@@ -136,9 +135,9 @@ export function ReviewForm({
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-slate-900">Would recommend</span>
+            <span className="text-sm font-medium text-white">Would recommend</span>
             <select
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
               defaultValue="yes"
               name="wouldRecommend"
               required
@@ -151,9 +150,9 @@ export function ReviewForm({
         </div>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Pros</span>
+          <span className="text-sm font-medium text-white">Pros</span>
           <textarea
-            className="min-h-28 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+            className="min-h-28 rounded-lg border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
             name="pros"
             placeholder="What worked well?"
             required
@@ -161,9 +160,9 @@ export function ReviewForm({
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Cons</span>
+          <span className="text-sm font-medium text-white">Cons</span>
           <textarea
-            className="min-h-28 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+            className="min-h-28 rounded-lg border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
             name="cons"
             placeholder="What did not work, or what still needs improvement?"
             required
@@ -179,13 +178,13 @@ export function ReviewForm({
             data-sitekey={turnstileSiteKey}
           />
         ) : (
-          <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900">
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm leading-7 text-amber-200">
             Review submission is disabled until Turnstile is configured for this environment.
           </div>
         )}
 
         <button
-          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
           disabled={isPending || !turnstileReady}
           type="submit"
         >
@@ -193,17 +192,8 @@ export function ReviewForm({
         </button>
       </form>
 
-      {errorMessage ? (
-        <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-5 text-sm leading-7 text-rose-800">
-          {errorMessage}
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/80 p-5 text-sm leading-7 text-emerald-900">
-          {successMessage}
-        </div>
-      ) : null}
+      {errorMessage ? <Toast message={errorMessage} tone="error" /> : null}
+      {successMessage ? <Toast message={successMessage} tone="success" /> : null}
     </div>
   );
 }

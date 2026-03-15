@@ -14,9 +14,9 @@ function RatingSelect({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-sm font-medium text-slate-900">{label}</span>
+      <span className="text-sm font-medium text-white">{label}</span>
       <select
-        className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:bg-white"
+        className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
         defaultValue=""
         name={name}
       >
@@ -33,8 +33,8 @@ function RatingSelect({
 
 export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
   return (
-    <details className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5">
-      <summary className="cursor-pointer text-sm font-semibold text-slate-950">
+    <details className="rounded-lg border border-white/10 bg-zinc-950/70 p-5">
+      <summary className="cursor-pointer text-sm font-semibold text-white">
         Add more detail
       </summary>
 
@@ -46,9 +46,9 @@ export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
         <RatingSelect label="Value for effort" name="valueForEffortRating" />
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Agent used</span>
+          <span className="text-sm font-medium text-white">Agent used</span>
           <select
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
             defaultValue=""
             name="agentSlug"
           >
@@ -62,9 +62,9 @@ export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Use case</span>
+          <span className="text-sm font-medium text-white">Use case</span>
           <input
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
             name="useCase"
             placeholder="Example: audit metadata, generate docs, write cover letters"
             type="text"
@@ -72,9 +72,9 @@ export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Experience level</span>
+          <span className="text-sm font-medium text-white">Experience level</span>
           <select
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
             defaultValue=""
             name="experienceLevel"
           >
@@ -86,9 +86,9 @@ export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
         </label>
 
         <label className="grid gap-2 md:col-span-2">
-          <span className="text-sm font-medium text-slate-900">Review title</span>
+          <span className="text-sm font-medium text-white">Review title</span>
           <input
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
             name="reviewTitle"
             placeholder="Optional headline for your review"
             type="text"
@@ -96,18 +96,18 @@ export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
         </label>
 
         <label className="grid gap-2 md:col-span-2">
-          <span className="text-sm font-medium text-slate-900">Review body</span>
+          <span className="text-sm font-medium text-white">Review body</span>
           <textarea
-            className="min-h-32 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-3 text-sm leading-7 text-slate-950 outline-none transition focus:border-slate-400"
+            className="min-h-32 rounded-lg border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-white/20"
             name="reviewBody"
             placeholder="Add more context about how the skill performed in practice."
           />
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Proof of use type</span>
+          <span className="text-sm font-medium text-white">Proof of use type</span>
           <select
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
             defaultValue=""
             name="proofOfUseType"
           >
@@ -118,9 +118,9 @@ export function OptionalDetailFields({ agents }: OptionalDetailFieldsProps) {
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-slate-900">Proof of use</span>
+          <span className="text-sm font-medium text-white">Proof of use</span>
           <input
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400"
+            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
             name="proofOfUseUrl"
             placeholder="Link or short note"
             type="text"
