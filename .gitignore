@@ -48,3 +48,19 @@ supabase/.temp/
 *.log
 
 .vercel
+
+# local tool state and audit artifacts
+.playwright-cli/
+output/
+.claude/
+.superpowers/
+test-results/
+.next-start-security.pid
+tmp-vercel.html
+findings.md
+progress.md
+task_plan.md
+/.tmp-*.png
+/lovable-*.png
+/tmp-*.html
+/public/pasted-skilljury-concept.html
