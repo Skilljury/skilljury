@@ -37,6 +37,13 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
   useEffect(() => {
     let isActive = true;
 
+    function isPkceVerifierMissing(error: unknown) {
+      return (
+        error instanceof Error &&
+        error.message.includes("PKCE code verifier not found in storage")
+      );
+    }
+
     async function completeAuth() {
       try {
         const url = new URL(window.location.href);
@@ -57,7 +64,21 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
           const { error } = await supabase.auth.exchangeCodeForSession(queryCode);
 
           if (error) {
-            throw error;
+            if (isPkceVerifierMissing(error)) {
+              const {
+                data: { session },
+              } = await supabase.auth.getSession();
+
+              if (session) {
+                // Another auth handler already restored the session; continue normally.
+              } else {
+                throw new Error(
+                  "SkillJury could not restore your Google session. Start the sign-in flow again from the same browser tab.",
+                );
+              }
+            } else {
+              throw error;
+            }
           }
         } else {
           const accessToken = hashParams.get("access_token");
@@ -127,15 +148,15 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
 
   if (errorMessage) {
     return (
-      <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-sm leading-7 text-rose-100 shadow-md">
-        <div className="text-xs uppercase tracking-[0.24em] text-rose-300">
+      <div className="rounded-[1.5rem] border border-destructive/25 bg-destructive/5 p-6 text-sm leading-7 text-foreground shadow-sm">
+        <div className="text-xs uppercase tracking-[0.24em] text-destructive">
           Auth failed
         </div>
         <p className="mt-3">{errorMessage}</p>
         <p className="mt-3">
           Return to the{" "}
           <Link
-            className="font-medium text-white underline underline-offset-4 transition hover:text-rose-100"
+            className="font-medium text-foreground underline underline-offset-4 transition-default hover:text-primary"
             href="/login"
           >
             login page
@@ -147,7 +168,7 @@ export function AuthCallbackClient({ nextPath }: AuthCallbackClientProps) {
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-6 text-sm leading-7 text-zinc-300 shadow-md">
+    <div className="rounded-[1.5rem] border border-border bg-card/80 p-6 text-sm leading-7 text-muted-foreground shadow-sm">
       {statusMessage}
     </div>
   );

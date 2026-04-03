@@ -14,8 +14,8 @@ export function ResultGrid({
 }: ResultGridProps) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-card/40 p-8 text-center">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+      <div className="rounded-2xl border border-dashed border-border bg-card/45 p-8 text-center">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
           {emptyTitle}
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
@@ -26,7 +26,7 @@ export function ResultGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-3">
       {items.map((skill) => (
         <SkillCard key={skill.id} skill={skill} />
       ))}

@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { Toast } from "@/components/ui/Toast";
 import { trackBrowserEvent } from "@/lib/analytics/events";
@@ -25,6 +25,7 @@ type SubmitSkillFormProps = {
 
 export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
   const router = useRouter();
+  const refreshTimeoutRef = useRef<number | null>(null);
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [proposedName, setProposedName] = useState("");
@@ -36,6 +37,14 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
   const [isSubmitPending, startSubmitTransition] = useTransition();
   const turnstileReady = Boolean(turnstileSiteKey);
 
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current !== null) {
+        window.clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
   function handlePrefill() {
     if (!repositoryUrl.trim()) {
       return;
@@ -44,35 +53,43 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
     setErrorMessage(null);
 
     startPrefillTransition(async () => {
-      const response = await fetch("/api/submissions/prefill", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          repositoryUrl,
-          sourceUrl,
-        }),
-      });
-      const payload = (await response.json()) as {
-        error?: string;
-        prefill?: SubmissionPrefill;
-      };
+      try {
+        const response = await fetch("/api/submissions/prefill", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            repositoryUrl,
+            sourceUrl,
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | {
+              error?: string;
+              prefill?: SubmissionPrefill;
+            }
+          | null;
 
-      if (!response.ok || !payload.prefill) {
-        setErrorMessage(payload.error ?? "SkillJury could not prefill this repository.");
-        return;
-      }
+        if (!response.ok || !payload?.prefill) {
+          setErrorMessage(
+            payload?.error ?? "SkillJury could not prefill this repository.",
+          );
+          return;
+        }
 
-      setPrefill(payload.prefill);
-      if (payload.prefill.inferredSourceUrl && !sourceUrl.trim()) {
-        setSourceUrl(payload.prefill.inferredSourceUrl);
-      }
-      if (!proposedName.trim() && payload.prefill.inferredName) {
-        setProposedName(payload.prefill.inferredName);
-      }
-      if (!proposedSummary.trim() && payload.prefill.inferredSummary) {
-        setProposedSummary(payload.prefill.inferredSummary);
+        setPrefill(payload.prefill);
+        if (payload.prefill.inferredSourceUrl && !sourceUrl.trim()) {
+          setSourceUrl(payload.prefill.inferredSourceUrl);
+        }
+        if (!proposedName.trim() && payload.prefill.inferredName) {
+          setProposedName(payload.prefill.inferredName);
+        }
+        if (!proposedSummary.trim() && payload.prefill.inferredSummary) {
+          setProposedSummary(payload.prefill.inferredSummary);
+        }
+      } catch {
+        setErrorMessage("SkillJury could not prefill this repository.");
       }
     });
   }
@@ -85,55 +102,63 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
     const formData = new FormData(form);
 
     startSubmitTransition(async () => {
-      const response = await fetch("/api/submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          proposedCategory: formData.get("proposedCategory"),
-          proposedName: formData.get("proposedName"),
-          proposedSummary: formData.get("proposedSummary"),
-          repositoryUrl: formData.get("repositoryUrl"),
-          sourceUrl: formData.get("sourceUrl"),
-          turnstileToken: formData.get("turnstileToken"),
-        }),
-      });
-      const payload = (await response.json()) as {
-        error?: string;
-      };
-
-      if (!response.ok) {
-        setErrorMessage(payload.error ?? "SkillJury could not submit this skill.");
-        return;
-      }
-
-      let repositoryHost = "unknown";
-
       try {
-        repositoryHost = new URL(repositoryUrl).hostname;
+        const response = await fetch("/api/submissions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            proposedCategory: formData.get("proposedCategory"),
+            proposedName: formData.get("proposedName"),
+            proposedSummary: formData.get("proposedSummary"),
+            repositoryUrl: formData.get("repositoryUrl"),
+            sourceUrl: formData.get("sourceUrl"),
+            turnstileToken: formData.get("turnstileToken"),
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | {
+              error?: string;
+            }
+          | null;
+
+        if (!response.ok) {
+          setErrorMessage(
+            payload?.error ?? "SkillJury could not submit this skill.",
+          );
+          return;
+        }
+
+        let repositoryHost = "unknown";
+
+        try {
+          repositoryHost = new URL(repositoryUrl).hostname;
+        } catch {
+          repositoryHost = "unknown";
+        }
+
+        trackBrowserEvent("skill_submission_created", {
+          hasSourceUrl: Boolean(formData.get("sourceUrl")),
+          proposedCategory: String(formData.get("proposedCategory") ?? ""),
+          repositoryHost,
+        });
+
+        setSuccessMessage(
+          "Your skill submission was added to the moderation queue for review.",
+        );
+        form.reset();
+        setPrefill(null);
+        setProposedName("");
+        setProposedSummary("");
+        setRepositoryUrl("");
+        setSourceUrl("");
+        refreshTimeoutRef.current = window.setTimeout(() => {
+          router.refresh();
+        }, 800);
       } catch {
-        repositoryHost = "unknown";
+        setErrorMessage("SkillJury could not submit this skill.");
       }
-
-      trackBrowserEvent("skill_submission_created", {
-        hasSourceUrl: Boolean(formData.get("sourceUrl")),
-        proposedCategory: String(formData.get("proposedCategory") ?? ""),
-        repositoryHost,
-      });
-
-      setSuccessMessage(
-        "Your skill submission was added to the moderation queue for review.",
-      );
-      form.reset();
-      setPrefill(null);
-      setProposedName("");
-      setProposedSummary("");
-      setRepositoryUrl("");
-      setSourceUrl("");
-      setTimeout(() => {
-        router.refresh();
-      }, 800);
     });
   }
 
@@ -148,14 +173,16 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
       ) : null}
 
       <form
-        className="space-y-5 rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md"
+        className="space-y-6 rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm md:p-8"
         onSubmit={handleSubmit}
       >
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-white">Repository URL</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Repository URL
+            </span>
             <input
-              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-default placeholder:text-muted-foreground focus:border-primary/60"
               name="repositoryUrl"
               onBlur={handlePrefill}
               onChange={(event) => setRepositoryUrl(event.target.value)}
@@ -167,9 +194,11 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-white">Skill URL</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Skill URL
+            </span>
             <input
-              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-default placeholder:text-muted-foreground focus:border-primary/60"
               name="sourceUrl"
               onChange={(event) => setSourceUrl(event.target.value)}
               placeholder="https://example.com/skill-page"
@@ -181,9 +210,11 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-white">Proposed name</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Proposed name
+            </span>
             <input
-              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-default placeholder:text-muted-foreground focus:border-primary/60"
               name="proposedName"
               onChange={(event) => setProposedName(event.target.value)}
               placeholder="What should the skill be called?"
@@ -193,9 +224,11 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
           </label>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-white">Suggested category</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Suggested category
+            </span>
             <input
-              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition-default placeholder:text-muted-foreground focus:border-primary/60"
               name="proposedCategory"
               placeholder="Example: software engineering, research, writing"
               type="text"
@@ -204,9 +237,11 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
         </div>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-white">Why it belongs in SkillJury</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+            Why it belongs in SkillJury
+          </span>
           <textarea
-            className="min-h-32 rounded-lg border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm leading-7 text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+            className="min-h-32 rounded-[1.5rem] border border-border bg-background px-4 py-3 text-sm leading-7 text-foreground outline-none transition-default placeholder:text-muted-foreground focus:border-primary/60"
             name="proposedSummary"
             onChange={(event) => setProposedSummary(event.target.value)}
             placeholder="Add a concise summary, use case, or note for the moderator."
@@ -214,8 +249,8 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
           />
         </label>
 
-        <div className="rounded-lg border border-white/10 bg-zinc-950/70 p-5 text-sm leading-7 text-zinc-300">
-          <div className="font-semibold text-white">
+        <div className="rounded-[1.5rem] border border-border bg-surface-elevated/70 p-5 text-sm leading-7 text-foreground/80">
+          <div className="font-semibold text-foreground">
             {isPrefillPending ? "Checking repository metadata..." : "Auto-fill preview"}
           </div>
           {prefill ? (
@@ -249,13 +284,13 @@ export function SubmitSkillForm({ turnstileSiteKey }: SubmitSkillFormProps) {
             data-sitekey={turnstileSiteKey}
           />
         ) : (
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm leading-7 text-amber-200">
+          <div className="rounded-[1.5rem] border border-primary/30 bg-primary/10 px-4 py-3 text-sm leading-7 text-foreground">
             Skill submission is disabled until Turnstile is configured for this environment.
           </div>
         )}
 
         <button
-          className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
+          className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-default hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
           disabled={isSubmitPending || !turnstileReady}
           type="submit"
         >

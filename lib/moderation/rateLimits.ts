@@ -66,7 +66,8 @@ export async function getInitialReviewModerationStatus({
   const { count, error } = await supabase
     .from("reviews")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .eq("moderation_status", "approved");
 
   if (error) {
     throw error;

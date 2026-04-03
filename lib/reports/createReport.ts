@@ -6,20 +6,26 @@ import { createModerationQueueItem } from "@/lib/moderation/queue";
 import { getTurnstileSecretKey } from "@/lib/supabase/config";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 
-export type ReportReason =
-  | "abuse_harassment"
-  | "copyright_issue"
-  | "fake_review"
-  | "off_topic"
-  | "other"
-  | "spam"
-  | "wrong_listing_data";
+export const REPORT_REASONS = [
+  "abuse_harassment",
+  "copyright_issue",
+  "fake_review",
+  "off_topic",
+  "other",
+  "spam",
+  "wrong_listing_data",
+] as const;
+
+export const REPORT_TARGET_TYPES = ["review", "skill"] as const;
+
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export type ReportTargetType = (typeof REPORT_TARGET_TYPES)[number];
 
 type ReportPayload = {
   notes?: string | null;
   reason: ReportReason;
   targetId: string;
-  targetType: "review" | "skill";
+  targetType: ReportTargetType;
   turnstileToken: string;
   userId: string;
   userStatus: "active" | "limited" | "suspended" | "banned";
@@ -81,6 +87,14 @@ export async function createReport(
   }
 
   await verifyTurnstileToken(payload.turnstileToken, payload.ipAddress);
+
+  if (!REPORT_REASONS.includes(payload.reason)) {
+    throw new AppError(400, "Select a valid report reason.", "invalid_reason");
+  }
+
+  if (!REPORT_TARGET_TYPES.includes(payload.targetType)) {
+    throw new AppError(400, "Select a valid report target.", "invalid_target_type");
+  }
 
   const supabase = createServiceRoleSupabaseClient();
 

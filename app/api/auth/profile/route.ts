@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAuthServerClient } from "@/lib/auth/session";
 import { validateUsername } from "@/lib/auth/username";
 import { AppError } from "@/lib/errors/appError";
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 
 type ProfileBody = {
@@ -81,7 +82,10 @@ export async function POST(request: NextRequest) {
     );
 
     if (metadataError) {
-      throw metadataError;
+      console.error(
+        `[SkillJury:auth-profile] Metadata sync failed for ${user.id}.`,
+        metadataError,
+      );
     }
 
     return NextResponse.json({
@@ -92,15 +96,9 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Could not update the profile.",
-      },
-      { status: 500 },
-    );
+    return routeErrorResponse(error, {
+      context: "auth-profile",
+      fallbackMessage: "Could not update the profile right now.",
+    });
   }
 }

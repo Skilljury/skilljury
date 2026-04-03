@@ -42,14 +42,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_35%),linear-gradient(135deg,#18181b,#09090b_70%)] px-6 py-8 text-white shadow-xl lg:px-10">
-        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+      <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
+        <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
           Account access
         </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight sm:text-6xl">
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
           Create a real SkillJury account.
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
           {googleAuthEnabled
             ? "Use Google or create an account with email, password, and a public reviewer ID. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."
             : "Create an account with email, password, and a public reviewer ID. Google sign-in will appear here once the provider is enabled for this deployment. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."}
@@ -57,7 +57,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       </section>
 
       {errorMessage ? (
-        <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-5 text-sm leading-7 text-rose-100">
+        <div className="rounded-[1.5rem] border border-destructive/20 bg-destructive/10 p-5 text-sm leading-7 text-destructive">
           {errorMessage}
         </div>
       ) : null}

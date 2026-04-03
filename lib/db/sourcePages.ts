@@ -2,6 +2,7 @@ import "server-only";
 
 import { cleanCatalogDescription, cleanCatalogLabel, labelFromSlug } from "@/lib/catalog/clean";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
 
 export type BrowseSource = {
   id: number;
@@ -33,7 +34,7 @@ export async function getAllSources(): Promise<BrowseSource[]> {
     id: row.id as number,
     name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
     slug: row.slug as string,
-    homepageUrl: (row.homepage_url as string | null) ?? null,
+    homepageUrl: sanitizeExternalUrl(row.homepage_url as string | null),
     attributionText: cleanCatalogDescription(row.attribution_text as string | null),
   }));
 }
@@ -71,7 +72,7 @@ export async function getSourceBySlug(
     id: data.id as number,
     name: cleanCatalogLabel(data.name as string, labelFromSlug(data.slug as string)),
     slug: data.slug as string,
-    homepageUrl: (data.homepage_url as string | null) ?? null,
+    homepageUrl: sanitizeExternalUrl(data.homepage_url as string | null),
     attributionText: cleanCatalogDescription(data.attribution_text as string | null),
     skillCount: count ?? 0,
   };

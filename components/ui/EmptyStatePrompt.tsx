@@ -14,14 +14,14 @@ export function EmptyStatePrompt({
   title,
 }: EmptyStatePromptProps) {
   return (
-    <div className="rounded-lg border border-dashed border-white/12 bg-white/[0.03] p-6 text-sm leading-7 text-zinc-500 shadow-md">
-      <h2 className="font-mono text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+    <div className="rounded-[1.75rem] border border-dashed border-border bg-card/45 p-6 text-sm leading-7 text-muted-foreground">
+      <h2 className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
         {title}
       </h2>
       <p className="mt-3">{description}</p>
       {actionHref && actionLabel ? (
         <Link
-          className="mt-4 inline-flex rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100"
+          className="mt-4 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-95"
           href={actionHref}
         >
           {actionLabel}

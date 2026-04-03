@@ -12,6 +12,12 @@ export const siteKeywords = [
   "Cursor skills",
   "AI tool reviews",
   "developer workflow tools",
+  "MCP skills",
+  "AI coding assistant plugins",
+  "Cline skills",
+  "GitHub Copilot extensions",
+  "AI agent marketplace",
+  "coding agent tools",
 ];
 const defaultDescription =
   "SkillJury is a live directory of AI agent skills with reviews, install context, source repositories, and compatibility pages.";

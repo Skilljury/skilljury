@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 
-import { FilterPanel } from "@/components/search/FilterPanel";
-import { SearchBar } from "@/components/search/SearchBar";
-import { ResultGrid } from "@/components/search/ResultGrid";
 import { PaginationNav } from "@/components/listing/PaginationNav";
+import { ResultGrid } from "@/components/search/ResultGrid";
+import { SearchBar } from "@/components/search/SearchBar";
 import { getAllAgents } from "@/lib/db/agents";
 import { getAllCategories } from "@/lib/db/categories";
 import { searchSkills } from "@/lib/db/search";
 import { getAllSources } from "@/lib/db/sourcePages";
-import { firstParam, normalizePageParam, normalizeSortParam } from "@/lib/routing/browseParams";
+import {
+  firstParam,
+  normalizePageParam,
+  normalizeSortParam,
+} from "@/lib/routing/browseParams";
 import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { buildSearchMetadataText } from "@/lib/seo/titleTemplates";
@@ -25,11 +28,12 @@ export async function generateMetadata({
     firstParam(resolvedSearchParams.q),
   );
 
+  const query = firstParam(resolvedSearchParams.q);
   return buildPageMetadata({
     title,
     description,
-    indexable: false,
-    pathname: "/search",
+    indexable: !!query && query.length >= 2,
+    pathname: query ? `/search?q=${encodeURIComponent(query)}` : "/search",
   });
 }
 
@@ -65,29 +69,26 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
       <section className="space-y-4">
-        <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+        <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
           Search
         </div>
-        <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
           Search the live skill catalog
         </h1>
-        <p className="max-w-3xl text-lg leading-8 text-foreground/80">
-          Search by skill name, then narrow the registry by category, agent, or
-          source repository.
+        <p className="max-w-3xl text-lg leading-8 text-muted-foreground">
+          Search by skill name, then narrow the registry by category, agent, source,
+          or sort order.
         </p>
       </section>
 
-      <form
-        action="/search"
-        className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]"
-        method="get"
-      >
-        <FilterPanel
+      <form action="/search" className="space-y-8" method="get">
+        <SearchBar
           agents={agents.map((item) => ({ name: item.name, slug: item.slug }))}
           categories={categories.map((item) => ({
             name: item.name,
             slug: item.slug,
           }))}
+          defaultValue={query}
           selectedAgent={selectedAgent}
           selectedCategory={selectedCategory}
           selectedSource={selectedSource}
@@ -97,12 +98,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             slug: encodeSourceSlug(item.slug),
           }))}
         />
-        <SearchBar defaultValue={query} />
       </form>
 
       <section className="space-y-5">
         <div className="flex flex-col gap-2">
-          <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+          <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
             Results
           </div>
           <p className="text-sm text-muted-foreground">

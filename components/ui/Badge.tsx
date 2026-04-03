@@ -7,11 +7,11 @@ type BadgeProps = {
 
 const toneClasses: Record<NonNullable<BadgeProps["tone"]>, string> = {
   default:
-    "border border-white/10 bg-white/6 text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]",
+    "border border-border/70 bg-card/70 text-foreground",
   accent:
-    "border border-white/15 bg-white text-zinc-950 shadow-[0_10px_30px_rgba(255,255,255,0.08)]",
+    "border border-primary/20 bg-primary/10 text-foreground",
   muted:
-    "border border-zinc-800 bg-zinc-900 text-zinc-300",
+    "border border-border bg-background text-muted-foreground",
 };
 
 export function Badge({ children, tone = "default" }: BadgeProps) {

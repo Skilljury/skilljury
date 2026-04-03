@@ -28,7 +28,7 @@ export function SortSelect({
         Sort
       </span>
       <select
-        className="w-full min-w-0 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition-default focus:border-white/20"
+        className="w-full min-w-0 rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
         defaultValue={value}
         name={name}
       >

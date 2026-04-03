@@ -64,20 +64,20 @@ export default async function SkillReviewsPage({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_35%),linear-gradient(135deg,rgba(20,20,24,0.98),rgba(8,8,10,0.96))] p-7 shadow-xl">
+      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
         <Link
-          className="inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/20 hover:bg-white/6 hover:text-white"
+          className="inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/20 hover:bg-card hover:text-foreground"
           href={`/skills/${skill.slug}`}
         >
           Back to {skill.name}
         </Link>
-        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+        <div className="mt-5 text-xs uppercase tracking-[0.28em] text-muted-foreground">
           Review archive
         </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-white">
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {skill.name} ratings and user reviews
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
           Approved reviews only. Pending moderation items stay hidden until a moderator
           publishes them.
         </p>

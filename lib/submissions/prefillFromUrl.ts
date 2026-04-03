@@ -2,6 +2,7 @@ import "server-only";
 
 import { getGitHubRepositoryMeta } from "@/lib/ingestion/githubRepoMeta";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
+import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
 
 type SubmissionPrefillAgent = {
   id: number;
@@ -18,21 +19,7 @@ export type SubmissionPrefillResult = {
 };
 
 function sanitizeOptionalUrl(value: string | null | undefined) {
-  if (!value) {
-    return null;
-  }
-
-  const trimmed = value.trim();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  try {
-    return new URL(trimmed).toString();
-  } catch {
-    return null;
-  }
+  return sanitizeExternalUrl(value);
 }
 
 function parseGitHubRepository(value: string | null | undefined) {
@@ -83,9 +70,18 @@ export async function prefillFromUrl({
 }): Promise<SubmissionPrefillResult> {
   const normalizedRepositoryUrl = parseGitHubRepository(repositoryUrl);
   const normalizedSourceUrl = sanitizeOptionalUrl(sourceUrl);
-  const repositoryMeta = normalizedRepositoryUrl
-    ? await getGitHubRepositoryMeta(normalizedRepositoryUrl)
-    : null;
+  let repositoryMeta = null;
+
+  if (normalizedRepositoryUrl) {
+    try {
+      repositoryMeta = await getGitHubRepositoryMeta(normalizedRepositoryUrl);
+    } catch (error) {
+      console.error("prefillFromUrl: repository enrichment failed", {
+        error,
+        repositoryUrl: normalizedRepositoryUrl,
+      });
+    }
+  }
   const supabase = createServiceRoleSupabaseClient();
   const { data: agents, error } = await supabase
     .from("agents")

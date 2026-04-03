@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentViewer } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors/appError";
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { prefillFromUrl } from "@/lib/submissions/prefillFromUrl";
+import { enforceSubmissionPrefillRateLimits } from "@/lib/submissions/prefillRateLimits";
 
 type SubmissionPrefillBody = {
   repositoryUrl?: string | null;
@@ -21,11 +23,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!viewer.profile?.username) {
+      throw new AppError(
+        403,
+        "Finish your SkillJury profile before using repository prefill.",
+        "profile_incomplete",
+      );
+    }
+
     const body = (await request.json()) as SubmissionPrefillBody;
 
     if (!body.repositoryUrl) {
       throw new AppError(400, "Repository URL is required.", "repository_required");
     }
+
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    const ipAddress = forwardedFor?.split(",")[0]?.trim() ?? null;
+
+    await enforceSubmissionPrefillRateLimits({
+      ipAddress,
+      userId: viewer.user.id,
+      userStatus: viewer.profile?.accountStatus ?? "active",
+    });
 
     const prefill = await prefillFromUrl({
       repositoryUrl: body.repositoryUrl,
@@ -34,15 +53,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ prefill });
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unknown prefill failure.",
-      },
-      { status: 500 },
-    );
+    return routeErrorResponse(error, {
+      context: "submission-prefill",
+      fallbackMessage: "SkillJury could not prefill this repository right now.",
+    });
   }
 }

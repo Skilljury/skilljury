@@ -113,18 +113,19 @@ export default async function SkillPage({ params }: SkillPageProps) {
 
   const [reviewBundle, relatedBySource, relatedByCategory, reviewRequestSummary] =
     await Promise.all([
-    getSkillReviews({
-      skillId: skill.id,
-      viewerUserId: viewer.user?.id ?? null,
-    }),
-    skill.sourceId
-      ? getRelatedSkillsBySource(skill.sourceId, skill.slug, 4)
-      : Promise.resolve([]),
-    skill.categories[0]
-      ? getRelatedSkillsByCategory(skill.categories[0].id, skill.slug, 4)
-      : Promise.resolve([]),
-    getReviewRequestSummary(skill.id, viewer.user?.id ?? null),
+      getSkillReviews({
+        skillId: skill.id,
+        viewerUserId: viewer.user?.id ?? null,
+      }),
+      skill.sourceId
+        ? getRelatedSkillsBySource(skill.sourceId, skill.slug, 4)
+        : Promise.resolve([]),
+      skill.categories[0]
+        ? getRelatedSkillsByCategory(skill.categories[0].id, skill.slug, 4)
+        : Promise.resolve([]),
+      getReviewRequestSummary(skill.id, viewer.user?.id ?? null),
     ]);
+
   const alternatives = relatedByCategory.slice(0, 4).map((alternative) => ({
     name: alternative.name,
     slug: alternative.slug,
@@ -155,16 +156,20 @@ export default async function SkillPage({ params }: SkillPageProps) {
       ? "Update your review"
       : "Write a review"
     : "Sign in to review";
+  const lastUpdatedLabel = formatDate(lastUpdatedAt);
+  const firstSeenLabel = formatDate(skill.firstSeenAt);
+  const reviewVerdictLabel =
+    reviewBundle.summary.overallAverage !== null
+      ? `${reviewBundle.summary.overallAverage.toFixed(1)}/5`
+      : "Pending";
+  const recommendationLabel =
+    reviewBundle.summary.recommendationPercentage !== null
+      ? `${reviewBundle.summary.recommendationPercentage}%`
+      : "Pending";
   const quickFacts = [
-    sourceLabel
-      ? { label: "Source", value: sourceLabel }
-      : null,
-    formatDate(lastUpdatedAt)
-      ? { label: "Last updated", value: formatDate(lastUpdatedAt) as string }
-      : null,
-    formatDate(skill.firstSeenAt)
-      ? { label: "First seen", value: formatDate(skill.firstSeenAt) as string }
-      : null,
+    sourceLabel ? { label: "Source", value: sourceLabel } : null,
+    lastUpdatedLabel ? { label: "Last updated", value: lastUpdatedLabel } : null,
+    firstSeenLabel ? { label: "First seen", value: firstSeenLabel } : null,
     (skill.repository?.stars ?? 0) > 0
       ? {
           label: "GitHub stars",
@@ -186,6 +191,10 @@ export default async function SkillPage({ params }: SkillPageProps) {
   ]
     .filter(Boolean)
     .slice(0, 4) as Array<{ label: string; value: string }>;
+  const hasSecurityAudits = Boolean(
+    skill.securityAudits &&
+      Object.values(skill.securityAudits).some((status) => Boolean(status)),
+  );
   const faqEntries = [
     {
       question: `What does ${skill.name} do?`,
@@ -251,139 +260,139 @@ export default async function SkillPage({ params }: SkillPageProps) {
 
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-default hover:text-foreground"
-        href="/"
+        href="/search"
       >
-        <span aria-hidden="true">←</span>
-        <span>Back to registry</span>
+        <span aria-hidden="true">{`<-`}</span>
+        <span>Back to the directory</span>
       </Link>
 
-      <div className="mt-8 grid grid-cols-1 gap-12 lg:grid-cols-3">
-        <div className="space-y-10 lg:col-span-2">
-          <section className="space-y-5">
-            <div className="space-y-2">
-              <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">
-                {skill.name}
-              </h1>
-              <p className="text-lg text-muted-foreground">{sourceLabel}</p>
-              {skill.shortSummary ? (
-                <p className="max-w-2xl text-xl leading-relaxed text-foreground">
-                  {skill.shortSummary}
-                </p>
-              ) : null}
-            </div>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)]">
+        <div className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-8">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+            <span>{sourceLabel}</span>
+            {skill.categories.slice(0, 2).map((category) => (
+              <span
+                className="rounded-full border border-border bg-background/60 px-3 py-1 tracking-[0.16em]"
+                key={category.slug}
+              >
+                {category.name}
+              </span>
+            ))}
+          </div>
 
-            <div className="flex flex-wrap gap-3">
-              {installCountLabel ? (
-                <div className="rounded-lg border border-border bg-secondary px-4 py-2 font-mono text-sm text-secondary-foreground">
-                  <span className="mr-3 text-[10px] uppercase tracking-[0.34em] text-muted-foreground">
-                    Installs
-                  </span>
-                  <span>{installCountLabel}</span>
-                </div>
-              ) : null}
-            </div>
+          <div className="mt-6 max-w-4xl space-y-4">
+            <h1 className="text-balance text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">
+              {skill.name}
+            </h1>
+            <p className="max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
+              {skill.shortSummary ??
+                "SkillJury is still gathering richer source copy for this listing. Community reviews, install context, and source proof are shown below."}
+            </p>
+            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
+              SkillJury keeps community verdicts, source metadata, and external repository
+              signals in separate lanes so ranking data never pretends to be a review.
+            </p>
+          </div>
 
-            {skill.installCommand ? (
-              <div className="rounded-lg border border-border bg-card/70 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                    Install command
-                  </div>
-                  <CopyButton text={skill.installCommand} />
-                </div>
-                <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all font-mono text-sm text-foreground">
-                  {skill.installCommand}
-                </pre>
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-[1.25rem] border border-border bg-background/80 p-4">
+              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                SkillJury verdict
               </div>
-            ) : null}
-          </section>
-
-          <SecurityAudits audits={skill.securityAudits} />
-
-          {showAboutSection ? (
-            <section className="rounded-lg border border-border bg-card/70 p-6">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                About this skill
+              <div className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-foreground">
+                {reviewVerdictLabel}
               </div>
-              <div className="mt-4 whitespace-pre-line text-base leading-8 text-foreground/85">
-                {skill.longDescription}
-              </div>
-              <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                Source description provided by the upstream skill listing. Community
-                reviews and install context appear in the sections below.
+              <p className="mt-2 text-sm text-muted-foreground">
+                {reviewBundle.summary.approvedCount > 0
+                  ? `${reviewBundle.summary.approvedCount.toLocaleString("en-US")} approved reviews`
+                  : "No approved reviews yet"}
               </p>
-            </section>
-          ) : null}
-
-          {showReviewInsights ? (
-            <section className="space-y-6">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                Review summary
-              </div>
-              <RecommendationSummary summary={reviewBundle.summary} />
-              <RatingDistribution summary={reviewBundle.summary} />
-            </section>
-          ) : null}
-
-          <section className="space-y-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                  Community Reviews
-                </div>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  Latest reviews
-                </h2>
-              </div>
-              {reviewBundle.summary.approvedCount > 0 ? (
-                <Link
-                  className="text-sm text-muted-foreground transition-default hover:text-foreground"
-                  href={`/skills/${skill.slug}/reviews`}
-                >
-                  View all reviews
-                </Link>
-              ) : null}
             </div>
+
+            <div className="rounded-[1.25rem] border border-border bg-background/80 p-4">
+              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                Would recommend
+              </div>
+              <div className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-foreground">
+                {recommendationLabel}
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {reviewBundle.summary.recommendationPercentage !== null
+                  ? "From published community reviews"
+                  : "Waiting on enough review volume"}
+              </p>
+            </div>
+
+            <div className="rounded-[1.25rem] border border-border bg-background/80 p-4">
+              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                Install signal
+              </div>
+              <div className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-foreground">
+                {installCountLabel ?? "Unknown"}
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Weekly or total install activity from catalog data
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              className="block w-full rounded-lg border border-border bg-card px-4 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em] text-foreground transition-default hover:border-white/20 hover:bg-surface-hover"
+              className="inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-default hover:opacity-90"
               href={reviewActionHref}
             >
               {reviewActionLabel}
             </Link>
-            <ReviewList
-              emptyCopy="No community reviews yet. Be the first to review."
-              items={reviewBundle.items}
-              loginHref={`/login?next=${encodeURIComponent(`/skills/${skill.slug}`)}`}
-              reportTarget={{
-                isSignedIn: Boolean(viewer.user),
-                turnstileSiteKey: getTurnstileSiteKey(),
-              }}
-            />
-          </section>
+            {reviewBundle.summary.approvedCount > 0 ? (
+              <Link
+                className="inline-flex items-center justify-center rounded-full border border-border bg-background/70 px-5 py-3 text-sm font-medium text-foreground transition-default hover:bg-surface-hover"
+                href={`/skills/${skill.slug}/reviews`}
+              >
+                Browse all reviews
+              </Link>
+            ) : null}
+          </div>
 
-          <TaxonomyLinks
-            agents={skill.agentInstallData.map((agent) => ({
-              name: agent.agentName,
-              slug: agent.agentSlug,
-            }))}
-            categories={skill.categories}
-            source={skill.source}
-          />
-
-          <SkillFaqSection alternatives={alternatives} faqs={faqEntries} />
+          <div className="mt-8 rounded-[1.5rem] border border-border bg-background/80 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                Install command
+              </div>
+              {skill.installCommand ? <CopyButton text={skill.installCommand} /> : null}
+            </div>
+            <pre className="mt-4 overflow-x-auto whitespace-pre-wrap break-all text-sm leading-7 text-foreground">
+              {skill.installCommand ?? "Install command not available from the source."}
+            </pre>
+          </div>
         </div>
 
-        <aside className="h-fit space-y-6 rounded-lg border border-border p-6">
+        <aside className="space-y-5">
+          <section className="rounded-[1.5rem] border border-border bg-card/80 p-6 shadow-sm">
+            <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              Catalog facts
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+              {quickFacts.map((item) => (
+                <div key={item.label}>
+                  <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    {item.label}
+                  </div>
+                  <div className="mt-2 break-all text-sm text-foreground">{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {skill.agentInstallData.length > 0 ? (
-            <section className="space-y-3">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+            <section className="rounded-[1.5rem] border border-border bg-card/80 p-6 shadow-sm">
+              <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
                 Compatible agents
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 {skill.agentInstallData.map((agent) => (
                   <Link
                     key={`${agent.agentSlug}-${agent.installCount}`}
-                    className="rounded bg-secondary px-2 py-1 text-[11px] font-medium text-secondary-foreground transition-default hover:bg-surface-hover"
+                    className="rounded-full border border-border bg-background/75 px-3 py-2 text-sm text-foreground transition-default hover:bg-surface-hover"
                     href={`/agents/${agent.agentSlug}`}
                   >
                     {agent.agentName}
@@ -393,92 +402,162 @@ export default async function SkillPage({ params }: SkillPageProps) {
             </section>
           ) : null}
 
-          {quickFacts.length > 0 ? (
-            <section className="space-y-4">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                Quick facts
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {quickFacts.map((item) => (
-                  <div key={item.label}>
-                    <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      {item.label}
-                    </div>
-                    <div className="break-all text-sm font-mono text-foreground">
-                      {item.value}
-                    </div>
+          <section className="rounded-[1.5rem] border border-border bg-card/80 p-6 shadow-sm">
+            <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              Source proof
+            </div>
+            <div className="mt-5 space-y-4 text-sm">
+              {skill.repository?.repositoryUrl ? (
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Repository
                   </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+                  <a
+                    className="mt-2 block break-all text-foreground transition-default hover:text-primary"
+                    href={skill.repository.repositoryUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {skill.repository.ownerName}/{skill.repository.repositoryName}
+                  </a>
+                </div>
+              ) : null}
 
-          {skill.repository?.repositoryUrl ? (
-            <section className="space-y-3">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                Repository
-              </div>
-              <a
-                className="break-all text-sm text-foreground transition-default hover:text-primary"
-                href={skill.repository.repositoryUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                {skill.repository.ownerName}/{skill.repository.repositoryName}
-              </a>
-            </section>
-          ) : null}
+              {skill.documentationUrl ? (
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                    Documentation
+                  </div>
+                  <a
+                    className="mt-2 block break-all text-foreground transition-default hover:text-primary"
+                    href={skill.documentationUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {skill.documentationUrl}
+                  </a>
+                </div>
+              ) : null}
 
-          {skill.documentationUrl ? (
-            <section className="space-y-3">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                Documentation
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  Canonical source
+                </div>
+                {skill.canonicalSourceUrl ? (
+                  <a
+                    className="mt-2 block break-all text-foreground transition-default hover:text-primary"
+                    href={skill.canonicalSourceUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {skill.canonicalSourceUrl}
+                  </a>
+                ) : (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Canonical source unavailable.
+                  </p>
+                )}
               </div>
-              <a
-                className="break-all text-sm text-foreground transition-default hover:text-primary"
-                href={skill.documentationUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                {skill.documentationUrl}
-              </a>
-            </section>
-          ) : null}
+            </div>
+          </section>
 
-          {skill.canonicalSourceUrl ? (
-            <section className="space-y-3">
-              <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-                Canonical source
-              </div>
-              <a
-                className="break-all text-sm text-foreground transition-default hover:text-primary"
-                href={skill.canonicalSourceUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                {skill.canonicalSourceUrl}
-              </a>
-            </section>
-          ) : null}
-
-          <section className="space-y-3">
-            <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+          <section className="rounded-[1.5rem] border border-border bg-card/80 p-6 shadow-sm">
+            <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
               Report listing
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">
               Flag wrong metadata, spam, or copyright issues for moderator review.
             </p>
-            <ReportDialog
-              isSignedIn={Boolean(viewer.user)}
-              loginHref={`/login?next=${encodeURIComponent(`/skills/${skill.slug}`)}`}
-              targetId={String(skill.id)}
-              targetLabel="listing"
-              targetType="skill"
-              turnstileSiteKey={getTurnstileSiteKey()}
-            />
+            <div className="mt-4">
+              <ReportDialog
+                isSignedIn={Boolean(viewer.user)}
+                loginHref={`/login?next=${encodeURIComponent(`/skills/${skill.slug}`)}`}
+                targetId={String(skill.id)}
+                targetLabel="listing"
+                targetType="skill"
+                turnstileSiteKey={getTurnstileSiteKey()}
+              />
+            </div>
           </section>
         </aside>
-      </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        {showReviewInsights ? <RecommendationSummary summary={reviewBundle.summary} /> : null}
+        {showReviewInsights ? (
+          <div className="rounded-[1.5rem] border border-border bg-card/75 p-6 shadow-sm">
+            <RatingDistribution summary={reviewBundle.summary} />
+          </div>
+        ) : (
+          <div className="rounded-[1.5rem] border border-dashed border-border bg-card/50 p-6 text-sm leading-7 text-muted-foreground">
+            SkillJury does not have enough approved reviews to publish a community verdict yet.
+            Source metadata and repository proof are still available above.
+          </div>
+        )}
+      </section>
+
+      {hasSecurityAudits ? (
+        <section className="rounded-[1.5rem] border border-border bg-card/75 p-6 shadow-sm">
+          <SecurityAudits audits={skill.securityAudits} />
+        </section>
+      ) : null}
+
+      {showAboutSection ? (
+        <section className="rounded-[1.5rem] border border-border bg-card/75 p-6 shadow-sm">
+          <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            About this skill
+          </div>
+          <div className="mt-5 whitespace-pre-line text-base leading-8 text-foreground/85">
+            {skill.longDescription}
+          </div>
+          <p className="mt-4 text-sm leading-7 text-muted-foreground">
+            Source description provided by the upstream listing. Community review signal
+            and install context stay separate from this narrative layer.
+          </p>
+        </section>
+      ) : null}
+
+      <section className="space-y-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+              Community reviews
+            </div>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-foreground">
+              Latest reviews
+            </h2>
+          </div>
+          {reviewBundle.summary.approvedCount > 0 ? (
+            <Link
+              className="text-sm text-muted-foreground transition-default hover:text-foreground"
+              href={`/skills/${skill.slug}/reviews`}
+            >
+              View all reviews
+            </Link>
+          ) : null}
+        </div>
+
+        <ReviewList
+          emptyCopy="No community reviews yet. Be the first to review."
+          items={reviewBundle.items}
+          loginHref={`/login?next=${encodeURIComponent(`/skills/${skill.slug}`)}`}
+          reportTarget={{
+            isSignedIn: Boolean(viewer.user),
+            turnstileSiteKey: getTurnstileSiteKey(),
+          }}
+        />
+      </section>
+
+      <TaxonomyLinks
+        agents={skill.agentInstallData.map((agent) => ({
+          name: agent.agentName,
+          slug: agent.agentSlug,
+        }))}
+        categories={skill.categories}
+        source={skill.source}
+      />
+
+      <SkillFaqSection alternatives={alternatives} faqs={faqEntries} />
 
       <RelatedSkills
         skills={relatedBySource}

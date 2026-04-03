@@ -9,10 +9,10 @@ function renderStars(rating: number) {
 
   return Array.from({ length: 5 }, (_, index) => (
     <span
-      className={index < rounded ? "text-foreground" : "text-muted-foreground/40"}
+      className={index < rounded ? "text-foreground" : "text-muted-foreground/35"}
       key={`star:${index}`}
     >
-      ★
+      {"\u2605"}
     </span>
   ));
 }
@@ -29,61 +29,57 @@ export function RecommendationSummary({
   );
 
   return (
-    <section className="space-y-5">
-      <div className="text-[11px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-        Review summary
-      </div>
-      <div className="space-y-3">
-        <div className="font-mono text-5xl font-bold text-foreground">
-          {summary.overallAverage.toFixed(2)}
-        </div>
-        <div className="flex items-center gap-1 text-lg">
-          {renderStars(summary.overallAverage)}
-        </div>
-        <p className="text-xs font-mono uppercase tracking-[0.24em] text-muted-foreground">
-          Based on {summary.approvedCount.toLocaleString("en-US")} reviews
-        </p>
-        {summary.recommendationPercentage !== null ? (
-          <p className="text-sm text-foreground">
-            Would recommend:{" "}
-            <span className="font-mono text-foreground">
-              {summary.recommendationPercentage}%
-            </span>
-          </p>
-        ) : null}
-        {summary.confidenceAdjusted !== null ? (
-          <p className="text-sm text-muted-foreground">
-            Confidence-adjusted score:{" "}
-            <span className="font-mono text-foreground">
-              {summary.confidenceAdjusted.toFixed(2)}
-            </span>
-          </p>
-        ) : null}
+    <section className="rounded-[1.5rem] border border-border bg-card/75 p-6 shadow-sm">
+      <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+        Review verdict
       </div>
 
-      {visibleSubscores.length > 0 ? (
+      <div className="mt-5 grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start">
         <div className="space-y-3">
-          {visibleSubscores.map((subscore) => (
-            <div
-              className="grid grid-cols-[8rem_minmax(0,1fr)_3.5rem] items-center gap-3"
-              key={subscore.key}
-            >
-              <span className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                {subscore.label}
-              </span>
-              <div className="h-2 rounded-full bg-secondary">
-                <div
-                  className="h-2 rounded-full bg-muted"
-                  style={{ width: `${((subscore.average ?? 0) / 5) * 100}%` }}
-                />
-              </div>
-              <span className="text-right font-mono text-sm text-foreground">
-                {subscore.average?.toFixed(1)}
-              </span>
-            </div>
-          ))}
+          <div className="text-5xl font-semibold tracking-[-0.06em] text-foreground">
+            {summary.overallAverage.toFixed(1)}
+          </div>
+          <div className="flex items-center gap-1 text-lg">{renderStars(summary.overallAverage)}</div>
+          <p className="text-sm leading-7 text-muted-foreground">
+            Based on {summary.approvedCount.toLocaleString("en-US")} approved reviews.
+          </p>
+          {summary.recommendationPercentage !== null ? (
+            <p className="text-sm text-foreground">
+              {summary.recommendationPercentage}% of reviewers would recommend this skill.
+            </p>
+          ) : null}
+          {summary.confidenceAdjusted !== null ? (
+            <p className="text-sm text-muted-foreground">
+              Confidence-adjusted score {summary.confidenceAdjusted.toFixed(2)}.
+            </p>
+          ) : null}
         </div>
-      ) : null}
+
+        {visibleSubscores.length > 0 ? (
+          <div className="space-y-3">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+              Subscores
+            </div>
+            {visibleSubscores.map((subscore) => (
+              <div
+                className="grid grid-cols-[7rem_minmax(0,1fr)_3rem] items-center gap-3"
+                key={subscore.key}
+              >
+                <span className="text-sm text-foreground/80">{subscore.label}</span>
+                <div className="h-2 rounded-full bg-secondary">
+                  <div
+                    className="h-2 rounded-full bg-foreground/80"
+                    style={{ width: `${((subscore.average ?? 0) / 5) * 100}%` }}
+                  />
+                </div>
+                <span className="text-right text-sm text-foreground">
+                  {subscore.average?.toFixed(1)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

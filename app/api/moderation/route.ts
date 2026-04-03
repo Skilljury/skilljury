@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentViewer } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors/appError";
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { applyModerationAction } from "@/lib/moderation/queue";
 
 type ModerationRequestBody = {
@@ -37,13 +38,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    const message =
-      error instanceof Error ? error.message : "Unknown moderation failure.";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+    return routeErrorResponse(error, {
+      context: "moderation-action",
+      fallbackMessage: "Moderation update failed.",
+    });
   }
 }

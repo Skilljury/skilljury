@@ -6,6 +6,7 @@ import { createModerationQueueItem } from "@/lib/moderation/queue";
 import { prefillFromUrl } from "@/lib/submissions/prefillFromUrl";
 import { getTurnstileSecretKey } from "@/lib/supabase/config";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
+import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
 
 type SubmissionPayload = {
   proposedCategory?: string | null;
@@ -80,15 +81,31 @@ export async function createSubmission(
 
   await verifyTurnstileToken(payload.turnstileToken, payload.ipAddress);
 
-  const repositoryUrl = normalizeText(payload.repositoryUrl);
+  const repositoryUrl = sanitizeExternalUrl(payload.repositoryUrl);
 
   if (!repositoryUrl) {
-    throw new AppError(400, "Repository URL is required.", "repository_required");
+    throw new AppError(
+      400,
+      "Enter a valid repository URL using http or https.",
+      "invalid_repository_url",
+    );
+  }
+
+  const sourceUrl = payload.sourceUrl
+    ? sanitizeExternalUrl(payload.sourceUrl)
+    : null;
+
+  if (payload.sourceUrl && !sourceUrl) {
+    throw new AppError(
+      400,
+      "Enter a valid skill URL using http or https.",
+      "invalid_source_url",
+    );
   }
 
   const prefill = await prefillFromUrl({
-    repositoryUrl,
-    sourceUrl: payload.sourceUrl ?? null,
+      repositoryUrl,
+    sourceUrl,
   });
   const supabase = createServiceRoleSupabaseClient();
   const { data, error } = await supabase
@@ -103,7 +120,7 @@ export async function createSubmission(
       proposed_name: normalizeText(payload.proposedName),
       proposed_summary: normalizeText(payload.proposedSummary),
       repository_url: prefill.repositoryUrl ?? repositoryUrl,
-      source_url: prefill.inferredSourceUrl ?? normalizeText(payload.sourceUrl),
+      source_url: prefill.inferredSourceUrl ?? sourceUrl,
       submitted_by_user_id: payload.userId,
     })
     .select("id")

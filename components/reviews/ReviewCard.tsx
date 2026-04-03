@@ -47,7 +47,7 @@ export function ReviewCard({
           <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             {review.user?.displayName ?? review.user?.username ?? "Verified reviewer"}
             {review.user?.githubUsername
-              ? ` · GitHub: ${review.user.githubUsername}`
+              ? ` | GitHub: ${review.user.githubUsername}`
               : ""}
           </div>
           <h3 className="text-lg font-semibold text-foreground">

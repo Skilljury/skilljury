@@ -34,14 +34,14 @@ export default async function AdminModerationPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_35%),linear-gradient(135deg,rgba(20,20,24,0.98),rgba(8,8,10,0.96))] p-7 shadow-xl">
-        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
+        <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
           Admin
         </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-white">
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
           SkillJury moderation queue
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
           New-user reviews land here for approval, rejection, or escalation. Every
           action writes into the private audit log.
         </p>
@@ -49,23 +49,23 @@ export default async function AdminModerationPage() {
 
       <ModerationQueueTable items={queueItems} />
 
-      <section className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md">
-        <h2 className="text-lg font-semibold text-white">Recent audit log</h2>
+      <section className="rounded-[1.75rem] border border-border bg-card/80 p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Recent audit log</h2>
         <div className="mt-5 space-y-3 text-sm">
           {auditLog.length > 0 ? (
             auditLog.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-lg border border-white/10 bg-zinc-950/70 px-4 py-3"
+                className="rounded-[1.25rem] border border-border bg-background px-4 py-3"
               >
-                <div className="font-medium text-white">{entry.actionType}</div>
-                <div className="mt-1 text-zinc-400">
-                  {entry.targetType} #{entry.targetId} - {formatDate(entry.createdAt)}
+                <div className="font-medium text-foreground">{entry.actionType}</div>
+                <div className="mt-1 text-muted-foreground">
+                  {entry.targetType} #{entry.targetId} | {formatDate(entry.createdAt)}
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-zinc-400">No audit-log entries yet.</div>
+            <div className="text-muted-foreground">No audit-log entries yet.</div>
           )}
         </div>
       </section>

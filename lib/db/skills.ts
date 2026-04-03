@@ -11,6 +11,7 @@ import {
 } from "@/lib/catalog/clean";
 import { isMissingRelationError, logDataAccessError } from "@/lib/db/errors";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
 
 export type SkillCategory = {
   id: number;
@@ -37,7 +38,7 @@ export type LeaderboardTab = "all" | "hot" | "trending";
 
 export type SkillListItem = {
   approvedReviewCount: number;
-  canonicalSourceUrl: string;
+  canonicalSourceUrl: string | null;
   categories: SkillCategory[];
   confidenceAdjustedScore: number | null;
   firstSeenAt: string | null;
@@ -387,8 +388,8 @@ export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
     shortSummary: cleanCatalogSummary(row.short_summary),
     longDescription: cleanCatalogDescription(row.long_description, row.short_summary),
     installCommand: row.install_command ?? null,
-    canonicalSourceUrl: row.canonical_source_url,
-    documentationUrl: row.documentation_url ?? null,
+    canonicalSourceUrl: sanitizeExternalUrl(row.canonical_source_url),
+    documentationUrl: sanitizeExternalUrl(row.documentation_url ?? null),
     securityAudits: normalizeSecurityAudits(row.security_audits),
     weeklyInstalls: row.weekly_installs ?? null,
     totalInstalls: row.total_installs ?? null,
@@ -425,7 +426,7 @@ export function normalizeSkillRow(row: SupabaseSkillRow): SkillDetail {
           repositoryName: repository.repository_name
             ? cleanCatalogLabel(repository.repository_name, repository.repository_name)
             : null,
-          repositoryUrl: repository.repository_url ?? null,
+          repositoryUrl: sanitizeExternalUrl(repository.repository_url ?? null),
           stars: repository.stars ?? null,
         }
       : null,

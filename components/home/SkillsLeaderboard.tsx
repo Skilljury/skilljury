@@ -45,14 +45,14 @@ const auditOrder = ["gen", "socket", "snyk"] as const;
 
 function formatTabLabel(tab: LeaderboardTab, total: number) {
   if (tab === "trending") {
-    return `Trending (7d | ${total.toLocaleString("en-US")})`;
+    return `Trending 7d (${total.toLocaleString("en-US")})`;
   }
 
   if (tab === "hot") {
     return `Hot (${total.toLocaleString("en-US")})`;
   }
 
-  return `All Time (${total.toLocaleString("en-US")})`;
+  return `All time (${total.toLocaleString("en-US")})`;
 }
 
 function formatAuditLabel(vendor: (typeof auditOrder)[number], status: AuditStatus) {
@@ -77,7 +77,9 @@ async function fetchLeaderboard(tab: LeaderboardTab, page: number, pageSize: num
     throw new Error(`Failed to fetch ${tab} leaderboard data.`);
   }
 
-  return (await response.json()) as LeaderboardResult;
+  return (await response.json().catch(() => {
+    throw new Error(`SkillJury returned invalid ${tab} leaderboard data.`);
+  })) as LeaderboardResult;
 }
 
 export function SkillsLeaderboard({
@@ -168,19 +170,13 @@ export function SkillsLeaderboard({
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-2">
-          <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-            Skills leaderboard
-          </div>
-          <h2 className="text-balance text-2xl font-semibold uppercase tracking-[0.14em] text-foreground sm:text-3xl">
-            Live catalog rankings
-          </h2>
-        </div>
-        <p className="max-w-2xl text-sm leading-7 text-muted-foreground">
-          Ranked from the current SkillJury catalog using install activity, sync
-          freshness, and source-linked trust signals that help developers narrow
-          the shortlist quickly.
+      <div className="max-w-2xl space-y-3">
+        <p className="text-sm text-muted-foreground">Live catalog rankings</p>
+        <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
+          Proof-led ordering for the skills people install most.
+        </h2>
+        <p className="max-w-xl text-sm leading-7 text-muted-foreground">
+          Rankings combine install activity, sync freshness, and source-linked trust signals so the list stays useful for comparison.
         </p>
       </div>
 
@@ -192,10 +188,10 @@ export function SkillsLeaderboard({
           return (
             <button
               aria-selected={isActive}
-              className={`transition-default inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.28em] ${
+              className={`transition-default inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${
                 isActive
-                  ? "border-white/20 bg-white/10 text-foreground"
-                  : "border-border bg-card text-muted-foreground hover:border-white/15 hover:text-foreground"
+                  ? "border-primary/30 bg-primary/10 text-foreground"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/20 hover:text-foreground"
               }`}
               key={tab}
               onClick={() => handleTabChange(tab)}
@@ -210,7 +206,7 @@ export function SkillsLeaderboard({
       </div>
 
       <div className="hidden overflow-hidden rounded-xl border border-border bg-card/85 md:block">
-        <div className="hidden grid-cols-[72px_minmax(0,1fr)_132px] gap-4 px-5 py-4 text-[11px] uppercase tracking-[0.34em] text-muted-foreground md:grid">
+        <div className="hidden grid-cols-[72px_minmax(0,1fr)_132px] gap-4 px-5 py-4 text-[11px] uppercase tracking-[0.24em] text-muted-foreground md:grid">
           <div>#</div>
           <div>Skill</div>
           <div className="text-right">Installs</div>
@@ -249,14 +245,14 @@ export function SkillsLeaderboard({
                   <div className="min-w-0">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                       <Link
-                        className="text-sm uppercase tracking-[0.16em] text-foreground transition-default hover:text-white"
+                        className="text-sm font-medium tracking-[-0.01em] text-foreground transition-default hover:text-primary"
                         href={`/skills/${skill.slug}`}
                       >
                         {skill.name}
                       </Link>
                       {skill.source ? (
                         <Link
-                          className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground transition-default hover:text-foreground"
+                          className="text-sm text-muted-foreground transition-default hover:text-foreground"
                           href={`/sources/${encodeURIComponent(skill.source.slug)}`}
                         >
                           {skill.source.name}
@@ -269,7 +265,7 @@ export function SkillsLeaderboard({
                     ) : null}
                   </div>
 
-                  <div className="mt-4 font-mono text-left text-sm uppercase tracking-[0.16em] text-foreground md:mt-0 md:text-right">
+                  <div className="mt-4 font-mono text-left text-sm text-foreground md:mt-0 md:text-right">
                     {skill.installCountLabel}
                   </div>
                 </div>
@@ -308,19 +304,19 @@ export function SkillsLeaderboard({
                   key={`mobile-${skill.id}`}
                   style={{ animationDelay: `${index * 35}ms` }}
                 >
-                  <div className="flex items-center justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+                  <div className="flex items-center justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
                     <span>#{index + 1}</span>
                     <span>{skill.installCountLabel}</span>
                   </div>
                   <Link
-                    className="mt-3 block text-sm uppercase tracking-[0.16em] text-foreground transition-default hover:text-white"
+                    className="mt-3 block text-sm font-medium tracking-[-0.01em] text-foreground transition-default hover:text-primary"
                     href={`/skills/${skill.slug}`}
                   >
                     {skill.name}
                   </Link>
                   {skill.source ? (
                     <Link
-                      className="mt-2 inline-block text-[11px] uppercase tracking-[0.24em] text-muted-foreground transition-default hover:text-foreground"
+                      className="mt-2 inline-block text-sm text-muted-foreground transition-default hover:text-foreground"
                       href={`/sources/${encodeURIComponent(skill.source.slug)}`}
                     >
                       {skill.source.name}
@@ -336,7 +332,7 @@ export function SkillsLeaderboard({
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+        <div className="text-sm text-muted-foreground">
           Showing {activeDataset.items.length.toLocaleString("en-US")} of{" "}
           {activeDataset.total.toLocaleString("en-US")}
         </div>
@@ -346,7 +342,7 @@ export function SkillsLeaderboard({
 
           {canLoadMore ? (
             <button
-              className="transition-default inline-flex items-center rounded-full border border-border bg-card px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-foreground hover:border-white/20 hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
+              className="transition-default inline-flex items-center rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground hover:border-primary/20 hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isPending}
               onClick={handleLoadMore}
               type="button"

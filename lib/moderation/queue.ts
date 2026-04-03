@@ -6,6 +6,7 @@ import { writeAuditLog } from "@/lib/moderation/auditLog";
 import { recomputeSkillReviewStats } from "@/lib/reviews/aggregateRatings";
 import { getSiteUrl } from "@/lib/supabase/config";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
+import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
 import { slugify } from "@/lib/utils/slugify";
 
 export type ModerationAction = "approve" | "reject" | "escalate";
@@ -121,9 +122,9 @@ function deriveCanonicalSourceUrl(submission: {
   source_url: string | null;
 }) {
   return (
-    submission.source_url?.trim() ||
-    submission.prefilled_source_url?.trim() ||
-    submission.repository_url
+    sanitizeExternalUrl(submission.source_url) ||
+    sanitizeExternalUrl(submission.prefilled_source_url) ||
+    sanitizeExternalUrl(submission.repository_url)
   );
 }
 
@@ -219,6 +220,15 @@ async function createModerationAwareSkillFromSubmission(
   }
 
   const canonicalSourceUrl = deriveCanonicalSourceUrl(submission);
+
+  if (!canonicalSourceUrl) {
+    throw new AppError(
+      400,
+      "Submission is missing a valid public source URL.",
+      "submission_invalid_source_url",
+    );
+  }
+
   const existingSkill = await findExistingSkillForSubmission(
     canonicalSourceUrl,
     submission.repository_url,

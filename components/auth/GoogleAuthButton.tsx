@@ -53,21 +53,25 @@ export function GoogleAuthButton({
     setErrorMessage(null);
 
     startTransition(async () => {
-      const redirectTo = buildBrowserAuthCallbackUrl(nextPath);
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        options: {
-          redirectTo,
-        },
-        provider: "google",
-      });
+      try {
+        const redirectTo = buildBrowserAuthCallbackUrl(nextPath);
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          options: {
+            redirectTo,
+          },
+          provider: "google",
+        });
 
-      if (error) {
-        setErrorMessage(toFriendlyGoogleError(error.message));
-        return;
-      }
+        if (error) {
+          setErrorMessage(toFriendlyGoogleError(error.message));
+          return;
+        }
 
-      if (data.url) {
-        window.location.assign(data.url);
+        if (data.url) {
+          window.location.assign(data.url);
+        }
+      } catch {
+        setErrorMessage("Google sign-in could not start right now.");
       }
     });
   }
@@ -75,7 +79,7 @@ export function GoogleAuthButton({
   return (
     <div className="space-y-3">
       <button
-        className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-400"
+        className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded-full border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary/20 hover:bg-card disabled:cursor-not-allowed disabled:border-border/70 disabled:text-muted-foreground"
         disabled={isPending}
         onClick={handleClick}
         type="button"
@@ -85,7 +89,7 @@ export function GoogleAuthButton({
       </button>
 
       {errorMessage ? (
-        <p className="text-sm leading-7 text-rose-300">{errorMessage}</p>
+        <p className="text-sm leading-7 text-destructive">{errorMessage}</p>
       ) : null}
     </div>
   );

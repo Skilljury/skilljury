@@ -51,11 +51,11 @@ export function SkillJuryBrand({
     <>
       <SkillJuryMark className="h-11 w-11 shrink-0 drop-shadow-[0_20px_45px_rgba(0,0,0,0.3)]" />
       <div className="min-w-0">
-        <div className="font-display text-xl font-semibold tracking-tight text-white">
+        <div className="font-display text-xl font-semibold tracking-tight text-foreground">
           SkillJury
         </div>
         {showTagline ? (
-          <div className="text-[11px] uppercase tracking-[0.28em] text-zinc-500">
+          <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
             Trust-first skill discovery
           </div>
         ) : null}

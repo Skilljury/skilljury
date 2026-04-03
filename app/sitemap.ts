@@ -52,11 +52,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     })),
     ...sourceEntries
-      .filter((entry) => entry.skillCount > 3)
+      .filter((entry) => entry.skillCount > 0)
       .map((entry) => ({
         url: buildCanonicalUrl(`/sources/${encodeSourceSlug(entry.slug)}`),
         changeFrequency: "weekly" as const,
-        priority: 0.7,
+        priority: entry.skillCount > 3 ? 0.7 : 0.5,
       })),
   ];
 }

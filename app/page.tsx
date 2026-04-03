@@ -67,7 +67,7 @@ export default async function Home() {
   } as const;
 
   return (
-    <div className="w-full space-y-10">
+    <div className="w-full space-y-16">
       <JsonLd
         data={buildOrganizationJsonLd({
           liveSkillCount,
@@ -86,48 +86,39 @@ export default async function Home() {
         />
       ) : null}
 
-      <ScrollReveal className="hero-glow">
-        <section className="relative overflow-hidden rounded-xl border border-border bg-card/85 p-8 sm:p-10">
-          <div className="relative z-10 space-y-8">
-            <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-              <span>Live catalog</span>
-              <span className="text-zinc-700">/</span>
-              <span>{liveSkillCount.toLocaleString("en-US")} skills</span>
-              <span className="text-zinc-700">/</span>
-              <span>{liveSourceCount.toLocaleString("en-US")} sources</span>
-              <span className="text-zinc-700">/</span>
-              <span>{agents.length.toLocaleString("en-US")} agents</span>
+      <ScrollReveal>
+        <section className="grid gap-8 pb-4 pt-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)] lg:items-end">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+              <span className="pulse-dot" />
+              Signal Index
             </div>
 
-            <div className="space-y-4">
-              <h1 className="gradient-wordmark text-balance text-[clamp(2.5rem,10vw,6rem)] font-semibold uppercase leading-[0.86] tracking-[0.18em]">
-                SkillJury
-              </h1>
-              <p className="max-w-3xl text-balance text-lg leading-8 text-zinc-300 sm:text-xl">
-                The public review layer for AI agent skills. Real ratings from real
-                developers.
-              </p>
-            </div>
+            <h1 className="font-display max-w-3xl text-[clamp(2.4rem,6vw,4.8rem)] leading-[0.94] tracking-[-0.05em] text-foreground">
+              Find AI skills worth installing.
+            </h1>
 
-            <form
-              action="/search"
-              className="search-glow max-w-3xl rounded-xl border border-border bg-surface-elevated/90 p-2 transition-default"
-              method="get"
-            >
-              <div className="flex flex-col gap-2 sm:flex-row">
+            <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
+              {liveSkillCount.toLocaleString("en-US")} skills with public reviews,
+              install context, and source data across {agents.length} agents and{" "}
+              {liveSourceCount.toLocaleString("en-US")} sources.
+            </p>
+
+            <form action="/search" className="max-w-2xl" method="get">
+              <div className="search-glow flex items-center rounded-2xl border border-border/80 bg-card/80 p-2 transition-all duration-200 focus-within:border-primary/30">
                 <label className="sr-only" htmlFor="homepage-search">
                   Search the skill catalog
                 </label>
                 <input
-                  className="h-14 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground"
+                  className="h-12 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   defaultValue=""
-                  id="homepage-search"
-                  name="q"
-                  placeholder="Try it now: search skills, agents, sources, or install flows"
-                  type="search"
-                />
+                id="homepage-search"
+                name="q"
+                placeholder="Search skills or sources"
+                type="search"
+              />
                 <button
-                  className="inline-flex h-14 items-center justify-center rounded-lg border border-border bg-primary px-5 text-[11px] uppercase tracking-[0.34em] text-primary-foreground transition-default hover:opacity-90"
+                  className="m-1.5 rounded-xl bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-95"
                   type="submit"
                 >
                   Search
@@ -135,92 +126,137 @@ export default async function Home() {
               </div>
             </form>
 
-            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-              Use install counts, source pages, and security audit indicators to
-              narrow the field quickly, then move into skill pages as first-party
-              reviews accumulate.
+            <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-2xl border border-border/70 bg-card/60 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Skills
+                </div>
+                <div className="mt-2 text-sm text-foreground">
+                  {liveSkillCount.toLocaleString("en-US")}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-card/60 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Sources
+                </div>
+                <div className="mt-2 text-sm text-foreground">
+                  {liveSourceCount.toLocaleString("en-US")}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-card/60 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Agents
+                </div>
+                <div className="mt-2 text-sm text-foreground">{agents.length}</div>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-card/60 px-4 py-3">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Live rankings
+                </div>
+                <div className="mt-2 text-sm text-foreground">
+                  {allTimeLeaderboard.total.toLocaleString("en-US")}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside className="rounded-3xl border border-border/80 bg-card/70 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+              What this index shows
+            </div>
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Public verdicts stay separate from source facts.
+                </p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  SkillJury keeps reviews, installs, compatibility, and repository signals visible instead of collapsing them into one score.
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Browse from a short list into the full record.
+                </p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                  Search is the primary action, but agents, categories, and rankings are always one click away.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </ScrollReveal>
+
+      <ScrollReveal delay={60}>
+        <section className="border-t border-border/70 pt-12 sm:pt-14" id="agents">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-sm text-muted-foreground">Browse by agent</p>
+            <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
+              Start where people already work.
+            </h2>
+            <p className="text-sm leading-7 text-muted-foreground">
+              The index should feel familiar to builders scanning the environments they already use.
             </p>
+          </div>
+          <div className="mt-8">
+            <AgentRail agents={agents} />
           </div>
         </section>
       </ScrollReveal>
 
-      <div className="gradient-line" />
-
-      <ScrollReveal className="space-y-4" delay={80}>
-        <section className="space-y-4" id="agents">
-          <div className="space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-              Available for these agents
-            </div>
-            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-              Browse the catalog by the agent environments developers already use in
-              production workflows.
+      <ScrollReveal delay={100}>
+        <section className="border-t border-border/70 pt-12 sm:pt-14" id="categories">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-sm text-muted-foreground">Browse by category</p>
+            <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
+              Compare skills by job to be done.
+            </h2>
+            <p className="text-sm leading-7 text-muted-foreground">
+              Categories should compress the field quickly without hiding the underlying signal.
             </p>
           </div>
-          <AgentRail agents={agents} />
-        </section>
-      </ScrollReveal>
-
-      <ScrollReveal className="space-y-4" delay={120}>
-        <section className="space-y-4" id="categories">
-          <div className="gradient-line" />
-          <div className="space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-              Browse by category
-            </div>
-            <p className="max-w-3xl text-sm leading-7 text-muted-foreground">
-              Move from leaderboard discovery into focused slices of the catalog
-              when you already know the workflow you are evaluating.
-            </p>
-          </div>
-
-          <div className="scrollbar-hide overflow-x-auto pb-2">
+          <div className="scrollbar-hide mt-8 overflow-x-auto pb-2">
             <div className="flex min-w-max gap-3">
               {categories
                 .filter((category) => category.skillCount > 0)
                 .map((category) => (
-                <Link
-                  className="transition-default inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-muted-foreground hover:border-white/20 hover:bg-surface-hover hover:text-foreground"
-                  href={`/categories/${category.slug}`}
-                  key={category.id}
-                >
-                  <span>{category.name}</span>
-                  <span className="text-zinc-600">
-                    {category.skillCount.toLocaleString("en-US")}
-                  </span>
-                </Link>
-              ))}
+                  <Link
+                    className="transition-default inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-4 py-2 text-sm text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                    href={`/categories/${category.slug}`}
+                    key={category.id}
+                  >
+                    <span>{category.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {category.skillCount.toLocaleString("en-US")}
+                    </span>
+                  </Link>
+                ))}
             </div>
           </div>
         </section>
       </ScrollReveal>
 
-      <div className="gradient-line" />
-
-      <ScrollReveal delay={160}>
-        <SkillsLeaderboard initialData={allTimeLeaderboard} tabTotals={tabTotals} />
+      <ScrollReveal delay={140}>
+        <section className="border-t border-border/70 pt-12 sm:pt-14" id="leaderboard">
+          <SkillsLeaderboard initialData={allTimeLeaderboard} tabTotals={tabTotals} />
+        </section>
       </ScrollReveal>
 
-      <div className="gradient-line" />
-
-      <ScrollReveal delay={220}>
-        <section className="space-y-6" id="faq">
-          <div className="space-y-2">
-            <div className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
-              FAQ
-            </div>
-            <h2 className="text-balance text-2xl font-semibold uppercase tracking-[0.14em] text-foreground sm:text-3xl">
-              Questions developers ask first
+      <ScrollReveal delay={180}>
+        <section className="border-t border-border/70 pt-12 sm:pt-14" id="faq">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-sm text-muted-foreground">FAQ</p>
+            <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
+              Questions developers ask first.
             </h2>
           </div>
 
-          <div className="space-y-3">
+          <div className="mt-8 max-w-3xl space-y-3">
             {homepageFaqs.map((item) => (
               <details
-                className="group rounded-xl border border-border bg-card/80 px-5 py-4 transition-default open:bg-surface-elevated/80"
+                className="group rounded-2xl border border-border/70 bg-card/60 px-5 py-4 transition-all duration-200 open:border-primary/25 open:bg-surface-hover"
                 key={item.question}
               >
-                <summary className="flex cursor-pointer items-center justify-between pr-2 text-sm uppercase tracking-[0.18em] text-foreground [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer items-center justify-between gap-4 text-sm text-foreground [&::-webkit-details-marker]:hidden">
                   {item.question}
                   <svg
                     className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180"
@@ -232,7 +268,7 @@ export default async function Home() {
                     <path d="M6 9l6 6 6-6" />
                   </svg>
                 </summary>
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
                   {item.answer}
                 </p>
               </details>

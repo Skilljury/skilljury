@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { runSkillsShSync } from "@/lib/ingestion/syncSkillsSh";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +42,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(summary);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown sync failure.";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+    return routeErrorResponse(error, {
+      context: "cron-sync",
+      fallbackMessage: "Skill sync failed.",
+    });
   }
 }

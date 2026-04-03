@@ -46,7 +46,7 @@ export function GitHubConnectButton({
   return (
     <div className="space-y-3">
       <button
-        className="rounded-full border border-white/10 bg-zinc-950/80 px-5 py-3 text-sm font-medium text-white transition hover:border-white/20 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:border-white/8 disabled:text-zinc-500"
+        className="rounded-full border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition-default hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:border-border disabled:text-muted-foreground"
         disabled={isLinked || isPending}
         onClick={handleConnect}
         type="button"
@@ -59,7 +59,7 @@ export function GitHubConnectButton({
       </button>
 
       {errorMessage ? (
-        <p className="text-sm leading-7 text-rose-300">{errorMessage}</p>
+        <p className="text-sm leading-7 text-destructive">{errorMessage}</p>
       ) : null}
     </div>
   );

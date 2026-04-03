@@ -56,6 +56,13 @@ type GitHubIdentity = {
   username: string | null;
 };
 
+type ProviderIdentity = {
+  avatarUrl: string | null;
+  email: string | null;
+  name: string | null;
+  username: string | null;
+};
+
 function isAuthSessionMissingError(error: { message?: string; name?: string }) {
   return (
     error.name === "AuthSessionMissingError" ||
@@ -93,36 +100,58 @@ function mapProfile(row: ProfileRow | null): ViewerProfile | null {
 }
 
 export function extractGitHubIdentity(user: User | null): GitHubIdentity | null {
-  const githubIdentity = user?.identities?.find(
-    (identity) => identity.provider === "github",
-  );
+  const identity = extractProviderIdentity(user, "github");
 
-  if (!githubIdentity) {
+  if (!identity) {
     return null;
   }
 
-  const identityData = githubIdentity.identity_data as Record<string, unknown> | null;
-  const usernameCandidate =
-    typeof identityData?.user_name === "string"
-      ? identityData.user_name
-      : typeof identityData?.preferred_username === "string"
-        ? identityData.preferred_username
-        : typeof identityData?.login === "string"
-          ? identityData.login
-          : null;
+  return {
+    avatarUrl: identity.avatarUrl,
+    name: identity.name,
+    username: identity.username,
+  };
+}
+
+function readStringCandidate(
+  source: Record<string, unknown> | undefined | null,
+  keys: string[],
+) {
+  for (const key of keys) {
+    const value = source?.[key];
+
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function extractProviderIdentity(
+  user: User | null,
+  provider: string,
+): ProviderIdentity | null {
+  const providerIdentity = user?.identities?.find(
+    (identity) => identity.provider === provider,
+  );
+
+  if (!providerIdentity) {
+    return null;
+  }
+
+  const identityData = providerIdentity.identity_data as Record<string, unknown> | null;
 
   return {
-    username: usernameCandidate,
-    name:
-      typeof identityData?.full_name === "string"
-        ? identityData.full_name
-        : typeof identityData?.name === "string"
-          ? identityData.name
-          : null,
-    avatarUrl:
-      typeof identityData?.avatar_url === "string"
-        ? identityData.avatar_url
-        : null,
+    avatarUrl: readStringCandidate(identityData, ["avatar_url", "picture"]),
+    email: readStringCandidate(identityData, ["email"]),
+    name: readStringCandidate(identityData, ["full_name", "name"]),
+    username: readStringCandidate(identityData, [
+      "user_name",
+      "preferred_username",
+      "login",
+      "nickname",
+    ]),
   };
 }
 
@@ -151,6 +180,7 @@ export async function createAuthServerClient() {
 export async function syncUserProfileFromAuthUser(user: User) {
   const serviceSupabase = createServiceRoleSupabaseClient();
   const githubIdentity = extractGitHubIdentity(user);
+  const googleIdentity = extractProviderIdentity(user, "google");
   const metadata = user.user_metadata as Record<string, unknown> | undefined;
   const { data: existingProfile, error: existingProfileError } = await serviceSupabase
     .from("user_profiles")
@@ -166,23 +196,25 @@ export async function syncUserProfileFromAuthUser(user: User) {
 
   const existing = existingProfile as ProfileRow | null;
   const derivedDisplayName =
-    typeof metadata?.display_name === "string"
-      ? metadata.display_name
-      : typeof metadata?.full_name === "string"
-      ? metadata.full_name
-      : typeof metadata?.name === "string"
-        ? metadata.name
-        : githubIdentity?.name ?? user.email?.split("@")[0] ?? "SkillJury user";
+    readStringCandidate(metadata, ["display_name", "full_name", "name"]) ??
+    googleIdentity?.name ??
+    githubIdentity?.name ??
+    user.email?.split("@")[0] ??
+    "SkillJury user";
   const derivedAvatarUrl =
-    typeof metadata?.avatar_url === "string"
-      ? metadata.avatar_url
-      : githubIdentity?.avatarUrl;
+    readStringCandidate(metadata, ["avatar_url", "picture"]) ??
+    googleIdentity?.avatarUrl ??
+    githubIdentity?.avatarUrl;
   const derivedUsername = normalizeUsername(
-    typeof metadata?.username === "string"
-      ? metadata.username
-      : typeof metadata?.user_name === "string"
-        ? metadata.user_name
-        : githubIdentity?.username ?? user.email?.split("@")[0] ?? null,
+    readStringCandidate(metadata, [
+      "username",
+      "user_name",
+      "preferred_username",
+    ]) ??
+      googleIdentity?.username ??
+      githubIdentity?.username ??
+      user.email?.split("@")[0] ??
+      null,
   );
   const basePayload = {
     id: user.id,

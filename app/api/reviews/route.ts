@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentViewer } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors/appError";
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { createReview } from "@/lib/reviews/createReview";
 
 type ReviewRequestBody = {
@@ -87,11 +88,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    const message = error instanceof Error ? error.message : "Unknown review failure.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return routeErrorResponse(error, {
+      context: "create-review",
+      fallbackMessage: "SkillJury could not submit this review right now.",
+    });
   }
 }

@@ -30,14 +30,14 @@ export default async function ResetPasswordPage({
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_35%),linear-gradient(135deg,#18181b,#09090b_70%)] px-6 py-8 text-white shadow-xl lg:px-10">
-        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+      <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
+        <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
           Password recovery
         </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight sm:text-6xl">
+        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
           Reset your SkillJury password
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
+        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
           Set a new password to restore access to your SkillJury account.
         </p>
       </section>

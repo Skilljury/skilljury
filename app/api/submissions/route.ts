@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentViewer } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors/appError";
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { createSubmission } from "@/lib/submissions/createSubmission";
 
 type SubmissionRequestBody = {
@@ -51,15 +52,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unknown skill submission failure.",
-      },
-      { status: 500 },
-    );
+    return routeErrorResponse(error, {
+      context: "create-submission",
+      fallbackMessage: "SkillJury could not submit this skill right now.",
+    });
   }
 }

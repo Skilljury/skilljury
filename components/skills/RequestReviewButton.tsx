@@ -35,39 +35,45 @@ export function RequestReviewButton({
     setErrorMessage(null);
 
     startTransition(async () => {
-      const response = await fetch("/api/review-requests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      try {
+        const response = await fetch("/api/review-requests", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            skillSlug,
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | {
+              error?: string;
+              totalCount?: number;
+              viewerHasRequested?: boolean;
+            }
+          | null;
+
+        if (!response.ok) {
+          setErrorMessage(payload?.error ?? "Could not record the review request.");
+          return;
+        }
+
+        setCount(payload?.totalCount ?? count);
+        setHasRequested(payload?.viewerHasRequested ?? true);
+        trackBrowserEvent("request_review_clicked", {
           skillSlug,
-        }),
-      });
-      const payload = (await response.json()) as {
-        error?: string;
-        totalCount?: number;
-        viewerHasRequested?: boolean;
-      };
-
-      if (!response.ok) {
-        setErrorMessage(payload.error ?? "Could not record the review request.");
-        return;
+        });
+        router.refresh();
+      } catch {
+        setErrorMessage("Could not reach SkillJury. Try again.");
       }
-
-      setCount(payload.totalCount ?? count);
-      setHasRequested(payload.viewerHasRequested ?? true);
-      trackBrowserEvent("request_review_clicked", {
-        skillSlug,
-      });
-      router.refresh();
     });
   }
 
   return (
     <div className="space-y-3">
       <button
-        className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/8 disabled:cursor-not-allowed disabled:border-white/8 disabled:text-zinc-500"
+        className="rounded-full border border-border bg-background px-5 py-3 text-sm font-medium text-foreground transition hover:border-primary/20 hover:bg-card disabled:cursor-not-allowed disabled:border-border/70 disabled:text-muted-foreground"
         disabled={isPending || hasRequested}
         onClick={handleClick}
         type="button"
@@ -78,10 +84,10 @@ export function RequestReviewButton({
             ? "Recording request..."
             : "Request a review"}
       </button>
-      <div className="text-xs uppercase tracking-[0.24em] text-zinc-500">
+      <div className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
         {count} review request{count === 1 ? "" : "s"}
       </div>
-      {errorMessage ? <p className="text-sm text-rose-300">{errorMessage}</p> : null}
+      {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
     </div>
   );
 }

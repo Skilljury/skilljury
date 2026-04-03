@@ -83,15 +83,15 @@ export function MagicLinkForm({ adminEmail, nextPath }: MagicLinkFormProps) {
   return (
     <div className="space-y-5">
       <form
-        className="rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md"
+        className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm"
         onSubmit={handleSubmit}
       >
         <div className="grid gap-4">
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-white">Email address</span>
+            <span className="text-sm font-medium text-foreground">Email address</span>
             <input
               autoComplete="email"
-              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
               name="email"
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
@@ -102,7 +102,7 @@ export function MagicLinkForm({ adminEmail, nextPath }: MagicLinkFormProps) {
           </label>
 
           <button
-            className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
+            className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isPending || isCoolingDown}
             type="submit"
           >
@@ -116,7 +116,7 @@ export function MagicLinkForm({ adminEmail, nextPath }: MagicLinkFormProps) {
       </form>
 
       {sentEmail ? (
-        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-5 text-sm leading-7 text-emerald-100">
+        <div className="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5 text-sm leading-7 text-emerald-700 dark:text-emerald-100">
           <div className="font-semibold">Check your inbox</div>
           <p className="mt-2">
             A sign-in link was sent to <strong>{sentEmail}</strong>. Open the email on
@@ -126,7 +126,7 @@ export function MagicLinkForm({ adminEmail, nextPath }: MagicLinkFormProps) {
       ) : null}
 
       {errorMessage ? (
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-7 text-amber-100">
+        <div className="rounded-[1.5rem] border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-7 text-amber-900 dark:text-amber-100">
           <div className="font-semibold">Email delivery may have failed</div>
           <p className="mt-2">
             SkillJury could not send the magic link on this attempt: {errorMessage}
@@ -138,8 +138,8 @@ export function MagicLinkForm({ adminEmail, nextPath }: MagicLinkFormProps) {
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-zinc-300">
-          <div className="font-semibold text-white">If the email does not arrive</div>
+        <div className="rounded-[1.5rem] border border-border bg-card/80 p-5 text-sm leading-7 text-muted-foreground">
+          <div className="font-semibold text-foreground">If the email does not arrive</div>
           <p className="mt-2">
             Wait a minute, check spam, then use the retry option. Repeated failures can
             indicate a typo or a bounced address.

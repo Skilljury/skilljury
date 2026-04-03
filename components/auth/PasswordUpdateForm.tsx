@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { Toast } from "@/components/ui/Toast";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -18,6 +18,15 @@ export function PasswordUpdateForm({ nextPath }: PasswordUpdateFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,40 +44,44 @@ export function PasswordUpdateForm({ nextPath }: PasswordUpdateFormProps) {
     }
 
     startTransition(async () => {
-      const { error } = await supabase.auth.updateUser({ password });
+      try {
+        const { error } = await supabase.auth.updateUser({ password });
 
-      if (error) {
-        setErrorMessage(error.message);
-        return;
+        if (error) {
+          setErrorMessage(error.message);
+          return;
+        }
+
+        setSuccessMessage("Password updated.");
+        redirectTimeoutRef.current = setTimeout(() => {
+          router.push(nextPath);
+          router.refresh();
+        }, 700);
+      } catch {
+        setErrorMessage("Could not update your password. Try again.");
       }
-
-      setSuccessMessage("Password updated.");
-      setTimeout(() => {
-        router.push(nextPath);
-        router.refresh();
-      }, 700);
     });
   }
 
   return (
     <div className="space-y-5">
       <form
-        className="space-y-4 rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md"
+        className="space-y-4 rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm"
         onSubmit={handleSubmit}
       >
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-white">Choose a new password</h2>
-          <p className="text-sm leading-7 text-zinc-400">
+          <h2 className="text-2xl font-semibold text-foreground">Choose a new password</h2>
+          <p className="text-sm leading-7 text-muted-foreground">
             Set a new password for your SkillJury account, then continue back to the
             product.
           </p>
         </div>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-white">New password</span>
+          <span className="text-sm font-medium text-foreground">New password</span>
           <input
             autoComplete="new-password"
-            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
             minLength={8}
             onChange={(event) => setPassword(event.target.value)}
             required
@@ -78,10 +91,10 @@ export function PasswordUpdateForm({ nextPath }: PasswordUpdateFormProps) {
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-white">Confirm password</span>
+          <span className="text-sm font-medium text-foreground">Confirm password</span>
           <input
             autoComplete="new-password"
-            className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
             minLength={8}
             onChange={(event) => setConfirmPassword(event.target.value)}
             required
@@ -91,7 +104,7 @@ export function PasswordUpdateForm({ nextPath }: PasswordUpdateFormProps) {
         </label>
 
         <button
-          className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
+          className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isPending}
           type="submit"
         >

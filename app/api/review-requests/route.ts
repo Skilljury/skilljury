@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentViewer } from "@/lib/auth/session";
 import { trackServerEvent } from "@/lib/analytics/events";
 import { AppError } from "@/lib/errors/appError";
+import { routeErrorResponse } from "@/lib/errors/routeError";
 import { createReviewRequest } from "@/lib/skills/reviewRequests";
 
 type ReviewRequestBody = {
@@ -53,15 +54,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unknown request-review failure.",
-      },
-      { status: 500 },
-    );
+    return routeErrorResponse(error, {
+      context: "create-review-request",
+      fallbackMessage: "SkillJury could not request a review right now.",
+    });
   }
 }

@@ -113,7 +113,7 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
 
         if (mode === "reset") {
           const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-            redirectTo: buildBrowserAuthCallbackUrl("/account"),
+            redirectTo: buildBrowserAuthCallbackUrl(nextPath),
           });
 
           if (error) {
@@ -138,10 +138,14 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
           throw new Error("Password confirmation does not match.");
         }
 
-        const { count } = await supabase
+        const { count, error: usernameCheckError } = await supabase
           .from("user_profiles")
           .select("id", { count: "exact", head: true })
           .eq("username", usernameResult.normalized);
+
+        if (usernameCheckError) {
+          throw usernameCheckError;
+        }
 
         if ((count ?? 0) > 0) {
           throw new Error("That username is already taken.");
@@ -183,15 +187,15 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-6 shadow-md">
-        <div className="inline-flex w-fit rounded-full border border-white/10 bg-white/[0.03] p-1">
+      <div className="grid gap-4 rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
+        <div className="inline-flex w-fit rounded-full border border-border bg-background p-1">
           {(["login", "signup", "reset"] as const).map((value) => (
             <button
               key={value}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 mode === value
-                  ? "bg-white text-zinc-950"
-                  : "text-zinc-400 hover:text-white"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => {
                 setMode(value);
@@ -210,8 +214,8 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-white">{modeCopy[mode].heading}</h2>
-          <p className="text-sm leading-7 text-zinc-400">{modeCopy[mode].description}</p>
+          <h2 className="text-2xl font-semibold text-foreground">{modeCopy[mode].heading}</h2>
+          <p className="text-sm leading-7 text-muted-foreground">{modeCopy[mode].description}</p>
         </div>
 
         {mode !== "reset" && googleAuthEnabled ? (
@@ -219,7 +223,7 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
         ) : null}
 
         {mode !== "reset" && !googleAuthEnabled ? (
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-4 py-3 text-sm leading-7 text-sky-100">
+          <div className="rounded-[1.5rem] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-7 text-foreground">
             Google sign-in is being finalized for this deployment. Use email and
             password for now.
           </div>
@@ -228,10 +232,10 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
         {mode !== "reset" && googleAuthEnabled ? (
           <div className="relative py-1">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-[#0d0e12] px-4 text-xs uppercase tracking-[0.28em] text-zinc-500">
+              <span className="bg-card px-4 text-xs uppercase tracking-[0.28em] text-muted-foreground">
                 Or use email
               </span>
             </div>
@@ -242,9 +246,9 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
           {mode === "signup" ? (
             <div className="grid gap-4 md:grid-cols-2">
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-white">Display name</span>
+                <span className="text-sm font-medium text-foreground">Display name</span>
                 <input
-                  className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+                  className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
                   maxLength={80}
                   onChange={(event) => setDisplayName(event.target.value)}
                   placeholder="How your name appears publicly"
@@ -253,9 +257,9 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-white">Username / ID</span>
+                <span className="text-sm font-medium text-foreground">Username / ID</span>
                 <input
-                  className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+                  className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
                   maxLength={32}
                   minLength={3}
                   onChange={(event) => setUsername(event.target.value)}
@@ -264,9 +268,9 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
                   spellCheck={false}
                   value={username}
                 />
-                <span className="text-xs leading-6 text-zinc-500">
+                <span className="text-xs leading-6 text-muted-foreground">
                   Preview:{" "}
-                  <span className="font-mono text-zinc-300">
+                  <span className="font-mono text-foreground">
                     {usernamePreview || "your-id"}
                   </span>
                 </span>
@@ -275,10 +279,10 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
           ) : null}
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-white">Email</span>
+            <span className="text-sm font-medium text-foreground">Email</span>
             <input
               autoComplete="email"
-              className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
               required
@@ -289,10 +293,10 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
 
           {mode !== "reset" ? (
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-white">Password</span>
+              <span className="text-sm font-medium text-foreground">Password</span>
               <input
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
                 minLength={8}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="At least 8 characters"
@@ -305,10 +309,10 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
 
           {mode === "signup" ? (
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-white">Confirm password</span>
+              <span className="text-sm font-medium text-foreground">Confirm password</span>
               <input
                 autoComplete="new-password"
-                className="rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-white outline-none transition focus:border-white/20 focus:bg-zinc-950"
+                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary/30 focus:ring-4 focus:ring-primary/10"
                 minLength={8}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="Repeat your password"
@@ -320,7 +324,7 @@ export function AuthPanel({ googleAuthEnabled, nextPath }: AuthPanelProps) {
           ) : null}
 
           <button
-            className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-500 disabled:text-zinc-900"
+            className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isPending}
             type="submit"
           >

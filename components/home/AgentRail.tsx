@@ -1,21 +1,4 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import {
-  Binary,
-  Blocks,
-  Bot,
-  BrainCircuit,
-  Braces,
-  Cloud,
-  Code2,
-  Cpu,
-  GitBranch,
-  Hammer,
-  Shield,
-  Sparkles,
-  Terminal,
-  Wind,
-} from "lucide-react";
 
 type AgentRailProps = {
   agents: Array<{
@@ -25,54 +8,52 @@ type AgentRailProps = {
   }>;
 };
 
-const iconMap: Array<{ icon: LucideIcon; match: (slug: string) => boolean }> = [
-  { icon: Terminal, match: (slug) => slug.includes("claude") || slug.includes("codex") },
-  { icon: Code2, match: (slug) => slug.includes("cursor") || slug.includes("code") },
-  { icon: Wind, match: (slug) => slug.includes("windsurf") },
-  { icon: Sparkles, match: (slug) => slug.includes("gemini") || slug.includes("openai") },
-  { icon: BrainCircuit, match: (slug) => slug.includes("chatgpt") || slug.includes("copilot") },
-  { icon: Blocks, match: (slug) => slug.includes("mcp") || slug.includes("plugin") },
-  { icon: Shield, match: (slug) => slug.includes("security") },
-  { icon: Cloud, match: (slug) => slug.includes("azure") || slug.includes("cloud") },
-  { icon: Hammer, match: (slug) => slug.includes("builder") || slug.includes("forge") },
-  { icon: Binary, match: (slug) => slug.includes("cli") || slug.includes("terminal") },
-  { icon: GitBranch, match: (slug) => slug.includes("github") || slug.includes("git") },
-  { icon: Cpu, match: (slug) => slug.includes("agent") || slug.includes("ai") },
-  { icon: Braces, match: (slug) => slug.includes("dev") || slug.includes("sdk") },
-];
-
-function getAgentIcon(slug: string): LucideIcon {
-  const match = iconMap.find((entry) => entry.match(slug));
-  return match?.icon ?? Bot;
-}
+const VISIBLE_COUNT = 10;
 
 export function AgentRail({ agents }: AgentRailProps) {
   if (agents.length === 0) {
     return null;
   }
 
-  return (
-    <div className="scrollbar-hide overflow-x-auto pb-2">
-      <div className="flex min-w-max gap-3">
-        {agents.map((agent) => {
-          const Icon = getAgentIcon(agent.slug);
+  const visible = agents.slice(0, VISIBLE_COUNT);
+  const remaining = agents.length - VISIBLE_COUNT;
 
-          return (
-            <Link
-              className="glass-agent skill-card-glow inline-flex shrink-0 items-center gap-2.5 rounded-xl px-4 py-3"
-              href={`/agents/${agent.slug}`}
-              key={agent.id}
-            >
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-gradient-to-br from-white/12 via-white/4 to-transparent">
-                <Icon className="h-3.5 w-3.5 text-zinc-200" />
+  return (
+    <section className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {visible.map((agent, index) => (
+          <Link
+            className="group rounded-2xl border border-border/80 bg-card/60 px-4 py-4 transition-default hover:border-primary/30 hover:bg-surface-hover"
+            href={`/agents/${agent.slug}`}
+            key={agent.id}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                  Agent {String(index + 1).padStart(2, "0")}
+                </div>
+                <div className="mt-2 truncate text-sm text-foreground">
+                  {agent.name}
+                </div>
               </div>
-              <span className="whitespace-nowrap text-sm uppercase tracking-[0.18em] text-foreground">
-                {agent.name}
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/80 text-[10px] text-muted-foreground transition-default group-hover:border-primary/30 group-hover:text-foreground">
+                →
               </span>
-            </Link>
-          );
-        })}
+            </div>
+          </Link>
+        ))}
       </div>
-    </div>
+
+      {remaining > 0 ? (
+        <div className="text-right">
+          <Link
+            className="text-sm text-muted-foreground transition-default hover:text-foreground hover:underline underline-offset-4"
+            href="/search"
+          >
+            + {remaining} more agents
+          </Link>
+        </div>
+      ) : null}
+    </section>
   );
 }

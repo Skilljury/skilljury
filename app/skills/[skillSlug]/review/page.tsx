@@ -15,6 +15,21 @@ type ReviewPageProps = {
   }>;
 };
 
+function readMetadataString(
+  metadata: Record<string, unknown> | undefined,
+  keys: string[],
+) {
+  for (const key of keys) {
+    const value = metadata?.[key];
+
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 export async function generateMetadata({
   params,
 }: ReviewPageProps): Promise<Metadata> {
@@ -47,27 +62,41 @@ export default async function SkillReviewPage({ params }: ReviewPageProps) {
     skillId: skill.id,
     viewerUserId: user.id,
   });
+  const metadata = user.user_metadata as Record<string, unknown> | undefined;
+  const reviewerIdentity = {
+    avatarUrl:
+      viewer.profile?.avatarUrl ??
+      readMetadataString(metadata, ["avatar_url", "picture"]),
+    displayName:
+      viewer.profile?.displayName ??
+      readMetadataString(metadata, ["display_name", "full_name", "name"]) ??
+      viewer.profile?.username ??
+      user.email?.split("@")[0] ??
+      "SkillJury user",
+    email: user.email ?? null,
+    username: viewer.profile?.username ?? null,
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_35%),linear-gradient(135deg,rgba(20,20,24,0.98),rgba(8,8,10,0.96))] p-7 shadow-xl">
-        <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-8">
+        <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
           Review submission
         </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-white">
+        <h1 className="mt-4 text-balance text-4xl font-semibold tracking-[-0.04em] text-foreground sm:text-5xl">
           Write a review for {skill.name}
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-zinc-300">
-          Required fields stay minimal so the form is fast to finish. Optional detail
-          fields are available inside the expandable section.
+        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
+          Keep the submission fast. The core verdict is required; deeper evidence stays
+          inside the optional section if you want to add more context.
         </p>
       </section>
 
       {reviewBundle.viewerReview ? (
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-7 text-amber-100">
+        <div className="rounded-[1.5rem] border border-amber-500/20 bg-amber-500/10 p-5 text-sm leading-7 text-amber-900 dark:text-amber-100">
           You have already submitted a review for this skill. Go back to the{" "}
           <Link
-            className="underline decoration-white/30 underline-offset-4"
+            className="font-medium text-foreground underline decoration-border underline-offset-4"
             href={`/skills/${skill.slug}`}
           >
             skill page
@@ -80,6 +109,7 @@ export default async function SkillReviewPage({ params }: ReviewPageProps) {
             name: agent.agentName,
             slug: agent.agentSlug,
           }))}
+          reviewer={reviewerIdentity}
           skillName={skill.name}
           skillSlug={skill.slug}
           turnstileSiteKey={getTurnstileSiteKey()}

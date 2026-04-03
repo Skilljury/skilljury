@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentViewer } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors/appError";
-import { createReport, type ReportReason } from "@/lib/reports/createReport";
+import { routeErrorResponse } from "@/lib/errors/routeError";
+import {
+  createReport,
+  REPORT_REASONS,
+  REPORT_TARGET_TYPES,
+  type ReportReason,
+} from "@/lib/reports/createReport";
 
 type ReportRequestBody = {
   notes?: string | null;
@@ -21,9 +27,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as ReportRequestBody;
+    const targetId = body.targetId?.trim();
 
-    if (!body.reason || !body.targetId || !body.targetType || !body.turnstileToken) {
+    if (!body.turnstileToken || !targetId) {
       throw new AppError(400, "Report target, reason, and Turnstile are required.", "invalid_payload");
+    }
+
+    if (!REPORT_REASONS.includes(body.reason as ReportReason)) {
+      throw new AppError(400, "Select a valid report reason.", "invalid_reason");
+    }
+
+    if (!REPORT_TARGET_TYPES.includes(body.targetType as "review" | "skill")) {
+      throw new AppError(400, "Select a valid report target.", "invalid_target_type");
     }
 
     const forwardedFor = request.headers.get("x-forwarded-for");
@@ -31,9 +46,9 @@ export async function POST(request: NextRequest) {
     const result = await createReport({
       ipAddress,
       notes: body.notes ?? null,
-      reason: body.reason,
-      targetId: body.targetId,
-      targetType: body.targetType,
+      reason: body.reason as ReportReason,
+      targetId,
+      targetType: body.targetType as "review" | "skill",
       turnstileToken: body.turnstileToken,
       userId: viewer.user.id,
       userStatus: viewer.profile?.accountStatus ?? "active",
@@ -41,15 +56,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    }
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unknown report failure.",
-      },
-      { status: 500 },
-    );
+    return routeErrorResponse(error, {
+      context: "create-report",
+      fallbackMessage: "SkillJury could not submit this report right now.",
+    });
   }
 }

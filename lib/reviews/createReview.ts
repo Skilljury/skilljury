@@ -48,6 +48,13 @@ function normalizeOptionalRating(value: number | null | undefined) {
   return Math.max(1, Math.min(5, Math.round(value)));
 }
 
+function isUniqueViolation(error: { code?: string; message?: string }) {
+  return (
+    error.code === "23505" ||
+    error.message?.includes("duplicate key value violates unique constraint") === true
+  );
+}
+
 async function verifyTurnstileToken(token: string, remoteIp?: string | null) {
   const secret = getTurnstileSecretKey();
 
@@ -173,6 +180,14 @@ export async function createReview(payload: ReviewPayload) {
     .single();
 
   if (insertError) {
+    if (isUniqueViolation(insertError)) {
+      throw new AppError(
+        409,
+        "You have already submitted a review for this skill.",
+        "duplicate_review",
+      );
+    }
+
     throw insertError;
   }
 

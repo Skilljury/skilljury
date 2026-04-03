@@ -91,15 +91,15 @@ export default async function SourcePage({
 
       <form
         action={`/sources/${encodeSourceSlug(source.slug)}`}
-        className="rounded-lg border border-white/10 bg-white/[0.04] p-5 shadow-md"
+        className="rounded-[1.75rem] border border-border bg-card/80 p-5 shadow-sm"
         method="get"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-zinc-500">
+            <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
               Source listing
             </div>
-            <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-white">
+            <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground">
               {results.totalCount.toLocaleString("en-US")} imported skills
             </h2>
           </div>
