@@ -94,7 +94,7 @@ export default async function Home() {
               Signal Index
             </div>
 
-            <h1 className="font-display max-w-3xl text-[clamp(2.4rem,6vw,4.8rem)] leading-[0.94] tracking-[-0.05em] text-foreground">
+            <h1 className="font-display max-w-3xl text-balance text-[clamp(2.15rem,9vw,4.8rem)] leading-[0.94] tracking-[-0.05em] text-foreground">
               Find AI skills worth installing.
             </h1>
 
@@ -105,20 +105,20 @@ export default async function Home() {
             </p>
 
             <form action="/search" className="max-w-2xl" method="get">
-              <div className="search-glow flex items-center rounded-2xl border border-border/80 bg-card/80 p-2 transition-all duration-200 focus-within:border-primary/30">
+              <div className="search-glow flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/80 p-2 transition-all duration-200 focus-within:border-primary/30 sm:flex-row sm:items-center">
                 <label className="sr-only" htmlFor="homepage-search">
                   Search the skill catalog
                 </label>
                 <input
-                  className="h-12 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  className="h-12 min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   defaultValue=""
-                id="homepage-search"
-                name="q"
-                placeholder="Search skills or sources"
-                type="search"
-              />
+                  id="homepage-search"
+                  name="q"
+                  placeholder="Search skills or sources"
+                  type="search"
+                />
                 <button
-                  className="m-1.5 rounded-xl bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-95"
+                  className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-95 sm:m-1.5 sm:h-auto sm:py-2"
                   type="submit"
                 >
                   Search
