@@ -8,6 +8,7 @@ import { RecommendationSummary } from "@/components/reviews/RecommendationSummar
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { ReportDialog } from "@/components/reports/ReportDialog";
 import { RelatedSkills } from "@/components/skills/RelatedSkills";
+import { RequestReviewButton } from "@/components/skills/RequestReviewButton";
 import { SecurityAudits } from "@/components/skills/SecurityAudits";
 import { SkillFaqSection } from "@/components/skills/SkillFaqSection";
 import { TaxonomyLinks } from "@/components/skills/TaxonomyLinks";
@@ -351,6 +352,13 @@ export default async function SkillPage({ params }: SkillPageProps) {
                 Browse all reviews
               </Link>
             ) : null}
+            <RequestReviewButton
+              isSignedIn={Boolean(viewer.user)}
+              loginHref={`/login?next=${encodeURIComponent(`/skills/${skill.slug}`)}`}
+              requestCount={reviewRequestSummary.totalCount}
+              skillSlug={skill.slug}
+              viewerHasRequested={reviewRequestSummary.viewerHasRequested}
+            />
           </div>
 
           <div className="mt-8 rounded-[1.5rem] border border-border bg-background/80 p-5">
