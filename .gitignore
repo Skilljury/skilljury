@@ -47,7 +47,8 @@ supabase/.temp/
 # logs
 *.log
 
-.vercel
+# MCP config (may contain secrets)
+.mcp.json
 
 # local tool state and audit artifacts
 .playwright-cli/
@@ -64,5 +65,3 @@ task_plan.md
 /lovable-*.png
 /tmp-*.html
 /public/pasted-skilljury-concept.html
-
-.vercel

@@ -33,7 +33,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = (await request.json()) as ReviewRequestBody;
+    let body: ReviewRequestBody;
+    try {
+      body = (await request.json()) as ReviewRequestBody;
+    } catch {
+      throw new AppError(400, "Invalid JSON in request body.", "invalid_json");
+    }
 
     const skillSlug = body.skillSlug?.trim();
 
