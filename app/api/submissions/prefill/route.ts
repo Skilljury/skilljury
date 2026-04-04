@@ -31,7 +31,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = (await request.json()) as SubmissionPrefillBody;
+    let body: SubmissionPrefillBody;
+    try {
+      body = (await request.json()) as SubmissionPrefillBody;
+    } catch {
+      throw new AppError(400, "Invalid JSON in request body.", "invalid_json");
+    }
 
     if (!body.repositoryUrl) {
       throw new AppError(400, "Repository URL is required.", "repository_required");

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       trigger: "cron",
       limit:
         typeof parsedLimit === "number" && !Number.isNaN(parsedLimit)
-          ? parsedLimit
+          ? Math.min(Math.max(parsedLimit, 1), 500)
           : undefined,
     });
 

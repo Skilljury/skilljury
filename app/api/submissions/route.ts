@@ -30,7 +30,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = (await request.json()) as SubmissionRequestBody;
+    let body: SubmissionRequestBody;
+    try {
+      body = (await request.json()) as SubmissionRequestBody;
+    } catch {
+      throw new AppError(400, "Invalid JSON in request body.", "invalid_json");
+    }
 
     if (!body.turnstileToken) {
       throw new AppError(400, "Turnstile verification is required.", "turnstile_required");

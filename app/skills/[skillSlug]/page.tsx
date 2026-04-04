@@ -105,8 +105,10 @@ export async function generateMetadata({
 
 export default async function SkillPage({ params }: SkillPageProps) {
   const { skillSlug } = await params;
-  const viewer = await getCurrentViewer();
-  const skill = await getSkillBySlug(skillSlug);
+  const [viewer, skill] = await Promise.all([
+    getCurrentViewer(),
+    getSkillBySlug(skillSlug),
+  ]);
 
   if (!skill) {
     notFound();

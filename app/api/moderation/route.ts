@@ -23,7 +23,12 @@ export async function POST(request: NextRequest) {
       throw new AppError(403, "Moderator access is required.", "forbidden");
     }
 
-    const body = (await request.json()) as ModerationRequestBody;
+    let body: ModerationRequestBody;
+    try {
+      body = (await request.json()) as ModerationRequestBody;
+    } catch {
+      throw new AppError(400, "Invalid JSON in request body.", "invalid_json");
+    }
 
     if (!body.action || typeof body.queueItemId !== "number") {
       throw new AppError(400, "Queue item and action are required.", "invalid_payload");

@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tab = parseTab(searchParams.get("tab"));
   const page = parsePositiveInteger(searchParams.get("page"), 1);
-  const pageSize = parsePositiveInteger(searchParams.get("pageSize"), 25);
+  const pageSize = Math.min(parsePositiveInteger(searchParams.get("pageSize"), 25), 100);
 
   const data = await getLeaderboardSkills(tab, page, pageSize);
 

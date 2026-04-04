@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
       throw new AppError(401, "You must sign in before editing your profile.", "unauthorized");
     }
 
-    const body = (await request.json()) as ProfileBody;
+    let body: ProfileBody;
+    try {
+      body = (await request.json()) as ProfileBody;
+    } catch {
+      throw new AppError(400, "Invalid JSON in request body.", "invalid_json");
+    }
     const usernameResult = validateUsername(body.username);
 
     if (usernameResult.error || !usernameResult.normalized) {

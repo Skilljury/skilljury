@@ -26,7 +26,12 @@ export async function POST(request: NextRequest) {
       throw new AppError(401, "You must sign in before filing a report.", "unauthorized");
     }
 
-    const body = (await request.json()) as ReportRequestBody;
+    let body: ReportRequestBody;
+    try {
+      body = (await request.json()) as ReportRequestBody;
+    } catch {
+      throw new AppError(400, "Invalid JSON in request body.", "invalid_json");
+    }
     const targetId = body.targetId?.trim();
 
     if (!body.turnstileToken || !targetId) {
