@@ -23,9 +23,9 @@ import { getSkillReviews } from "@/lib/reviews/getSkillReviews";
 import { getReviewRequestSummary } from "@/lib/skills/reviewRequests";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
-  buildAggregateRatingJsonLd,
   buildBreadcrumbJsonLd,
   buildFaqJsonLd,
+  buildSoftwareApplicationJsonLd,
 } from "@/lib/seo/schema";
 import { getTurnstileSiteKey } from "@/lib/supabase/config";
 
@@ -94,10 +94,10 @@ export async function generateMetadata({
     skill.approvedReviewCount === 0;
 
   return buildPageMetadata({
-    title: `${skill.name} Review - Ratings, Alternatives & User Reviews | SkillJury`,
+    title: `${skill.name} — Install guide, reviews & compatibility | SkillJury`,
     description:
       skill.shortSummary ??
-      `Inspect ${skill.name} on SkillJury, including user ratings, install context, and source metadata.`,
+      `Install ${skill.name}, read community reviews, check agent compatibility, and compare alternatives on SkillJury.`,
     indexable: !isThinSkillPage,
     pathname: `/skills/${skill.slug}`,
   });
@@ -213,8 +213,14 @@ export default async function SkillPage({ params }: SkillPageProps) {
           : `${skill.name} does not have approved reviews yet, so SkillJury cannot publish a community verdict.`,
     },
     {
-      question: `What agent does ${skill.name} work with?`,
+      question: `Which AI agents support ${skill.name}?`,
       answer: `${skill.name} currently lists compatibility with ${agentLabel}.`,
+    },
+    {
+      question: `Is ${skill.name} safe to install?`,
+      answer: hasSecurityAudits
+        ? `${skill.name} has been scanned by security audit providers tracked on SkillJury. Check the security audits section on this page for detailed results from Socket.dev and Snyk.`
+        : `SkillJury has not yet received security audit results for ${skill.name}. Review the source repository and install command before installing.`,
     },
     {
       question: `What are alternatives to ${skill.name}?`,
@@ -226,8 +232,9 @@ export default async function SkillPage({ params }: SkillPageProps) {
     {
       question: `How do I install ${skill.name}?`,
       answer:
-        skill.installCommand ??
-        "The source listing does not publish an install command for this skill.",
+        skill.installCommand
+          ? `Run the following command to install ${skill.name}: ${skill.installCommand}`
+          : "The source listing does not publish an install command for this skill.",
     },
   ];
   const breadcrumbItems = [
@@ -247,19 +254,29 @@ export default async function SkillPage({ params }: SkillPageProps) {
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       <JsonLd data={buildFaqJsonLd(faqEntries)} />
-      {reviewBundle.summary.approvedCount > 0 && reviewBundle.summary.overallAverage ? (
-        <JsonLd
-          data={buildAggregateRatingJsonLd({
-            canonicalPath: `/skills/${skill.slug}`,
-            description:
-              skill.shortSummary ??
-              `${skill.name} has public ratings and reviews on SkillJury.`,
-            name: skill.name,
-            ratingValue: reviewBundle.summary.overallAverage,
-            reviewCount: reviewBundle.summary.approvedCount,
-          })}
-        />
-      ) : null}
+      <JsonLd
+        data={buildSoftwareApplicationJsonLd({
+          canonicalPath: `/skills/${skill.slug}`,
+          dateModified: skill.lastSyncedAt,
+          datePublished: skill.firstSeenAt,
+          description:
+            skill.shortSummary ??
+            `${skill.name} is an AI agent skill listed on SkillJury.`,
+          name: skill.name,
+          ratingValue: reviewBundle.summary.overallAverage,
+          reviewCount: reviewBundle.summary.approvedCount,
+          reviews: reviewBundle.items
+            .filter((r) => r.body || r.pros)
+            .slice(0, 5)
+            .map((r) => ({
+              author:
+                r.user?.displayName ?? r.user?.username ?? "Anonymous",
+              datePublished: r.publishedAt ?? r.createdAt,
+              ratingValue: r.overallRating,
+              reviewBody: r.body ?? `Pros: ${r.pros}. Cons: ${r.cons}`,
+            })),
+        })}
+      />
 
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-default hover:text-foreground"
@@ -504,6 +521,26 @@ export default async function SkillPage({ params }: SkillPageProps) {
             Source metadata and repository proof are still available above.
           </div>
         )}
+      </section>
+
+      <section className="rounded-[1.5rem] border border-primary/10 bg-card/75 p-6 shadow-sm">
+        <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+          SkillJury Signal Summary
+        </div>
+        <p className="mt-4 text-sm leading-7 text-foreground/85">
+          As of {lastUpdatedLabel ?? "the latest sync"}, {skill.name} has{" "}
+          {installCountLabel
+            ? `${installCountLabel} weekly installs`
+            : "no reported install data"}
+          , {reviewBundle.summary.approvedCount} community{" "}
+          {reviewBundle.summary.approvedCount === 1 ? "review" : "reviews"}
+          {reviewBundle.summary.overallAverage
+            ? `, and a confidence score of ${reviewBundle.summary.overallAverage.toFixed(1)}/5`
+            : ""}{" "}
+          on SkillJury.
+          {skill.source ? ` Source: ${skill.source.name}.` : ""}
+          {skill.canonicalSourceUrl ? ` Canonical URL: ${skill.canonicalSourceUrl}.` : ""}
+        </p>
       </section>
 
       {hasSecurityAudits ? (

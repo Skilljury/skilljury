@@ -20,7 +20,7 @@ export const siteKeywords = [
   "coding agent tools",
 ];
 const defaultDescription =
-  "SkillJury is a live directory of AI agent skills with reviews, install context, source repositories, and compatibility pages.";
+  "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline with community reviews, install rankings, security audits, and compatibility data.";
 
 function trimSlashes(pathname: string) {
   if (!pathname || pathname === "/") {
@@ -103,8 +103,8 @@ export function buildPageMetadata({
 }
 
 export const rootMetadata = buildPageMetadata({
-  title: "SkillJury | AI agent skill reviews, ratings, and discovery",
+  title: "SkillJury — AI Agent Skill Reviews, Ratings & Install Rankings",
   description:
-    "Browse AI agent skill reviews, install commands, source repositories, and compatibility pages across the live SkillJury directory.",
+    "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline. Browse community reviews, weekly install rankings, security audit signals, and compatibility data across thousands of skills and hundreds of sources.",
   pathname: "/",
 });
