@@ -113,19 +113,37 @@ export default async function AgentPage({
           </h2>
           <SortButtonGroup basePath={`/agents/${agent.slug}`} value={sort} />
         </div>
-        <ResultGrid
-          emptyCopy="No compatible skills found."
-          emptyTitle="No compatible skills"
-          items={results.items}
-        />
+        {results.items.length < 3 ? (
+          <div className="rounded-2xl border border-border bg-card/60 px-8 py-12 text-center">
+            <p className="text-sm font-medium text-foreground">Early catalog</p>
+            <p className="mt-2 max-w-md mx-auto text-sm text-muted-foreground">
+              SkillJury only has a small number of skills tagged as compatible with {agent.name} so far.
+              As the catalog grows, more skills will appear here.
+            </p>
+            <a
+              href="/search"
+              className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2 text-sm text-foreground hover:border-primary/20 transition"
+            >
+              Browse all skills →
+            </a>
+          </div>
+        ) : (
+          <ResultGrid
+            emptyCopy="No compatible skills found."
+            emptyTitle="No compatible skills"
+            items={results.items}
+          />
+        )}
       </section>
 
-      <PaginationNav
-        basePath={`/agents/${agent.slug}`}
-        page={results.page}
-        query={{ sort }}
-        totalPages={results.totalPages}
-      />
+      {results.items.length >= 3 && (
+        <PaginationNav
+          basePath={`/agents/${agent.slug}`}
+          page={results.page}
+          query={{ sort }}
+          totalPages={results.totalPages}
+        />
+      )}
     </div>
   );
 }
