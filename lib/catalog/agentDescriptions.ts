@@ -5,7 +5,7 @@ export const agentDescriptions: Record<string, string> = {
   "claude-code":
     "Claude Code skills are designed for Anthropic's terminal-first coding agent workflow. Developers usually browse this page for repo-aware prompts, debugging helpers, refactoring guidance, setup automations, and other skills that fit command-line software work.",
   clawdbot:
-    "Clawdbot-compatible skills are intended for the Clawdbot agent environment and the automations built around it. Expect developer-facing helpers for implementation, investigation, code quality, and workflow tasks that benefit from a context-aware coding assistant.",
+    "OpenClaw-compatible skills are designed for the OpenClaw agent environment and the workflows built around it. This page is especially relevant for developers using OpenClaw for coding, automation, review, or operational tasks that depend on project context and repeatable tool use.",
   cline:
     "Cline skills fit a VS Code-centered agent workflow where the model can inspect files, run commands, and iterate against project context. This page is a useful filter for coding, debugging, review, and automation skills that assume an editor-integrated assistant.",
   codebuddy:
