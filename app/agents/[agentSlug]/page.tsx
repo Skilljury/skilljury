@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AffiliateButton } from "@/components/agents/AffiliateButton";
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { SortButtonGroup } from "@/components/listing/SortButtonGroup";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ResultGrid } from "@/components/search/ResultGrid";
+import { getAgentAffiliateLink } from "@/lib/catalog/agentAffiliateLinks";
 import { getAgentDescription } from "@/lib/catalog/agentDescriptions";
 import { getAgentBySlug } from "@/lib/db/agents";
 import { searchSkills } from "@/lib/db/search";
@@ -68,6 +70,7 @@ export default async function AgentPage({
     { name: "Home", path: "/" },
     { name: agent.name, path: canonicalPath },
   ];
+  const affiliateLink = getAgentAffiliateLink(agentSlug);
   const editorialDescription = getAgentDescription(agent.slug);
   const resultItems = results.items.map((item) => ({
     name: item.name,
@@ -102,6 +105,9 @@ export default async function AgentPage({
             <p className="max-w-3xl text-lg text-foreground/80">
               {editorialDescription ?? agent.description}
             </p>
+          ) : null}
+          {affiliateLink ? (
+            <AffiliateButton link={affiliateLink} agentName={agent.name} />
           ) : null}
         </div>
       </section>
