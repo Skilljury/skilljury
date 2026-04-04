@@ -4,35 +4,35 @@ export function buildSearchMetadataText(query?: string | null) {
   if (query && query.trim().length > 0) {
     return {
       title: `${query.trim()} Skills - Search Results & Reviews | ${siteName}`,
-      description: `Search SkillJury for ${query.trim()} skills, then filter by source, agent, and category to find the best fit.`,
+      description: `Search SkillJury for ${query.trim()} AI agent skills. Filter by source, agent, and category. Compare install counts, community reviews, and security audits.`,
     };
   }
 
   return {
-    title: `Search AI Agent Skills | ${siteName}`,
+    title: `Search AI Agent Skills — Reviews, Installs & Compatibility | ${siteName}`,
     description:
-      "Search the SkillJury catalog by skill name, description, source, agent, and category.",
+      "Search the SkillJury catalog of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline. Filter by source, agent, category, and sort by popularity or rating.",
   };
 }
 
 export function buildCategoryMetadataText(categoryName: string) {
   return {
-    title: `Best ${categoryName} Skills - Reviews, Ratings & Top Picks | ${siteName}`,
-    description: `Browse ${categoryName} skills in SkillJury, including catalog rankings, source context, and related tools.`,
+    title: `Best ${categoryName} AI Agent Skills — Reviewed & Rated | ${siteName}`,
+    description: `Browse the best ${categoryName} AI agent skills on SkillJury. Compare community ratings, weekly install counts, security audit signals, and compatibility across Claude Code, Cursor, Windsurf, and more.`,
   };
 }
 
 export function buildAgentMetadataText(agentName: string) {
   return {
-    title: `Best ${agentName} Skills - Reviews, Ratings & Compatibility | ${siteName}`,
-    description: `Explore skills that work with ${agentName}, including popularity signals, source context, and linked catalog entries.`,
+    title: `Best ${agentName} Skills — Reviews, Ratings & Compatibility | ${siteName}`,
+    description: `Explore top-rated AI agent skills compatible with ${agentName}. Community reviews, install counts, security audits, and source metadata on SkillJury.`,
   };
 }
 
 export function buildSourceMetadataText(sourceName: string) {
   return {
-    title: `${sourceName} Skills - Reviews, Ratings & Directory | ${siteName}`,
-    description: `See skills imported from ${sourceName}, including popularity signals, related agents, and category context.`,
+    title: `${sourceName} Skills — Reviews, Ratings & Install Guide | ${siteName}`,
+    description: `Browse AI agent skills imported from ${sourceName} on SkillJury. Compare popularity, community reviews, security audits, and agent compatibility.`,
   };
 }
 
@@ -42,21 +42,21 @@ export function buildListingMetadataText(
   switch (kind) {
     case "top-rated":
       return {
-        title: `Top Rated Skills - Reviews, Ratings & Catalog Leaders | ${siteName}`,
+        title: `Most Popular AI Agent Skills — Install Rankings | ${siteName}`,
         description:
-          "Browse the top-rated side of the SkillJury catalog using public reviews, confidence-adjusted ratings, and current catalog signals.",
+          "The most-installed AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline. Ranked by weekly install volume with community reviews and security audit signals on SkillJury.",
       };
     case "new":
       return {
-        title: `New Skills - Latest Catalog Additions | ${siteName}`,
+        title: `New AI Agent Skills — Latest Catalog Additions | ${siteName}`,
         description:
-          "Track the newest skills in the SkillJury catalog, ordered by first-seen date and live catalog activity.",
+          "Track the newest AI agent skills added to the SkillJury catalog. Ordered by first-seen date with install counts, community reviews, and agent compatibility data.",
       };
     case "trending":
       return {
-        title: `Trending Skills - Popular AI Agent Skills Right Now | ${siteName}`,
+        title: `Trending AI Agent Skills — Popular Right Now | ${siteName}`,
         description:
-          "Browse trending skills in SkillJury using current weekly install activity and recent catalog freshness.",
+          "Discover trending AI agent skills on SkillJury. Ranked by weekly install momentum for Claude Code, Cursor, Windsurf, Codex, and Cline with community reviews and security signals.",
       };
   }
 }

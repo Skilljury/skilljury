@@ -32,7 +32,7 @@ export function FilterPanel({
           Category
         </span>
         <select
-          className="w-full min-w-0 rounded-xl border border-border bg-background/70 px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
+          className="w-full min-w-[10rem] rounded-xl border border-border bg-background/70 px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
           defaultValue={selectedCategory}
           name="category"
         >
@@ -50,7 +50,7 @@ export function FilterPanel({
           Agent
         </span>
         <select
-          className="w-full min-w-0 rounded-xl border border-border bg-background/70 px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
+          className="w-full min-w-[10rem] rounded-xl border border-border bg-background/70 px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
           defaultValue={selectedAgent}
           name="agent"
         >
@@ -68,7 +68,7 @@ export function FilterPanel({
           Source
         </span>
         <select
-          className="w-full min-w-0 rounded-xl border border-border bg-background/70 px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
+          className="w-full min-w-[10rem] rounded-xl border border-border bg-background/70 px-4 py-3 text-sm text-foreground transition-default focus:border-primary/30 focus:outline-none"
           defaultValue={selectedSource}
           name="source"
         >

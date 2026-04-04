@@ -72,6 +72,7 @@ export default async function Home() {
         data={buildOrganizationJsonLd({
           liveSkillCount,
           liveSourceCount,
+          agentCount: agents.length,
         })}
       />
       <JsonLd data={buildWebsiteJsonLd()} />
@@ -238,6 +239,32 @@ export default async function Home() {
       <ScrollReveal delay={140}>
         <section className="border-t border-border/70 pt-12 sm:pt-14" id="leaderboard">
           <SkillsLeaderboard initialData={allTimeLeaderboard} tabTotals={tabTotals} />
+        </section>
+      </ScrollReveal>
+
+      <ScrollReveal delay={160}>
+        <section className="border-t border-border/70 pt-12 sm:pt-14" id="about">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-sm text-muted-foreground">About</p>
+            <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
+              About SkillJury
+            </h2>
+          </div>
+          <div className="mt-6 max-w-3xl space-y-4 text-sm leading-7 text-muted-foreground">
+            <p>
+              SkillJury indexes {liveSkillCount.toLocaleString("en-US")} skills
+              from {liveSourceCount.toLocaleString("en-US")} sources across{" "}
+              {agents.length} AI agents including Claude Code, Cursor, Windsurf,
+              Codex, and Cline. Each listing includes security audit signals from
+              Socket.dev and Snyk.
+            </p>
+            <p>
+              Community reviews are separated from catalog signals like weekly
+              installs, GitHub stars, and source metadata. This makes it possible
+              to shortlist skills by operational data while evaluating them
+              through independent reviews.
+            </p>
+          </div>
         </section>
       </ScrollReveal>
 

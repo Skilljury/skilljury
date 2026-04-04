@@ -38,11 +38,11 @@ export default async function TopRatedPage({
           Listing page
         </div>
         <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
-          Top rated skills
+          Most popular skills
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-          Rankings prioritize confidence-adjusted public ratings, then use current
-          catalog signals to stabilize ties between similarly reviewed skills.
+          The most-installed AI agent skills in the catalog, ordered by weekly
+          install volume. Ratings and community reviews are shown when available.
         </p>
       </section>
 

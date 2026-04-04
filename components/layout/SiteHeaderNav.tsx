@@ -10,8 +10,8 @@ type SiteHeaderNavProps = {
 
 const primaryLinks = [
   { href: "/search", label: "Explore" },
-  { href: "/#leaderboard", label: "Leaderboard" },
-  { href: "/#agents", label: "Agents" },
+  { href: "/top-rated", label: "Leaderboard" },
+  { href: "/search?agent=", label: "Agents" },
   { href: "/submit-skill", label: "Submit" },
 ];
 
