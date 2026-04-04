@@ -195,6 +195,7 @@ export async function syncUserProfileFromAuthUser(user: User) {
   }
 
   const existing = existingProfile as ProfileRow | null;
+  const isNewUser = !existing;
   const derivedDisplayName =
     readStringCandidate(metadata, ["display_name", "full_name", "name"]) ??
     googleIdentity?.name ??
@@ -240,12 +241,54 @@ export async function syncUserProfileFromAuthUser(user: User) {
       throw fallbackWrite.error;
     }
 
+    if (isNewUser) {
+      fireSignupNotification(user, metadata);
+    }
+
     return;
   }
 
   if (error) {
     throw error;
   }
+
+  if (isNewUser) {
+    fireSignupNotification(user, metadata);
+  }
+}
+
+function fireSignupNotification(
+  user: User,
+  metadata: Record<string, unknown> | undefined,
+) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://skilljury.com";
+  const webhookSecret = process.env.SIGNUP_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.log(
+      `[NEW USER SIGNUP] email=${user.email} id=${user.id} at=${user.created_at}`,
+    );
+    return;
+  }
+
+  const notifyUrl = `${siteUrl}/api/internal/user-signup-notify`;
+
+  fetch(notifyUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-webhook-secret": webhookSecret,
+    },
+    body: JSON.stringify({
+      record: {
+        email: user.email,
+        created_at: user.created_at,
+        raw_user_meta_data: metadata as Record<string, string> | undefined,
+      },
+    }),
+  }).catch((err) => {
+    console.error("[signup-notify] Failed to fire notification:", err);
+  });
 }
 
 export async function getCurrentViewer(): Promise<Viewer> {
