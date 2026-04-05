@@ -11,16 +11,22 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: false,
 });
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+  preload: true,
 });
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = rootMetadata;
@@ -38,7 +44,12 @@ export default function RootLayout({
 }>) {
   return (
     <html className="dark" lang="en">
-      <head>{gaMeasurementId ? <GoogleAnalytics measurementId={gaMeasurementId} /> : null}</head>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        {gaMeasurementId ? <GoogleAnalytics measurementId={gaMeasurementId} /> : null}
+      </head>
       <body
         className={`${manrope.variable} ${newsreader.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiased`}
       >
