@@ -85,7 +85,7 @@ export function buildPageMetadata({
           url: imagePath,
           width: 1200,
           height: 630,
-          alt: `${siteName} social card`,
+          alt: `${siteName} — AI agent skill reviews and install rankings`,
         },
       ],
     },
@@ -96,8 +96,12 @@ export function buildPageMetadata({
       images: [imagePath],
     },
     icons: {
-      icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
-      shortcut: ["/icon.svg"],
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
+      shortcut: ["/favicon.ico"],
+      apple: [{ url: "/favicon.ico" }],
     },
   };
 }
