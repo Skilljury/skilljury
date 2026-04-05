@@ -1,0 +1,1 @@
+// SEO middleware placeholder
