@@ -96,7 +96,7 @@ export default async function Home() {
             </div>
 
             <h1 className="font-display max-w-3xl text-balance text-[clamp(2.15rem,9vw,4.8rem)] leading-[0.94] tracking-[-0.05em] text-foreground">
-              Find AI skills worth installing.
+              Find AI agent skills worth installing — with reviews, rankings, and security audits.
             </h1>
 
             <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
@@ -192,7 +192,7 @@ export default async function Home() {
           <div className="max-w-2xl space-y-3">
             <p className="text-sm text-muted-foreground">Browse by agent</p>
             <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
-              Start where people already work.
+              Start where developers already work with AI agents.
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
               The index should feel familiar to builders scanning the environments they already use.
@@ -209,7 +209,7 @@ export default async function Home() {
           <div className="max-w-2xl space-y-3">
             <p className="text-sm text-muted-foreground">Browse by category</p>
             <h2 className="font-display text-3xl tracking-[-0.04em] text-foreground sm:text-4xl">
-              Compare skills by job to be done.
+              Compare AI skills by job to be done.
             </h2>
             <p className="text-sm leading-7 text-muted-foreground">
               Categories should compress the field quickly without hiding the underlying signal.
