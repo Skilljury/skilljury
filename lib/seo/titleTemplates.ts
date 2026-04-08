@@ -2,39 +2,39 @@ const siteName = "SkillJury";
 const brandSuffix = ` | ${siteName}`;
 const maxTitleLength = 60;
 const minSubjectLength = 12;
-const preservedAcronyms = new Set([
-  "ai",
-  "api",
-  "aws",
-  "cli",
-  "css",
-  "csv",
-  "db",
-  "gpt",
-  "html",
-  "http",
-  "https",
-  "id",
-  "ids",
-  "ios",
-  "json",
-  "jwt",
-  "llm",
-  "mcp",
-  "ocr",
-  "oauth",
-  "pdf",
-  "qa",
-  "sdk",
-  "seo",
-  "sql",
-  "ts",
-  "tsx",
-  "ui",
-  "uri",
-  "url",
-  "ux",
-  "xml",
+const preservedTokens = new Map([
+  ["ai", "AI"],
+  ["api", "API"],
+  ["aws", "AWS"],
+  ["cli", "CLI"],
+  ["css", "CSS"],
+  ["csv", "CSV"],
+  ["db", "DB"],
+  ["gpt", "GPT"],
+  ["html", "HTML"],
+  ["http", "HTTP"],
+  ["https", "HTTPS"],
+  ["id", "ID"],
+  ["ids", "IDs"],
+  ["ios", "iOS"],
+  ["json", "JSON"],
+  ["jwt", "JWT"],
+  ["llm", "LLM"],
+  ["mcp", "MCP"],
+  ["ocr", "OCR"],
+  ["oauth", "OAuth"],
+  ["pdf", "PDF"],
+  ["qa", "QA"],
+  ["sdk", "SDK"],
+  ["seo", "SEO"],
+  ["sql", "SQL"],
+  ["ts", "TS"],
+  ["tsx", "TSX"],
+  ["ui", "UI"],
+  ["uri", "URI"],
+  ["url", "URL"],
+  ["ux", "UX"],
+  ["xml", "XML"],
 ]);
 
 function normalizeWhitespace(value: string) {
@@ -46,8 +46,10 @@ function titleCaseFragment(value: string) {
     return value;
   }
 
-  if (preservedAcronyms.has(value.toLowerCase())) {
-    return value.toUpperCase();
+  const preferredToken = preservedTokens.get(value.toLowerCase());
+
+  if (preferredToken) {
+    return preferredToken;
   }
 
   return value.charAt(0).toUpperCase() + value.slice(1);
