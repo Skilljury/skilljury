@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/supabase/config";
-
+ 
 export const siteName = "SkillJury";
 export const siteKeywords = [
   "AI agent skills",
