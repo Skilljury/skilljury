@@ -11,6 +11,7 @@ import { getSkillBySlug } from "@/lib/db/skills";
 import { getSkillReviews } from "@/lib/reviews/getSkillReviews";
 import { normalizePageParam } from "@/lib/routing/browseParams";
 import { buildPageMetadata } from "@/lib/seo/metadata";
+import { buildSkillReviewArchiveTitle } from "@/lib/seo/titleTemplates";
 import { getTurnstileSiteKey } from "@/lib/supabase/config";
 
 type SkillReviewsPageProps = {
@@ -28,7 +29,7 @@ export async function generateMetadata({
 
   return buildPageMetadata({
     title: skill
-      ? `${skill.name} reviews | SkillJury`
+      ? buildSkillReviewArchiveTitle(skill.name)
       : "Skill reviews | SkillJury",
     description: skill
       ? `Read public reviews and rating details for ${skill.name}.`

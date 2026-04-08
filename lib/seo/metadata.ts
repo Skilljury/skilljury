@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+
 import { getSiteUrl } from "@/lib/supabase/config";
- 
+import { buildSeoTitle, normalizeMetadataTitle } from "@/lib/seo/titleTemplates";
+
 export const siteName = "SkillJury";
 export const siteKeywords = [
   "AI agent skills",
@@ -18,20 +20,26 @@ export const siteKeywords = [
   "AI agent marketplace",
   "coding agent tools",
 ];
+
 const defaultDescription =
   "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline with community reviews, install rankings, security audits, and compatibility data.";
+
 function trimSlashes(pathname: string) {
   if (!pathname || pathname === "/") {
     return "";
   }
+
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
 }
+
 export function getMetadataBase() {
   return new URL(getSiteUrl());
 }
+
 export function buildCanonicalUrl(pathname: string) {
   return new URL(trimSlashes(pathname), getMetadataBase()).toString();
 }
+
 type PageMetadataOptions = {
   title: string;
   description?: string;
@@ -39,6 +47,7 @@ type PageMetadataOptions = {
   imagePath?: string;
   indexable?: boolean;
 };
+
 export function buildPageMetadata({
   title,
   description = defaultDescription,
@@ -47,9 +56,11 @@ export function buildPageMetadata({
   indexable = true,
 }: PageMetadataOptions): Metadata {
   const canonical = buildCanonicalUrl(pathname);
+  const normalizedTitle = normalizeMetadataTitle(title);
+
   return {
     metadataBase: getMetadataBase(),
-    title,
+    title: normalizedTitle,
     description,
     keywords: siteKeywords,
     alternates: {
@@ -68,7 +79,7 @@ export function buildPageMetadata({
     },
     openGraph: {
       type: "website",
-      title,
+      title: normalizedTitle,
       description,
       url: canonical,
       siteName,
@@ -77,13 +88,13 @@ export function buildPageMetadata({
           url: imagePath,
           width: 1200,
           height: 630,
-          alt: `${siteName} — AI agent skill reviews and install rankings`,
+          alt: `${siteName} - AI agent skill reviews and install rankings`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: normalizedTitle,
       description,
       images: [imagePath],
     },
@@ -97,8 +108,9 @@ export function buildPageMetadata({
     },
   };
 }
+
 export const rootMetadata = buildPageMetadata({
-  title: "SkillJury — AI Agent Skill Reviews, Ratings & Install Rankings",
+  title: buildSeoTitle("AI agent skill reviews and rankings"),
   description:
     "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline. Browse community reviews, weekly install rankings, security audit signals, and compatibility data across thousands of skills and hundreds of sources.",
   pathname: "/",
