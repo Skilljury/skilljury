@@ -1,6 +1,7 @@
 import "server-only";
 
 import { isMissingRelationError, logDataAccessError } from "@/lib/db/errors";
+import { buildIndexNowUrl, notifyIndexNow } from "@/lib/indexnow";
 import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 
 export const REVIEW_SUBSCORE_FIELDS = [
@@ -205,7 +206,7 @@ export async function recomputeSkillReviewStats(skillId: number) {
     (data ?? []) as ReviewAggregationRow[],
     await getSiteWideBaselineRating(),
   );
-  const { error: updateError } = await supabase
+  const { data: updatedSkill, error: updateError } = await supabase
     .from("skills")
     .update({
       review_count: aggregation.totalCount,
@@ -213,10 +214,16 @@ export async function recomputeSkillReviewStats(skillId: number) {
       overall_score: aggregation.overallAverage,
       confidence_adjusted_score: aggregation.confidenceAdjusted,
     })
-    .eq("id", skillId);
+    .eq("id", skillId)
+    .select("slug")
+    .maybeSingle();
 
   if (updateError) {
     throw updateError;
+  }
+
+  if (updatedSkill?.slug) {
+    await notifyIndexNow([buildIndexNowUrl(`/skills/${updatedSkill.slug as string}`)]);
   }
 
   return aggregation;
