@@ -2,6 +2,40 @@ const siteName = "SkillJury";
 const brandSuffix = ` | ${siteName}`;
 const maxTitleLength = 60;
 const minSubjectLength = 12;
+const preservedAcronyms = new Set([
+  "ai",
+  "api",
+  "aws",
+  "cli",
+  "css",
+  "csv",
+  "db",
+  "gpt",
+  "html",
+  "http",
+  "https",
+  "id",
+  "ids",
+  "ios",
+  "json",
+  "jwt",
+  "llm",
+  "mcp",
+  "ocr",
+  "oauth",
+  "pdf",
+  "qa",
+  "sdk",
+  "seo",
+  "sql",
+  "ts",
+  "tsx",
+  "ui",
+  "uri",
+  "url",
+  "ux",
+  "xml",
+]);
 
 function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -10,6 +44,10 @@ function normalizeWhitespace(value: string) {
 function titleCaseFragment(value: string) {
   if (!value) {
     return value;
+  }
+
+  if (preservedAcronyms.has(value.toLowerCase())) {
+    return value.toUpperCase();
   }
 
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -74,7 +112,7 @@ export function buildSeoTitle(subject: string, qualifier?: string) {
 }
 
 export function normalizeMetadataTitle(title: string) {
-  const normalized = normalizeWhitespace(title).replace(/[–—]/g, "-");
+  const normalized = normalizeWhitespace(title).replace(/[\u2013\u2014]/g, "-");
 
   if (!normalized) {
     return withBrand(siteName);
