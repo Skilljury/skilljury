@@ -41,6 +41,23 @@ function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+function stripBranding(value: string) {
+  let normalized = normalizeWhitespace(value);
+
+  while (true) {
+    const stripped = normalized.replace(
+      new RegExp(`\\s*[|:-]\\s*${siteName}$`, "i"),
+      "",
+    );
+
+    if (stripped === normalized) {
+      return stripped;
+    }
+
+    normalized = normalizeWhitespace(stripped);
+  }
+}
+
 function titleCaseFragment(value: string) {
   if (!value) {
     return value;
@@ -56,13 +73,13 @@ function titleCaseFragment(value: string) {
 }
 
 function normalizeTitleEntity(value: string) {
-  const trimmed = normalizeWhitespace(value);
+  const trimmed = stripBranding(value);
 
   if (!trimmed) {
     return siteName;
   }
 
-  if (!/^[a-z0-9/_-]+$/i.test(trimmed)) {
+  if (/\s/.test(trimmed) || !/^[a-z0-9./_:+-]+$/i.test(trimmed)) {
     return trimmed;
   }
 
@@ -115,13 +132,14 @@ export function buildSeoTitle(subject: string, qualifier?: string) {
 
 export function normalizeMetadataTitle(title: string) {
   const normalized = normalizeWhitespace(title).replace(/[\u2013\u2014]/g, "-");
+  const stripped = stripBranding(normalized);
 
-  if (!normalized) {
+  if (!stripped) {
     return siteName;
   }
 
-  if (normalized.endsWith(brandSuffix)) {
-    return withBrand(normalized.slice(0, -brandSuffix.length));
+  if (stripped !== normalized) {
+    return withBrand(stripped);
   }
 
   return truncateTitleSegment(normalized, maxTitleLength);
