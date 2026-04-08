@@ -2,10 +2,9 @@ import type { AgentAffiliateLink } from "@/lib/catalog/agentAffiliateLinks";
 
 type AffiliateButtonProps = {
   link: AgentAffiliateLink;
-  agentName: string;
 };
 
-export function AffiliateButton({ link, agentName }: AffiliateButtonProps) {
+export function AffiliateButton({ link }: AffiliateButtonProps) {
   return (
     <div className="mt-6 space-y-2">
       <a

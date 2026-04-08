@@ -52,11 +52,6 @@ export function buildPageMetadata({
     title,
     description,
     keywords: siteKeywords,
-    verification: {
-      other: {
-        "msvalidate.01": "C27279987F6775A9CF3CF281E03D186A",
-      },
-    },
     alternates: {
       canonical,
     },
