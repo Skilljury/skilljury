@@ -21,7 +21,9 @@ const preservedTokens = new Map([
   ["jwt", "JWT"],
   ["llm", "LLM"],
   ["mcp", "MCP"],
+  ["n8n", "n8n"],
   ["ocr", "OCR"],
+  ["openai", "OpenAI"],
   ["oauth", "OAuth"],
   ["pdf", "PDF"],
   ["qa", "QA"],
@@ -35,6 +37,9 @@ const preservedTokens = new Map([
   ["url", "URL"],
   ["ux", "UX"],
   ["xml", "XML"],
+  ["nodejs", "Node.js"],
+  ["nextjs", "Next.js"],
+  ["github", "GitHub"],
 ]);
 
 function normalizeWhitespace(value: string) {
@@ -111,6 +116,31 @@ function truncateTitleSegment(value: string, maxLength: number) {
   return `${candidate.trimEnd()}...`;
 }
 
+function truncatePathLikeTitle(value: string, maxLength: number) {
+  const normalized = normalizeWhitespace(value);
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const segments = normalized.split(" / ").filter(Boolean);
+
+  if (segments.length < 2) {
+    return truncateTitleSegment(normalized, maxLength);
+  }
+
+  const first = segments[0];
+  const last = segments.at(-1) ?? "";
+  const separator = " / ";
+
+  if (last.length + separator.length >= maxLength - 6) {
+    return truncateTitleSegment(normalized, maxLength);
+  }
+
+  const firstBudget = Math.max(maxLength - last.length - separator.length, 12);
+  return `${truncateTitleSegment(first, firstBudget)}${separator}${last}`;
+}
+
 function withBrand(coreTitle: string) {
   const normalized = normalizeWhitespace(coreTitle);
   const maxCoreLength = maxTitleLength - brandSuffix.length;
@@ -146,7 +176,7 @@ export function normalizeMetadataTitle(title: string) {
 }
 
 export function buildSkillMetadataTitle(skillName: string) {
-  return buildSeoTitle(skillName, "reviews");
+  return buildSeoTitle(skillName, "install guide");
 }
 
 export function buildSkillReviewTitle(skillName: string) {
@@ -187,8 +217,11 @@ export function buildAgentMetadataText(agentName: string) {
 }
 
 export function buildSourceMetadataText(sourceName: string) {
+  const normalizedSourceName = normalizeTitleEntity(sourceName);
+  const maxCoreLength = maxTitleLength - brandSuffix.length;
+
   return {
-    title: buildSeoTitle(sourceName, "source skills"),
+    title: `${truncatePathLikeTitle(normalizedSourceName, maxCoreLength)}${brandSuffix}`,
     description: `Browse AI agent skills imported from ${sourceName} on SkillJury. Compare popularity, community reviews, security audits, and agent compatibility.`,
   };
 }
