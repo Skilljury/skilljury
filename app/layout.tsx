@@ -48,6 +48,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
+        <meta name="msvalidate.01" content="C27279987F6775A9CF3CF281E03D186A" />
         {gaMeasurementId ? <GoogleAnalytics measurementId={gaMeasurementId} /> : null}
       </head>
       <body

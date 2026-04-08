@@ -107,7 +107,7 @@ export default async function AgentPage({
             </p>
           ) : null}
           {affiliateLink ? (
-            <AffiliateButton link={affiliateLink} agentName={agent.name} />
+            <AffiliateButton link={affiliateLink} />
           ) : null}
         </div>
       </section>
