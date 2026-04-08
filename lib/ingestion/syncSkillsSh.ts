@@ -14,6 +14,7 @@ import {
   classifySkillCategories,
   skillCategoryDefinitions,
 } from "@/lib/taxonomy/categories";
+import { buildIndexNowUrl, notifyIndexNow } from "@/lib/indexnow";
 
 type SyncTrigger = "manual" | "cron";
 
@@ -42,6 +43,11 @@ type SyncSummary = {
   itemsUpdated: number;
   errorsCount: number;
   rawSnapshotPath: string | null;
+};
+
+type UpsertedSkillRecord = {
+  id: number;
+  slug: string;
 };
 
 const PAGE_FETCH_CONCURRENCY = 16;
@@ -422,34 +428,34 @@ async function upsertSkills(
     };
   });
 
-  const skillIds = new Map<string, number>();
+  const skillRecords = new Map<string, UpsertedSkillRecord>();
 
   for (let index = 0; index < skillRows.length; index += BATCH_WRITE_SIZE) {
     const chunk = skillRows.slice(index, index + BATCH_WRITE_SIZE);
     const { data, error } = await supabase
       .from("skills")
       .upsert(chunk, { onConflict: "canonical_source_url" })
-      .select("id, canonical_source_url");
+      .select("id, canonical_source_url, slug");
 
     if (error) {
       throw new Error(`Failed to upsert skills: ${error.message}`);
     }
 
     for (const row of data ?? []) {
-      skillIds.set(
-        row.canonical_source_url as string,
-        row.id as number,
-      );
+      skillRecords.set(row.canonical_source_url as string, {
+        id: row.id as number,
+        slug: row.slug as string,
+      });
     }
   }
 
-  return skillIds;
+  return skillRecords;
 }
 
 async function upsertAgentsAndCompatibility(
   supabase: SupabaseClient,
   records: ParsedRecord[],
-  skillIds: Map<string, number>,
+  skillRecords: Map<string, UpsertedSkillRecord>,
   syncedAt: string,
 ) {
   const agentRows = new Map<
@@ -491,7 +497,7 @@ async function upsertAgentsAndCompatibility(
   );
 
   const compatibilityRows = records.flatMap((record) => {
-    const skillId = skillIds.get(record.skill.canonicalSourceUrl);
+    const skillId = skillRecords.get(record.skill.canonicalSourceUrl)?.id;
 
     if (!skillId) {
       return [];
@@ -541,7 +547,7 @@ async function upsertAgentsAndCompatibility(
 async function syncStarterCategories(
   supabase: SupabaseClient,
   records: ParsedRecord[],
-  skillIds: Map<string, number>,
+  skillRecords: Map<string, UpsertedSkillRecord>,
 ) {
   const { error: categoriesError } = await supabase
     .from("categories")
@@ -574,7 +580,7 @@ async function syncStarterCategories(
   const categoryIds = new Map(
     (categoryRows ?? []).map((row) => [row.slug as string, row.id as number]),
   );
-  const currentSkillIds = [...skillIds.values()];
+  const currentSkillIds = [...skillRecords.values()].map((record) => record.id);
 
   for (let index = 0; index < currentSkillIds.length; index += BATCH_WRITE_SIZE) {
     const chunk = currentSkillIds.slice(index, index + BATCH_WRITE_SIZE);
@@ -591,7 +597,7 @@ async function syncStarterCategories(
   }
 
   const linkRows = records.flatMap((record) => {
-    const skillId = skillIds.get(record.skill.canonicalSourceUrl);
+    const skillId = skillRecords.get(record.skill.canonicalSourceUrl)?.id;
 
     if (!skillId) {
       return [];
@@ -799,7 +805,7 @@ export async function runSkillsShSync(
       sourceIds,
       syncedAt,
     );
-    const skillIds = await upsertSkills(
+    const skillRecords = await upsertSkills(
       supabase,
       records,
       sourceIds,
@@ -807,8 +813,20 @@ export async function runSkillsShSync(
       syncedAt,
     );
 
-    await upsertAgentsAndCompatibility(supabase, records, skillIds, syncedAt);
-    await syncStarterCategories(supabase, records, skillIds);
+    await upsertAgentsAndCompatibility(supabase, records, skillRecords, syncedAt);
+    await syncStarterCategories(supabase, records, skillRecords);
+    await notifyIndexNow([
+      ...[...skillRecords.values()].map((record) =>
+        buildIndexNowUrl(`/skills/${record.slug}`),
+      ),
+      ...new Set(
+        records.flatMap((record) =>
+          record.skill.installedAgents.map((agent) =>
+            buildIndexNowUrl(`/agents/${agent.slug}`),
+          ),
+        ),
+      ),
+    ]);
 
     const summary: SyncSummary = {
       status: "completed",

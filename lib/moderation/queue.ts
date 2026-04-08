@@ -2,6 +2,7 @@ import "server-only";
 
 import { isMissingRelationError, logDataAccessError } from "@/lib/db/errors";
 import { AppError } from "@/lib/errors/appError";
+import { buildIndexNowUrl, notifyIndexNow } from "@/lib/indexnow";
 import { writeAuditLog } from "@/lib/moderation/auditLog";
 import { recomputeSkillReviewStats } from "@/lib/reviews/aggregateRatings";
 import { getSiteUrl } from "@/lib/supabase/config";
@@ -233,8 +234,11 @@ async function createModerationAwareSkillFromSubmission(
     canonicalSourceUrl,
     submission.repository_url,
   );
+  const createdNewSkill = !existingSkill;
+  const urlsToNotify: string[] = [];
 
   let createdSkillId = existingSkill?.id as number | undefined;
+  let createdSkillSlug = existingSkill?.slug as string | undefined;
 
   if (!createdSkillId) {
     const manualSourceSlug = "user-submissions";
@@ -319,6 +323,7 @@ async function createModerationAwareSkillFromSubmission(
     }
 
     createdSkillId = insertedSkill.id as number;
+    createdSkillSlug = insertedSkill.slug as string;
 
     const categoryValue = submission.proposed_category?.trim();
 
@@ -382,6 +387,12 @@ async function createModerationAwareSkillFromSubmission(
           if (compatibilityError) {
             throw compatibilityError;
           }
+
+          urlsToNotify.push(
+            ...matchedAgents.map((agent) =>
+              buildIndexNowUrl(`/agents/${agent.slug as string}`),
+            ),
+          );
         }
       }
     }
@@ -401,6 +412,13 @@ async function createModerationAwareSkillFromSubmission(
 
   if (submissionUpdateError) {
     throw submissionUpdateError;
+  }
+
+  if (createdNewSkill && createdSkillSlug) {
+    await notifyIndexNow([
+      buildIndexNowUrl(`/skills/${createdSkillSlug}`),
+      ...urlsToNotify,
+    ]);
   }
 
   return {
