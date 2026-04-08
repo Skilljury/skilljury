@@ -27,6 +27,7 @@ import {
   buildFaqJsonLd,
   buildSoftwareApplicationJsonLd,
 } from "@/lib/seo/schema";
+import { buildSkillMetadataTitle } from "@/lib/seo/titleTemplates";
 import { getTurnstileSiteKey } from "@/lib/supabase/config";
 
 type SkillPageProps = {
@@ -94,7 +95,7 @@ export async function generateMetadata({
     skill.approvedReviewCount === 0;
 
   return buildPageMetadata({
-    title: `${skill.name} — Install guide, reviews & compatibility | SkillJury`,
+    title: buildSkillMetadataTitle(skill.name),
     description:
       skill.shortSummary ??
       `Install ${skill.name}, read community reviews, check agent compatibility, and compare alternatives on SkillJury.`,

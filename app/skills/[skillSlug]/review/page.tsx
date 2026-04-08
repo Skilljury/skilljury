@@ -8,6 +8,7 @@ import { getSkillBySlug } from "@/lib/db/skills";
 import { getSkillReviews } from "@/lib/reviews/getSkillReviews";
 import { getTurnstileSiteKey } from "@/lib/supabase/config";
 import { buildPageMetadata } from "@/lib/seo/metadata";
+import { buildSkillReviewTitle } from "@/lib/seo/titleTemplates";
 
 type ReviewPageProps = {
   params: Promise<{
@@ -38,7 +39,7 @@ export async function generateMetadata({
 
   return buildPageMetadata({
     title: skill
-      ? `Write a review for ${skill.name} | SkillJury`
+      ? buildSkillReviewTitle(skill.name)
       : "Write a review | SkillJury",
     description: skill
       ? `Share your experience with ${skill.name} on SkillJury.`
