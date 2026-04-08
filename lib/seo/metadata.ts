@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-
 import { getSiteUrl } from "@/lib/supabase/config";
 
 export const siteName = "SkillJury";
@@ -21,23 +20,18 @@ export const siteKeywords = [
 ];
 const defaultDescription =
   "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline with community reviews, install rankings, security audits, and compatibility data.";
-
 function trimSlashes(pathname: string) {
   if (!pathname || pathname === "/") {
     return "";
   }
-
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
 }
-
 export function getMetadataBase() {
   return new URL(getSiteUrl());
 }
-
 export function buildCanonicalUrl(pathname: string) {
   return new URL(trimSlashes(pathname), getMetadataBase()).toString();
 }
-
 type PageMetadataOptions = {
   title: string;
   description?: string;
@@ -45,7 +39,6 @@ type PageMetadataOptions = {
   imagePath?: string;
   indexable?: boolean;
 };
-
 export function buildPageMetadata({
   title,
   description = defaultDescription,
@@ -54,12 +47,16 @@ export function buildPageMetadata({
   indexable = true,
 }: PageMetadataOptions): Metadata {
   const canonical = buildCanonicalUrl(pathname);
-
   return {
     metadataBase: getMetadataBase(),
     title,
     description,
     keywords: siteKeywords,
+    verification: {
+      other: {
+        "msvalidate.01": "C27279987F6775A9CF3CF281E03D186A",
+      },
+    },
     alternates: {
       canonical,
     },
@@ -105,7 +102,6 @@ export function buildPageMetadata({
     },
   };
 }
-
 export const rootMetadata = buildPageMetadata({
   title: "SkillJury — AI Agent Skill Reviews, Ratings & Install Rankings",
   description:
