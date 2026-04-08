@@ -115,7 +115,7 @@ export function normalizeMetadataTitle(title: string) {
   const normalized = normalizeWhitespace(title).replace(/[\u2013\u2014]/g, "-");
 
   if (!normalized) {
-    return withBrand(siteName);
+    return siteName;
   }
 
   if (normalized.endsWith(brandSuffix)) {
@@ -168,7 +168,7 @@ export function buildAgentMetadataText(agentName: string) {
 
 export function buildSourceMetadataText(sourceName: string) {
   return {
-    title: buildSeoTitle(sourceName, "skills"),
+    title: buildSeoTitle(sourceName, "source skills"),
     description: `Browse AI agent skills imported from ${sourceName} on SkillJury. Compare popularity, community reviews, security audits, and agent compatibility.`,
   };
 }
