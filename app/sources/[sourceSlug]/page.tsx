@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+export const revalidate = 3600; // revalidate source pages at most once per hour
+
 import { SortSelect } from "@/components/listing/SortSelect";
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { JsonLd } from "@/components/seo/JsonLd";
