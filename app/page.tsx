@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 
 import { AgentRail } from "@/components/home/AgentRail";
@@ -17,6 +18,8 @@ import {
 } from "@/lib/seo/schema";
 
 export default async function Home() {
+  "use cache";
+  cacheLife("hours");
   const [
     allTimeLeaderboard,
     trendingLeaderboard,
