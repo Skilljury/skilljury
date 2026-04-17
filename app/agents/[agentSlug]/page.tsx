@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export const revalidate = 3600; // revalidate agent pages at most once per hour
-
 import { AffiliateButton } from "@/components/agents/AffiliateButton";
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { SortButtonGroup } from "@/components/listing/SortButtonGroup";

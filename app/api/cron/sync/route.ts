@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { routeErrorResponse } from "@/lib/errors/routeError";
 import { runSkillsShSync } from "@/lib/ingestion/syncSkillsSh";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 function getCronSecret() {
