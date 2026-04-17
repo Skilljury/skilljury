@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { ModerationQueueTable } from "@/components/admin/ModerationQueueTable";
 import { requireModerator } from "@/lib/auth/guards";
@@ -25,7 +26,33 @@ function formatDate(value: string) {
   });
 }
 
-export default async function AdminModerationPage() {
+function ModerationShell() {
+  return (
+    <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
+      <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
+        Admin
+      </div>
+      <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
+        SkillJury moderation queue
+      </h1>
+      <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
+        New-user reviews land here for approval, rejection, or escalation. Every
+        action writes into the private audit log.
+      </p>
+    </section>
+  );
+}
+
+function ModerationSkeleton() {
+  return (
+    <>
+      <div className="h-64 animate-pulse rounded-[1.75rem] bg-muted/30" />
+      <div className="h-64 animate-pulse rounded-[1.75rem] bg-muted/30" />
+    </>
+  );
+}
+
+async function ModerationContent() {
   await requireModerator("/admin/moderation");
   const [queueItems, auditLog] = await Promise.all([
     getModerationQueueItems(),
@@ -33,20 +60,7 @@ export default async function AdminModerationPage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
-        <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-          Admin
-        </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
-          SkillJury moderation queue
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-          New-user reviews land here for approval, rejection, or escalation. Every
-          action writes into the private audit log.
-        </p>
-      </section>
-
+    <>
       <ModerationQueueTable items={queueItems} />
 
       <section className="rounded-[1.75rem] border border-border bg-card/80 p-6 shadow-sm">
@@ -69,6 +83,17 @@ export default async function AdminModerationPage() {
           )}
         </div>
       </section>
+    </>
+  );
+}
+
+export default function AdminModerationPage() {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <ModerationShell />
+      <Suspense fallback={<ModerationSkeleton />}>
+        <ModerationContent />
+      </Suspense>
     </div>
   );
 }

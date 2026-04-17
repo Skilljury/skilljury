@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { JsonLd } from "@/components/seo/JsonLd";
 import { RatingDistribution } from "@/components/reviews/RatingDistribution";
@@ -104,8 +105,32 @@ export async function generateMetadata({
   });
 }
 
-export default async function SkillPage({ params }: SkillPageProps) {
-  const { skillSlug } = await params;
+function SkillPageSkeleton() {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <div className="h-4 w-40 animate-pulse rounded bg-muted/30" />
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.85fr)]">
+        <div className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-8">
+          <div className="h-4 w-32 animate-pulse rounded bg-muted/30" />
+          <div className="mt-6 h-12 w-3/4 animate-pulse rounded bg-muted/40" />
+          <div className="mt-4 h-5 w-full animate-pulse rounded bg-muted/30" />
+          <div className="mt-2 h-5 w-5/6 animate-pulse rounded bg-muted/30" />
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <div className="h-24 animate-pulse rounded bg-muted/30" />
+            <div className="h-24 animate-pulse rounded bg-muted/30" />
+            <div className="h-24 animate-pulse rounded bg-muted/30" />
+          </div>
+        </div>
+        <aside className="space-y-5">
+          <div className="h-64 animate-pulse rounded-[1.5rem] bg-muted/30" />
+          <div className="h-40 animate-pulse rounded-[1.5rem] bg-muted/30" />
+        </aside>
+      </section>
+    </div>
+  );
+}
+
+async function SkillPageContent({ skillSlug }: { skillSlug: string }) {
   const [viewer, skill] = await Promise.all([
     getCurrentViewer(),
     getSkillBySlug(skillSlug),
@@ -252,7 +277,7 @@ export default async function SkillPage({ params }: SkillPageProps) {
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <>
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       <JsonLd data={buildFaqJsonLd(faqEntries)} />
       <JsonLd
@@ -618,6 +643,18 @@ export default async function SkillPage({ params }: SkillPageProps) {
           title={`Alternatives in ${skill.categories[0]?.name ?? "this category"}`}
         />
       ) : null}
+    </>
+  );
+}
+
+export default async function SkillPage({ params }: SkillPageProps) {
+  const { skillSlug } = await params;
+
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <Suspense fallback={<SkillPageSkeleton />}>
+        <SkillPageContent skillSlug={skillSlug} />
+      </Suspense>
     </div>
   );
 }

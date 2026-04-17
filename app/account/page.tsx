@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { GitHubConnectButton } from "@/components/auth/GitHubConnectButton";
 import { ProfileSettingsForm } from "@/components/auth/ProfileSettingsForm";
@@ -29,7 +30,49 @@ function formatDate(value: string | null) {
   });
 }
 
-export default async function AccountPage() {
+function AccountShellHeader() {
+  return (
+    <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
+      <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
+        Reviewer profile
+      </div>
+      <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
+        Your SkillJury account
+      </h1>
+      <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
+        Manage the public ID used on your reviews, connect GitHub as an optional
+        trust signal, and control the account you use across SkillJury.
+      </p>
+    </section>
+  );
+}
+
+function AccountContentSkeleton() {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
+        <div className="h-6 w-40 animate-pulse rounded bg-muted/40" />
+        <div className="mt-5 space-y-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i}>
+              <div className="h-3 w-24 animate-pulse rounded bg-muted/30" />
+              <div className="mt-2 h-4 w-48 animate-pulse rounded bg-muted/40" />
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
+        <div className="h-6 w-32 animate-pulse rounded bg-muted/40" />
+        <div className="mt-5 space-y-5">
+          <div className="h-16 w-full animate-pulse rounded bg-muted/30" />
+          <div className="h-16 w-full animate-pulse rounded bg-muted/30" />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+async function AccountContent() {
   const viewer = await requireSignedInUser("/account");
   const user = viewer.user!;
   const supabase = createServiceRoleSupabaseClient();
@@ -39,20 +82,7 @@ export default async function AccountPage() {
     .eq("user_id", user.id);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
-        <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-          Reviewer profile
-        </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
-          Your SkillJury account
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-          Manage the public ID used on your reviews, connect GitHub as an optional
-          trust signal, and control the account you use across SkillJury.
-        </p>
-      </section>
-
+    <>
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-foreground">Account details</h2>
@@ -143,6 +173,17 @@ export default async function AccountPage() {
         mode="account"
         nextPath="/account"
       />
+    </>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <AccountShellHeader />
+      <Suspense fallback={<AccountContentSkeleton />}>
+        <AccountContent />
+      </Suspense>
     </div>
   );
 }

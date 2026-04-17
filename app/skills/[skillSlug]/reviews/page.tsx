@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { RatingDistribution } from "@/components/reviews/RatingDistribution";
@@ -39,12 +40,26 @@ export async function generateMetadata({
   });
 }
 
-export default async function SkillReviewsPage({
-  params,
-  searchParams,
-}: SkillReviewsPageProps) {
-  const { skillSlug } = await params;
-  const resolvedSearchParams = await searchParams;
+function SkillReviewsPageSkeleton() {
+  return (
+    <div className="flex flex-col gap-8">
+      <div className="h-48 animate-pulse rounded-[2rem] bg-muted/30" />
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="h-48 animate-pulse rounded-[1.5rem] bg-muted/30" />
+        <div className="h-48 animate-pulse rounded-[1.5rem] bg-muted/30" />
+      </div>
+      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
+    </div>
+  );
+}
+
+async function SkillReviewsContent({
+  skillSlug,
+  page,
+}: {
+  skillSlug: string;
+  page: number;
+}) {
   const viewer = await getCurrentViewer();
   const skill = await getSkillBySlug(skillSlug);
 
@@ -52,7 +67,6 @@ export default async function SkillReviewsPage({
     notFound();
   }
 
-  const page = normalizePageParam(resolvedSearchParams.page);
   const reviewBundle = await getSkillReviews({
     page,
     pageSize: 12,
@@ -64,7 +78,7 @@ export default async function SkillReviewsPage({
     reviewBundle.summary.distribution.some((entry) => entry.count > 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+    <>
       <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
         <Link
           className="inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/20 hover:bg-card hover:text-foreground"
@@ -111,6 +125,23 @@ export default async function SkillReviewsPage({
         page={reviewBundle.page}
         totalPages={reviewBundle.totalPages}
       />
+    </>
+  );
+}
+
+export default async function SkillReviewsPage({
+  params,
+  searchParams,
+}: SkillReviewsPageProps) {
+  const { skillSlug } = await params;
+  const resolvedSearchParams = await searchParams;
+  const page = normalizePageParam(resolvedSearchParams.page);
+
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <Suspense fallback={<SkillReviewsPageSkeleton />}>
+        <SkillReviewsContent skillSlug={skillSlug} page={page} />
+      </Suspense>
     </div>
   );
 }

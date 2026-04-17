@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { getSafeNextPath } from "@/lib/auth/redirects";
@@ -25,23 +26,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
-  const errorMessage = firstParam(resolvedSearchParams.error);
-  const googleAuthEnabled = isGoogleAuthEnabled();
-  const viewer = await getCurrentViewer();
-
-  if (viewer.user) {
-    if (!viewer.profile?.username) {
-      redirect(`/account/setup?next=${encodeURIComponent(nextPath)}`);
-    }
-
-    redirect(nextPath);
-  }
-
+function LoginShell({
+  errorMessage,
+  googleAuthEnabled,
+}: {
+  errorMessage: string;
+  googleAuthEnabled: boolean;
+}) {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+    <>
       <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
         <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
           Account access
@@ -61,8 +54,55 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {errorMessage}
         </div>
       ) : null}
+    </>
+  );
+}
 
-      <AuthPanel googleAuthEnabled={googleAuthEnabled} nextPath={nextPath} />
+function AuthPanelSkeleton() {
+  return (
+    <div className="rounded-[2rem] border border-border bg-card/80 p-8 shadow-sm">
+      <div className="h-6 w-40 animate-pulse rounded bg-muted/40" />
+      <div className="mt-6 space-y-4">
+        <div className="h-11 w-full animate-pulse rounded bg-muted/30" />
+        <div className="h-11 w-full animate-pulse rounded bg-muted/30" />
+        <div className="h-11 w-32 animate-pulse rounded bg-muted/40" />
+      </div>
+    </div>
+  );
+}
+
+async function LoginContent({
+  nextPath,
+  googleAuthEnabled,
+}: {
+  nextPath: string;
+  googleAuthEnabled: boolean;
+}) {
+  const viewer = await getCurrentViewer();
+
+  if (viewer.user) {
+    if (!viewer.profile?.username) {
+      redirect(`/account/setup?next=${encodeURIComponent(nextPath)}`);
+    }
+
+    redirect(nextPath);
+  }
+
+  return <AuthPanel googleAuthEnabled={googleAuthEnabled} nextPath={nextPath} />;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
+  const errorMessage = firstParam(resolvedSearchParams.error);
+  const googleAuthEnabled = isGoogleAuthEnabled();
+
+  return (
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <LoginShell errorMessage={errorMessage} googleAuthEnabled={googleAuthEnabled} />
+      <Suspense fallback={<AuthPanelSkeleton />}>
+        <LoginContent nextPath={nextPath} googleAuthEnabled={googleAuthEnabled} />
+      </Suspense>
     </div>
   );
 }
