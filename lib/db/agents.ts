@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import {
   cleanCatalogDescription,
   cleanCatalogLabel,
@@ -134,6 +136,9 @@ async function getLatestAgentSignal(agentId: number) {
 }
 
 export async function getAgentBySlug(agentSlug: string): Promise<BrowseAgent | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("agents", `agent-${agentSlug}`);
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("agents")

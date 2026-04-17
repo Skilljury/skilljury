@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   normalizeSkillRow,
@@ -85,6 +87,9 @@ function sanitizeSearchTerm(value: string) {
 export async function searchSkills(
   input: SearchSkillsInput,
 ): Promise<PaginatedSkillResults> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills-search");
   const supabase = createServerSupabaseClient();
   const page = normalizePage(input.page);
   const pageSize = normalizePageSize(input.pageSize);

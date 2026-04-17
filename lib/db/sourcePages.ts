@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import { cleanCatalogDescription, cleanCatalogLabel, labelFromSlug } from "@/lib/catalog/clean";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
@@ -42,6 +44,9 @@ export async function getAllSources(): Promise<BrowseSource[]> {
 export async function getSourceBySlug(
   sourceSlug: string,
 ): Promise<BrowseSource | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("sources", `source-${sourceSlug}`);
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("sources")

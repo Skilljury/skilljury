@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Manrope, Newsreader } from "next/font/google";
+import { Suspense } from "react";
 
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteHeaderFallback } from "@/components/layout/SiteHeaderFallback";
 import { rootMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
@@ -61,7 +63,9 @@ export default function RootLayout({
           >
             Skip to main content
           </a>
-          <SiteHeader />
+          <Suspense fallback={<SiteHeaderFallback />}>
+            <SiteHeader />
+          </Suspense>
           <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12" id="main-content">{children}</main>
           <SiteFooter />
         </div>

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import { cleanCatalogDescription, cleanCatalogLabel, labelFromSlug } from "@/lib/catalog/clean";
 import type { SkillListItem } from "@/lib/db/skills";
 import { searchSkills } from "@/lib/db/search";
@@ -99,6 +101,9 @@ async function getLatestCategorySignal(categoryId: number) {
 export async function getCategoryBySlug(
   categorySlug: string,
 ): Promise<BrowseCategory | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories", `category-${categorySlug}`);
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("categories")
