@@ -19,6 +19,24 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   cacheComponents: true,
   poweredByHeader: false,
+  async redirects() {
+    // Bare domain → www redirect runs at the Vercel CDN edge (no function
+    // invocation), freeing us from doing it inside the Supabase proxy on
+    // every request.
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "skilljury.com",
+          },
+        ],
+        destination: "https://www.skilljury.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
