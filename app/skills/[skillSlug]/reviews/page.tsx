@@ -56,13 +56,16 @@ function SkillReviewsPageSkeleton() {
 }
 
 async function SkillReviewsContent({
-  skillSlug,
+  params,
   searchParams,
 }: {
-  skillSlug: string;
+  params: Promise<{ skillSlug: string }>;
   searchParams: SearchParams;
 }) {
-  const resolvedSearchParams = await searchParams;
+  const [{ skillSlug }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const page = normalizePageParam(resolvedSearchParams.page);
   const viewer = await getCurrentViewer();
   const skill = await getSkillBySlug(skillSlug);
@@ -133,16 +136,14 @@ async function SkillReviewsContent({
   );
 }
 
-export default async function SkillReviewsPage({
+export default function SkillReviewsPage({
   params,
   searchParams,
 }: SkillReviewsPageProps) {
-  const { skillSlug } = await params;
-
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
       <Suspense fallback={<SkillReviewsPageSkeleton />}>
-        <SkillReviewsContent skillSlug={skillSlug} searchParams={searchParams} />
+        <SkillReviewsContent params={params} searchParams={searchParams} />
       </Suspense>
     </div>
   );

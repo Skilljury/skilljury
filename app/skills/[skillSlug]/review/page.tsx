@@ -64,7 +64,12 @@ function ReviewFormSkeleton() {
   );
 }
 
-async function ReviewPageContent({ skillSlug }: { skillSlug: string }) {
+async function ReviewPageContent({
+  params,
+}: {
+  params: Promise<{ skillSlug: string }>;
+}) {
+  const { skillSlug } = await params;
   const viewer = await requireProfileIdentity(`/skills/${skillSlug}/review`);
   const user = viewer.user!;
   const skill = await getSkillBySlug(skillSlug);
@@ -134,13 +139,11 @@ async function ReviewPageContent({ skillSlug }: { skillSlug: string }) {
   );
 }
 
-export default async function SkillReviewPage({ params }: ReviewPageProps) {
-  const { skillSlug } = await params;
-
+export default function SkillReviewPage({ params }: ReviewPageProps) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
       <Suspense fallback={<ReviewFormSkeleton />}>
-        <ReviewPageContent skillSlug={skillSlug} />
+        <ReviewPageContent params={params} />
       </Suspense>
     </div>
   );

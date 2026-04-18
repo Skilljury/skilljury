@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { SubmitSkillForm } from "@/components/submissions/SubmitSkillForm";
 import { requireProfileIdentity } from "@/lib/auth/guards";
@@ -15,9 +16,26 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function SubmitSkillPage() {
-  await requireProfileIdentity("/submit-skill");
+function SubmitSkillFormSkeleton() {
+  return (
+    <div className="rounded-[1.5rem] border border-border bg-card/80 p-7 shadow-sm">
+      <div className="h-5 w-48 animate-pulse rounded bg-muted/40" />
+      <div className="mt-6 space-y-4">
+        <div className="h-11 w-full animate-pulse rounded bg-muted/30" />
+        <div className="h-11 w-full animate-pulse rounded bg-muted/30" />
+        <div className="h-32 w-full animate-pulse rounded bg-muted/30" />
+        <div className="h-11 w-32 animate-pulse rounded bg-muted/40" />
+      </div>
+    </div>
+  );
+}
 
+async function SubmitSkillGate() {
+  await requireProfileIdentity("/submit-skill");
+  return <SubmitSkillForm turnstileSiteKey={getTurnstileSiteKey()} />;
+}
+
+export default function SubmitSkillPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
       <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
@@ -34,7 +52,9 @@ export default async function SubmitSkillPage() {
         </p>
       </section>
 
-      <SubmitSkillForm turnstileSiteKey={getTurnstileSiteKey()} />
+      <Suspense fallback={<SubmitSkillFormSkeleton />}>
+        <SubmitSkillGate />
+      </Suspense>
     </div>
   );
 }

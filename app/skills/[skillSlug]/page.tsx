@@ -130,7 +130,12 @@ function SkillPageSkeleton() {
   );
 }
 
-async function SkillPageContent({ skillSlug }: { skillSlug: string }) {
+async function SkillPageContent({
+  params,
+}: {
+  params: Promise<{ skillSlug: string }>;
+}) {
+  const { skillSlug } = await params;
   const [viewer, skill] = await Promise.all([
     getCurrentViewer(),
     getSkillBySlug(skillSlug),
@@ -647,13 +652,11 @@ async function SkillPageContent({ skillSlug }: { skillSlug: string }) {
   );
 }
 
-export default async function SkillPage({ params }: SkillPageProps) {
-  const { skillSlug } = await params;
-
+export default function SkillPage({ params }: SkillPageProps) {
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
       <Suspense fallback={<SkillPageSkeleton />}>
-        <SkillPageContent skillSlug={skillSlug} />
+        <SkillPageContent params={params} />
       </Suspense>
     </div>
   );
