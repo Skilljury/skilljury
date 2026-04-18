@@ -31,6 +31,9 @@ export type AgentRailAgent = {
 };
 
 export async function getAgentRailAgents(limit = 24): Promise<AgentRailAgent[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("agents", "agents-rail");
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("agents")
@@ -53,6 +56,9 @@ export async function getAgentRailAgents(limit = 24): Promise<AgentRailAgent[]> 
 }
 
 export async function getAllAgents(): Promise<BrowseAgent[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("agents", "agents-all");
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("agents")

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import {
   cleanCatalogDescription,
   cleanCatalogLabel,
@@ -489,6 +491,9 @@ function buildSkillSelect() {
 }
 
 export async function getFeaturedSkills(limit = 6): Promise<SkillListItem[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills", "skills-featured");
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")
@@ -523,6 +528,9 @@ export async function getFeaturedSkills(limit = 6): Promise<SkillListItem[]> {
 export async function getSkillBySlug(
   skillSlug: string,
 ): Promise<SkillDetail | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills", `skill-${skillSlug}`);
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")
@@ -549,6 +557,9 @@ export async function getSkillBySlug(
 }
 
 export async function getAllSkillSitemapEntries(): Promise<SkillSitemapEntry[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills", "skills-sitemap");
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")
@@ -579,6 +590,9 @@ export async function getAllSkillSlugs(): Promise<string[]> {
 }
 
 export async function getSkillCount() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills", "skills-count");
   const supabase = createServerSupabaseClient();
   const { count, error } = await supabase
     .from("skills")
@@ -691,6 +705,9 @@ export async function getRelatedSkillsBySource(
   currentSkillSlug: string,
   limit = 4,
 ): Promise<SkillListItem[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills", "skills-related", `skills-source-${sourceId}`);
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")
@@ -723,6 +740,9 @@ export async function getRelatedSkillsByCategory(
   currentSkillSlug: string,
   limit = 4,
 ): Promise<SkillListItem[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("skills", "skills-related", `skills-category-${categoryId}`);
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")

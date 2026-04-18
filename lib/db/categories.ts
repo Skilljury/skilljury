@@ -19,6 +19,9 @@ export type BrowseCategory = {
 };
 
 export async function getAllCategories(): Promise<BrowseCategory[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories", "categories-all");
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("categories")

@@ -21,6 +21,9 @@ export type SourceSitemapEntry = {
 };
 
 export async function getAllSources(): Promise<BrowseSource[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("sources", "sources-all");
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("sources")
@@ -89,6 +92,9 @@ export async function getAllSourceSlugs(): Promise<string[]> {
 }
 
 export async function getAllSourceSitemapEntries(): Promise<SourceSitemapEntry[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("sources", "sources-sitemap");
   const supabase = createServerSupabaseClient();
   const [{ data: sourceRows, error: sourceError }, { data: skillRows, error: skillError }] =
     await Promise.all([
