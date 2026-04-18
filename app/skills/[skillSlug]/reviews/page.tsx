@@ -15,11 +15,13 @@ import { buildPageMetadata } from "@/lib/seo/metadata";
 import { buildSkillReviewArchiveTitle } from "@/lib/seo/titleTemplates";
 import { getTurnstileSiteKey } from "@/lib/supabase/config";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type SkillReviewsPageProps = {
   params: Promise<{
     skillSlug: string;
   }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 };
 
 export async function generateMetadata({
@@ -55,11 +57,13 @@ function SkillReviewsPageSkeleton() {
 
 async function SkillReviewsContent({
   skillSlug,
-  page,
+  searchParams,
 }: {
   skillSlug: string;
-  page: number;
+  searchParams: SearchParams;
 }) {
+  const resolvedSearchParams = await searchParams;
+  const page = normalizePageParam(resolvedSearchParams.page);
   const viewer = await getCurrentViewer();
   const skill = await getSkillBySlug(skillSlug);
 
@@ -134,13 +138,11 @@ export default async function SkillReviewsPage({
   searchParams,
 }: SkillReviewsPageProps) {
   const { skillSlug } = await params;
-  const resolvedSearchParams = await searchParams;
-  const page = normalizePageParam(resolvedSearchParams.page);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
       <Suspense fallback={<SkillReviewsPageSkeleton />}>
-        <SkillReviewsContent skillSlug={skillSlug} page={page} />
+        <SkillReviewsContent skillSlug={skillSlug} searchParams={searchParams} />
       </Suspense>
     </div>
   );

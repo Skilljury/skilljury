@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { ResultGrid } from "@/components/search/ResultGrid";
@@ -7,8 +8,10 @@ import { normalizePageParam } from "@/lib/routing/browseParams";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { buildListingMetadataText } from "@/lib/seo/titleTemplates";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type ListingPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,9 +24,15 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function TrendingPage({
+function ListingResultsSkeleton() {
+  return <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />;
+}
+
+async function TrendingResults({
   searchParams,
-}: ListingPageProps) {
+}: {
+  searchParams: SearchParams;
+}) {
   const resolvedSearchParams = await searchParams;
   const page = normalizePageParam(resolvedSearchParams.page);
   const results = await searchSkills({
@@ -31,6 +40,20 @@ export default async function TrendingPage({
     sort: "trending",
   });
 
+  return (
+    <>
+      <ResultGrid items={results.items} />
+
+      <PaginationNav
+        basePath="/trending"
+        page={results.page}
+        totalPages={results.totalPages}
+      />
+    </>
+  );
+}
+
+export default function TrendingPage({ searchParams }: ListingPageProps) {
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
       <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
@@ -46,13 +69,9 @@ export default async function TrendingPage({
         </p>
       </section>
 
-      <ResultGrid items={results.items} />
-
-      <PaginationNav
-        basePath="/trending"
-        page={results.page}
-        totalPages={results.totalPages}
-      />
+      <Suspense fallback={<ListingResultsSkeleton />}>
+        <TrendingResults searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { ResultGrid } from "@/components/search/ResultGrid";
@@ -16,8 +17,10 @@ import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import { buildSearchMetadataText } from "@/lib/seo/titleTemplates";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type SearchPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 };
 
 export async function generateMetadata({
@@ -37,7 +40,20 @@ export async function generateMetadata({
   });
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+function SearchBodySkeleton() {
+  return (
+    <>
+      <div className="h-24 animate-pulse rounded-[1.5rem] bg-muted/30" />
+      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
+    </>
+  );
+}
+
+async function SearchPageContent({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const resolvedSearchParams = await searchParams;
   const [categories, agents, sources] = await Promise.all([
     getAllCategories(),
@@ -67,20 +83,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-      <section className="space-y-4">
-        <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-          Search
-        </div>
-        <h1 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
-          Search the live skill catalog
-        </h1>
-        <p className="max-w-3xl text-lg leading-8 text-muted-foreground">
-          Search by skill name, then narrow the registry by category, agent, source,
-          or sort order.
-        </p>
-      </section>
-
+    <>
       <form action="/search" className="space-y-8" method="get">
         <SearchBar
           agents={agents.map((item) => ({ name: item.name, slug: item.slug }))}
@@ -131,6 +134,29 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           totalPages={results.totalPages}
         />
       </section>
+    </>
+  );
+}
+
+export default function SearchPage({ searchParams }: SearchPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <section className="space-y-4">
+        <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+          Search
+        </div>
+        <h1 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
+          Search the live skill catalog
+        </h1>
+        <p className="max-w-3xl text-lg leading-8 text-muted-foreground">
+          Search by skill name, then narrow the registry by category, agent, source,
+          or sort order.
+        </p>
+      </section>
+
+      <Suspense fallback={<SearchBodySkeleton />}>
+        <SearchPageContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

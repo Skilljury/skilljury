@@ -8,8 +8,10 @@ import { isGoogleAuthEnabled } from "@/lib/auth/providerFlags";
 import { getCurrentViewer } from "@/lib/auth/session";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type LoginPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 };
 
 function firstParam(value: string | string[] | undefined) {
@@ -27,34 +29,24 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 function LoginShell({
-  errorMessage,
   googleAuthEnabled,
 }: {
-  errorMessage: string;
   googleAuthEnabled: boolean;
 }) {
   return (
-    <>
-      <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
-        <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-          Account access
-        </div>
-        <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
-          Create a real SkillJury account.
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-          {googleAuthEnabled
-            ? "Use Google or create an account with email, password, and a public reviewer ID. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."
-            : "Create an account with email, password, and a public reviewer ID. Google sign-in will appear here once the provider is enabled for this deployment. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."}
-        </p>
-      </section>
-
-      {errorMessage ? (
-        <div className="rounded-[1.5rem] border border-destructive/20 bg-destructive/10 p-5 text-sm leading-7 text-destructive">
-          {errorMessage}
-        </div>
-      ) : null}
-    </>
+    <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
+      <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
+        Account access
+      </div>
+      <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+        Create a real SkillJury account.
+      </h1>
+      <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
+        {googleAuthEnabled
+          ? "Use Google or create an account with email, password, and a public reviewer ID. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."
+          : "Create an account with email, password, and a public reviewer ID. Google sign-in will appear here once the provider is enabled for this deployment. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."}
+      </p>
+    </section>
   );
 }
 
@@ -72,12 +64,16 @@ function AuthPanelSkeleton() {
 }
 
 async function LoginContent({
-  nextPath,
+  searchParams,
   googleAuthEnabled,
 }: {
-  nextPath: string;
+  searchParams: SearchParams;
   googleAuthEnabled: boolean;
 }) {
+  const resolvedSearchParams = await searchParams;
+  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
+  const errorMessage = firstParam(resolvedSearchParams.error);
+
   const viewer = await getCurrentViewer();
 
   if (viewer.user) {
@@ -88,20 +84,26 @@ async function LoginContent({
     redirect(nextPath);
   }
 
-  return <AuthPanel googleAuthEnabled={googleAuthEnabled} nextPath={nextPath} />;
+  return (
+    <>
+      {errorMessage ? (
+        <div className="rounded-[1.5rem] border border-destructive/20 bg-destructive/10 p-5 text-sm leading-7 text-destructive">
+          {errorMessage}
+        </div>
+      ) : null}
+      <AuthPanel googleAuthEnabled={googleAuthEnabled} nextPath={nextPath} />
+    </>
+  );
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
-  const errorMessage = firstParam(resolvedSearchParams.error);
+export default function LoginPage({ searchParams }: LoginPageProps) {
   const googleAuthEnabled = isGoogleAuthEnabled();
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <LoginShell errorMessage={errorMessage} googleAuthEnabled={googleAuthEnabled} />
+      <LoginShell googleAuthEnabled={googleAuthEnabled} />
       <Suspense fallback={<AuthPanelSkeleton />}>
-        <LoginContent nextPath={nextPath} googleAuthEnabled={googleAuthEnabled} />
+        <LoginContent searchParams={searchParams} googleAuthEnabled={googleAuthEnabled} />
       </Suspense>
     </div>
   );

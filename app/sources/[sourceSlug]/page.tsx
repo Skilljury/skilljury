@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { SortSelect } from "@/components/listing/SortSelect";
 import { PaginationNav } from "@/components/listing/PaginationNav";
@@ -14,11 +15,12 @@ import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
 import { buildSourceMetadataText } from "@/lib/seo/titleTemplates";
 
+type Params = Promise<{ sourceSlug: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type SourcePageProps = {
-  params: Promise<{
-    sourceSlug: string;
-  }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Params;
+  searchParams: SearchParams;
 };
 
 export async function generateMetadata({
@@ -45,12 +47,26 @@ export async function generateMetadata({
   });
 }
 
-export default async function SourcePage({
+function SourcePageSkeleton() {
+  return (
+    <>
+      <div className="h-48 animate-pulse rounded-[2rem] bg-muted/30" />
+      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
+    </>
+  );
+}
+
+async function SourcePageContent({
   params,
   searchParams,
-}: SourcePageProps) {
-  const { sourceSlug } = await params;
-  const resolvedSearchParams = await searchParams;
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  const [{ sourceSlug }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const decodedSlug = decodeSourceSlug(sourceSlug);
   const source = await getSourceBySlug(decodedSlug);
 
@@ -76,7 +92,7 @@ export default async function SourcePage({
   }));
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+    <>
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       {resultItems.length > 0 ? (
         <JsonLd
@@ -117,6 +133,16 @@ export default async function SourcePage({
         query={{ sort }}
         totalPages={results.totalPages}
       />
+    </>
+  );
+}
+
+export default function SourcePage({ params, searchParams }: SourcePageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <Suspense fallback={<SourcePageSkeleton />}>
+        <SourcePageContent params={params} searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

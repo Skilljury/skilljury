@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { AffiliateButton } from "@/components/agents/AffiliateButton";
 import { PaginationNav } from "@/components/listing/PaginationNav";
@@ -16,11 +17,12 @@ import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
 import { buildAgentMetadataText } from "@/lib/seo/titleTemplates";
 
+type Params = Promise<{ agentSlug: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type AgentPageProps = {
-  params: Promise<{
-    agentSlug: string;
-  }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Params;
+  searchParams: SearchParams;
 };
 
 export async function generateMetadata({
@@ -46,12 +48,26 @@ export async function generateMetadata({
   });
 }
 
-export default async function AgentPage({
+function AgentPageSkeleton() {
+  return (
+    <>
+      <div className="h-40 animate-pulse rounded-[1.5rem] bg-muted/30" />
+      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
+    </>
+  );
+}
+
+async function AgentPageContent({
   params,
   searchParams,
-}: AgentPageProps) {
-  const { agentSlug } = await params;
-  const resolvedSearchParams = await searchParams;
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  const [{ agentSlug }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const agent = await getAgentBySlug(agentSlug);
 
   if (!agent) {
@@ -78,7 +94,7 @@ export default async function AgentPage({
   }));
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <>
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       {resultItems.length > 0 ? (
         <JsonLd
@@ -150,6 +166,16 @@ export default async function AgentPage({
           totalPages={results.totalPages}
         />
       )}
+    </>
+  );
+}
+
+export default function AgentPage({ params, searchParams }: AgentPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <Suspense fallback={<AgentPageSkeleton />}>
+        <AgentPageContent params={params} searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

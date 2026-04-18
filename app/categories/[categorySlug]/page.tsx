@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { PaginationNav } from "@/components/listing/PaginationNav";
 import { SortButtonGroup } from "@/components/listing/SortButtonGroup";
@@ -14,11 +15,12 @@ import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
 import { buildCategoryMetadataText } from "@/lib/seo/titleTemplates";
 
+type Params = Promise<{ categorySlug: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type CategoryPageProps = {
-  params: Promise<{
-    categorySlug: string;
-  }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  params: Params;
+  searchParams: SearchParams;
 };
 
 export async function generateMetadata({
@@ -44,12 +46,26 @@ export async function generateMetadata({
   });
 }
 
-export default async function CategoryPage({
+function CategoryPageSkeleton() {
+  return (
+    <>
+      <div className="h-40 animate-pulse rounded-[1.5rem] bg-muted/30" />
+      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
+    </>
+  );
+}
+
+async function CategoryPageContent({
   params,
   searchParams,
-}: CategoryPageProps) {
-  const { categorySlug } = await params;
-  const resolvedSearchParams = await searchParams;
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  const [{ categorySlug }, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const category = await getCategoryBySlug(categorySlug);
 
   if (!category) {
@@ -75,7 +91,7 @@ export default async function CategoryPage({
   }));
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <>
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       {resultItems.length > 0 ? (
         <JsonLd
@@ -132,6 +148,19 @@ export default async function CategoryPage({
         query={{ sort }}
         totalPages={results.totalPages}
       />
+    </>
+  );
+}
+
+export default function CategoryPage({
+  params,
+  searchParams,
+}: CategoryPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <Suspense fallback={<CategoryPageSkeleton />}>
+        <CategoryPageContent params={params} searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }

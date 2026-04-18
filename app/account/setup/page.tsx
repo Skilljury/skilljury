@@ -7,8 +7,10 @@ import { getSafeNextPath } from "@/lib/auth/redirects";
 import { requireSignedInUser } from "@/lib/auth/guards";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 type AccountSetupPageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 };
 
 function firstParam(value: string | string[] | undefined) {
@@ -55,7 +57,13 @@ function AccountSetupFormSkeleton() {
   );
 }
 
-async function AccountSetupForm({ nextPath }: { nextPath: string }) {
+async function AccountSetupForm({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
   const viewer = await requireSignedInUser("/account/setup");
 
   if (viewer.profile?.username) {
@@ -74,17 +82,14 @@ async function AccountSetupForm({ nextPath }: { nextPath: string }) {
   );
 }
 
-export default async function AccountSetupPage({
+export default function AccountSetupPage({
   searchParams,
 }: AccountSetupPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
-
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
       <AccountSetupShell />
       <Suspense fallback={<AccountSetupFormSkeleton />}>
-        <AccountSetupForm nextPath={nextPath} />
+        <AccountSetupForm searchParams={searchParams} />
       </Suspense>
     </div>
   );
