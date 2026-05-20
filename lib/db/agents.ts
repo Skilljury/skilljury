@@ -8,6 +8,7 @@ import {
   isSuspiciousCatalogLabel,
   labelFromSlug,
 } from "@/lib/catalog/clean";
+import { logDataAccessError, shouldUsePublicCatalogFallback } from "@/lib/db/errors";
 import type { SkillListItem } from "@/lib/db/skills";
 import { searchSkills } from "@/lib/db/search";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -34,25 +35,35 @@ export async function getAgentRailAgents(limit = 24): Promise<AgentRailAgent[]> 
   "use cache";
   cacheLife("hours");
   cacheTag("agents", "agents-rail");
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("agents")
-    .select("id, name, slug")
-    .eq("status", "active")
-    .order("name", { ascending: true })
-    .limit(limit);
+  try {
+    const supabase = createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("agents")
+      .select("id, name, slug")
+      .eq("status", "active")
+      .order("name", { ascending: true })
+      .limit(limit);
 
-  if (error) {
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? [])
+      .filter((row) => !isSuspiciousCatalogLabel(row.name as string))
+      .map((row) => ({
+        id: row.id as number,
+        name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
+        slug: row.slug as string,
+      }));
+  } catch (error) {
+    logDataAccessError("agents-rail", error);
+
+    if (shouldUsePublicCatalogFallback(error)) {
+      return [];
+    }
+
     throw error;
   }
-
-  return (data ?? [])
-    .filter((row) => !isSuspiciousCatalogLabel(row.name as string))
-    .map((row) => ({
-      id: row.id as number,
-      name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
-      slug: row.slug as string,
-    }));
 }
 
 export async function getAllAgents(): Promise<BrowseAgent[]> {

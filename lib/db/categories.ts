@@ -3,6 +3,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { cleanCatalogDescription, cleanCatalogLabel, labelFromSlug } from "@/lib/catalog/clean";
+import { logDataAccessError, shouldUsePublicCatalogFallback } from "@/lib/db/errors";
 import type { SkillListItem } from "@/lib/db/skills";
 import { searchSkills } from "@/lib/db/search";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -22,43 +23,53 @@ export async function getAllCategories(): Promise<BrowseCategory[]> {
   "use cache";
   cacheLife("hours");
   cacheTag("categories", "categories-all");
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("id, name, slug, description, display_order")
-    .order("display_order", { ascending: true })
-    .order("name", { ascending: true });
+  try {
+    const supabase = createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, name, slug, description, display_order")
+      .order("display_order", { ascending: true })
+      .order("name", { ascending: true });
 
-  if (error) {
+    if (error) {
+      throw error;
+    }
+
+    const rows = data ?? [];
+    const categories = await Promise.all(
+      rows.map(async (row) => {
+        const { count, error: countError } = await supabase
+          .from("skill_categories")
+          .select("*", { count: "exact", head: true })
+          .eq("category_id", row.id);
+
+        if (countError) {
+          throw countError;
+        }
+
+        return {
+          id: row.id as number,
+          name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
+          slug: row.slug as string,
+          description: cleanCatalogDescription(row.description as string | null),
+          skillCount: count ?? 0,
+          reviewedSkillCount: 0,
+          lastUpdatedAt: null,
+          topPicks: [],
+        } satisfies BrowseCategory;
+      }),
+    );
+
+    return categories;
+  } catch (error) {
+    logDataAccessError("categories-all", error);
+
+    if (shouldUsePublicCatalogFallback(error)) {
+      return [];
+    }
+
     throw error;
   }
-
-  const rows = data ?? [];
-  const categories = await Promise.all(
-    rows.map(async (row) => {
-      const { count, error: countError } = await supabase
-        .from("skill_categories")
-        .select("*", { count: "exact", head: true })
-        .eq("category_id", row.id);
-
-      if (countError) {
-        throw countError;
-      }
-
-      return {
-        id: row.id as number,
-        name: cleanCatalogLabel(row.name as string, labelFromSlug(row.slug as string)),
-        slug: row.slug as string,
-        description: cleanCatalogDescription(row.description as string | null),
-        skillCount: count ?? 0,
-        reviewedSkillCount: 0,
-        lastUpdatedAt: null,
-        topPicks: [],
-      } satisfies BrowseCategory;
-    }),
-  );
-
-  return categories;
 }
 
 async function getLatestCategorySignal(categoryId: number) {
