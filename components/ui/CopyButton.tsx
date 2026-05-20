@@ -28,6 +28,8 @@ export function CopyButton({ text }: { text: string }) {
       aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
       className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-secondary px-4 py-2 text-xs font-medium tracking-[0.16em] text-muted-foreground transition-default hover:border-primary/20 hover:text-foreground"
       onClick={handleCopy}
+      data-sj-event="install_link_clicked"
+      data-sj-action="copy_install_command"
       type="button"
     >
       {copied ? "Copied!" : "Copy"}

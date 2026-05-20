@@ -1,8 +1,21 @@
 export type SkillJuryAnalyticsEventName =
+  | "agent_clicked"
+  | "category_clicked"
+  | "filter_applied"
+  | "install_link_clicked"
+  | "leaderboard_tab_clicked"
+  | "login_clicked"
+  | "outbound_github_clicked"
+  | "outbound_source_clicked"
   | "report_submitted"
   | "request_review_clicked"
   | "review_submitted"
-  | "skill_submission_created";
+  | "search_performed"
+  | "skill_card_clicked"
+  | "skill_detail_viewed"
+  | "skill_submission_created"
+  | "sort_changed"
+  | "submit_skill_clicked";
 
 export type SkillJuryAnalyticsEvent = {
   event: SkillJuryAnalyticsEventName;

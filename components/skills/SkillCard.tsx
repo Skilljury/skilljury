@@ -43,6 +43,9 @@ export function SkillCard({ skill }: SkillCardProps) {
       aria-label={`${skill.name} - view details`}
       className="block rounded-2xl border border-border bg-surface-elevated/55 px-4 py-4 skill-card-glow transition-default hover:border-primary/20 hover:bg-surface-hover/70 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
       href={`/skills/${skill.slug}`}
+      data-sj-event="skill_card_clicked"
+      data-sj-skill={skill.slug}
+      data-sj-source={skill.source?.name ?? "unknown"}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">

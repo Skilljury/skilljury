@@ -84,7 +84,13 @@ async function SearchPageContent({
 
   return (
     <>
-      <form action="/search" className="space-y-8" method="get">
+      <form
+        action="/search"
+        className="space-y-8"
+        data-sj-event="search_performed"
+        data-sj-surface="search_page"
+        method="get"
+      >
         <SearchBar
           agents={agents.map((item) => ({ name: item.name, slug: item.slug }))}
           categories={categories.map((item) => ({

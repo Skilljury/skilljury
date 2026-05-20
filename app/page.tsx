@@ -108,7 +108,13 @@ export default async function Home() {
               {liveSourceCount.toLocaleString("en-US")} sources.
             </p>
 
-            <form action="/search" className="max-w-2xl" method="get">
+            <form
+              action="/search"
+              className="max-w-2xl"
+              data-sj-event="search_performed"
+              data-sj-surface="homepage"
+              method="get"
+            >
               <div className="search-glow flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/80 p-2 transition-all duration-200 focus-within:border-primary/30 sm:flex-row sm:items-center">
                 <label className="sr-only" htmlFor="homepage-search">
                   Search the skill catalog

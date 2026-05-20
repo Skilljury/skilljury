@@ -11,6 +11,7 @@ import { ReportDialog } from "@/components/reports/ReportDialog";
 import { RelatedSkills } from "@/components/skills/RelatedSkills";
 import { RequestReviewButton } from "@/components/skills/RequestReviewButton";
 import { SecurityAudits } from "@/components/skills/SecurityAudits";
+import { SkillDetailViewTracker } from "@/components/skills/SkillDetailViewTracker";
 import { SkillFaqSection } from "@/components/skills/SkillFaqSection";
 import { TaxonomyLinks } from "@/components/skills/TaxonomyLinks";
 import { CopyButton } from "@/components/ui/CopyButton";
@@ -283,6 +284,7 @@ async function SkillPageContent({
 
   return (
     <>
+      <SkillDetailViewTracker skillSlug={skill.slug} sourceName={sourceLabel} />
       <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
       <JsonLd data={buildFaqJsonLd(faqEntries)} />
       <JsonLd
@@ -473,6 +475,9 @@ async function SkillPageContent({
                   <a
                     className="mt-2 block break-all text-foreground transition-default hover:text-primary"
                     href={skill.repository.repositoryUrl}
+                    data-sj-event="outbound_github_clicked"
+                    data-sj-skill={skill.slug}
+                    data-sj-source={sourceLabel}
                     rel="noreferrer"
                     target="_blank"
                   >

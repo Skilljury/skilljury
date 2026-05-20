@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Manrope, Newsreader } from "next/font/google";
 import { Suspense } from "react";
 
+import { AnalyticsEventBridge } from "@/components/analytics/AnalyticsEventBridge";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -56,6 +57,7 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${newsreader.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiased`}
       >
+        <AnalyticsEventBridge />
         <div className="flex min-h-screen flex-col">
           <a
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"

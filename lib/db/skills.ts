@@ -83,6 +83,8 @@ export type SkillDetail = SkillListItem & {
 export type SkillSitemapEntry = {
   approvedReviewCount: number;
   lastModified: string | null;
+  longDescription: string | null;
+  shortSummary: string | null;
   slug: string;
 };
 
@@ -563,7 +565,7 @@ export async function getAllSkillSitemapEntries(): Promise<SkillSitemapEntry[]> 
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("skills")
-    .select("slug, approved_review_count, last_synced_at, updated_at")
+    .select("slug, approved_review_count, short_summary, long_description, last_synced_at, updated_at")
     .eq("status", "active")
     .order("weekly_installs", { ascending: false, nullsFirst: false });
 
@@ -581,6 +583,8 @@ export async function getAllSkillSitemapEntries(): Promise<SkillSitemapEntry[]> 
     slug: item.slug,
     approvedReviewCount: item.approved_review_count ?? 0,
     lastModified: item.last_synced_at ?? item.updated_at ?? null,
+    longDescription: item.long_description ?? null,
+    shortSummary: item.short_summary ?? null,
   }));
 }
 

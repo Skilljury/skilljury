@@ -6,6 +6,10 @@ import { getAllSkillSitemapEntries } from "@/lib/db/skills";
 import { getAllSourceSitemapEntries } from "@/lib/db/sourcePages";
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 import { buildCanonicalUrl } from "@/lib/seo/metadata";
+import {
+  isIndexableSkillSitemapEntry,
+  isIndexableSourceSitemapEntry,
+} from "@/lib/seo/sitemapFilters";
 
 function isMissingSupabaseConfigError(error: unknown) {
   if (!(error instanceof Error)) {
@@ -22,7 +26,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticLastModified = new Date("2026-03-14T00:00:00.000Z");
   const highPriorityStaticRoutes = [
     { pathname: "", priority: 1.0, changeFrequency: "daily" as const },
-    { pathname: "/search", priority: 0.9, changeFrequency: "daily" as const },
     { pathname: "/top-rated", priority: 0.9, changeFrequency: "daily" as const },
     { pathname: "/trending", priority: 0.9, changeFrequency: "daily" as const },
     { pathname: "/new", priority: 0.9, changeFrequency: "daily" as const },
@@ -70,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.4,
     })),
-    ...skillEntries.map((entry) => ({
+    ...skillEntries.filter(isIndexableSkillSitemapEntry).map((entry) => ({
       url: buildCanonicalUrl(`/skills/${entry.slug}`),
       lastModified: entry.lastModified ? new Date(entry.lastModified) : undefined,
       changeFrequency: "weekly" as const,
@@ -87,7 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     })),
     ...sourceEntries
-      .filter((entry) => entry.skillCount > 0)
+      .filter(isIndexableSourceSitemapEntry)
       .map((entry) => ({
         url: buildCanonicalUrl(`/sources/${encodeSourceSlug(entry.slug)}`),
         changeFrequency: "weekly" as const,
