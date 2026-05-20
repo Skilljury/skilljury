@@ -11,7 +11,7 @@ import {
   isSuspiciousCatalogLabel,
   labelFromSlug,
 } from "@/lib/catalog/clean";
-import { isMissingRelationError, logDataAccessError, shouldUsePublicCatalogFallback } from "@/lib/db/errors";
+import { isMissingRelationError, logDataAccessError } from "@/lib/db/errors";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { sanitizeExternalUrl } from "@/lib/utils/externalUrl";
 
@@ -622,87 +622,45 @@ export async function getLeaderboardSkills(
     Number.isFinite(pageSize) && pageSize > 0 ? Math.min(Math.floor(pageSize), 50) : 25;
   const start = (safePage - 1) * safePageSize;
   const end = start + safePageSize - 1;
-  try {
-    const supabase = createServerSupabaseClient();
-    const trendingCutoff = new Date(
-      Date.now() - 7 * 24 * 60 * 60 * 1000,
-    ).toISOString();
-    let countQuery = supabase
-      .from("skills")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "active");
-    let dataQuery = supabase
-      .from("skills")
-      .select(buildLeaderboardSelect())
-      .eq("status", "active")
-      .range(start, end);
+  const supabase = createServerSupabaseClient();
+  const trendingCutoff = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  let countQuery = supabase
+    .from("skills")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active");
+  let dataQuery = supabase
+    .from("skills")
+    .select(buildLeaderboardSelect())
+    .eq("status", "active")
+    .range(start, end);
 
-    if (tab === "trending") {
-      countQuery = countQuery.gte("last_synced_at", trendingCutoff);
-      dataQuery = dataQuery
-        .gte("last_synced_at", trendingCutoff)
-        .order("weekly_installs", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false, nullsFirst: false });
-    } else if (tab === "hot") {
-      dataQuery = dataQuery
-        .order("created_at", { ascending: false, nullsFirst: false })
-        .order("weekly_installs", { ascending: false, nullsFirst: false });
-    } else {
-      dataQuery = dataQuery
-        .order("weekly_installs", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false, nullsFirst: false });
-    }
+  if (tab === "trending") {
+    countQuery = countQuery.gte("last_synced_at", trendingCutoff);
+    dataQuery = dataQuery
+      .gte("last_synced_at", trendingCutoff)
+      .order("weekly_installs", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false, nullsFirst: false });
+  } else if (tab === "hot") {
+    dataQuery = dataQuery
+      .order("created_at", { ascending: false, nullsFirst: false })
+      .order("weekly_installs", { ascending: false, nullsFirst: false });
+  } else {
+    dataQuery = dataQuery
+      .order("weekly_installs", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false, nullsFirst: false });
+  }
 
-    const [{ count, error: countError }, { data, error: dataError }] = await Promise.all([
-      countQuery,
-      dataQuery,
-    ]);
+  const [{ count, error: countError }, { data, error: dataError }] = await Promise.all([
+    countQuery,
+    dataQuery,
+  ]);
 
-    if (countError) {
-      logDataAccessError("leaderboard-count", countError);
+  if (countError) {
+    logDataAccessError("leaderboard-count", countError);
 
-      if (isMissingRelationError(countError.message)) {
-        return {
-          tab,
-          page: safePage,
-          pageSize: safePageSize,
-          total: 0,
-          items: [],
-        };
-      }
-
-      throw countError;
-    }
-
-    if (dataError) {
-      logDataAccessError("leaderboard-items", dataError);
-
-      if (isMissingRelationError(dataError.message)) {
-        return {
-          tab,
-          page: safePage,
-          pageSize: safePageSize,
-          total: count ?? 0,
-          items: [],
-        };
-      }
-
-      throw dataError;
-    }
-
-    return {
-      tab,
-      page: safePage,
-      pageSize: safePageSize,
-      total: count ?? 0,
-      items: ((data ?? []) as unknown as SupabaseLeaderboardSkillRow[])
-        .map(normalizeLeaderboardRow)
-        .filter((skill) => !isGenericCatalogName(skill.name)),
-    };
-  } catch (error) {
-    logDataAccessError(`leaderboard-${tab}`, error);
-
-    if (shouldUsePublicCatalogFallback(error)) {
+    if (isMissingRelationError(countError.message)) {
       return {
         tab,
         page: safePage,
@@ -712,8 +670,34 @@ export async function getLeaderboardSkills(
       };
     }
 
-    throw error;
+    throw countError;
   }
+
+  if (dataError) {
+    logDataAccessError("leaderboard-items", dataError);
+
+    if (isMissingRelationError(dataError.message)) {
+      return {
+        tab,
+        page: safePage,
+        pageSize: safePageSize,
+        total: count ?? 0,
+        items: [],
+      };
+    }
+
+    throw dataError;
+  }
+
+  return {
+    tab,
+    page: safePage,
+    pageSize: safePageSize,
+    total: count ?? 0,
+    items: ((data ?? []) as unknown as SupabaseLeaderboardSkillRow[]).map(
+      normalizeLeaderboardRow,
+    ),
+  };
 }
 
 export async function getRelatedSkillsBySource(

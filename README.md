@@ -43,11 +43,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Site
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
 
-For Vercel, set the three Supabase variables in **Production** and **Preview** environments. Preview deployments may render static fallback catalog shells when Supabase is missing or temporarily unreachable during `next build`, but production runtime still requires valid Supabase credentials.
-
-```bash
 # Turnstile (optional, test keys used in development)
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=your-site-key
 TURNSTILE_SECRET_KEY=your-secret-key
