@@ -1,22 +1,12 @@
 import type { MetadataRoute } from "next";
 
+import { shouldUsePublicCatalogFallback } from "@/lib/db/errors";
 import { getAllAgentSlugs } from "@/lib/db/agents";
 import { getAllCategorySlugs } from "@/lib/db/categories";
 import { getAllSkillSitemapEntries } from "@/lib/db/skills";
 import { getAllSourceSitemapEntries } from "@/lib/db/sourcePages";
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 import { buildCanonicalUrl } from "@/lib/seo/metadata";
-
-function isMissingSupabaseConfigError(error: unknown) {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  return (
-    error.message === "SkillJury could not resolve the Supabase project URL from the environment." ||
-    error.message === "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY."
-  );
-}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticLastModified = new Date("2026-03-14T00:00:00.000Z");
@@ -48,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       getAllSourceSitemapEntries(),
     ]);
   } catch (error) {
-    if (!isMissingSupabaseConfigError(error)) {
+    if (!shouldUsePublicCatalogFallback(error)) {
       throw error;
     }
 
