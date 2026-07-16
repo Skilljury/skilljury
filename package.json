@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "postinstall": "node scripts/patch-next-ppr-resume.mjs",
     "prebuild": "npm run verify:ppr-fix",
     "build": "next build --webpack",
     "start": "next start",
