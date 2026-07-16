@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "postinstall": "node scripts/patch-next-ppr-resume.mjs",
+    "prebuild": "npm run verify:ppr-fix",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
+    "test:ppr-gates": "node --test scripts/ppr-request-gates.test.mjs",
+    "verify:ppr-fix": "npm run test:ppr-gates && npm run lint",
     "sync:skills": "tsx scripts/sync-skills-sh.ts",
     "sync:manual": "tsx scripts/run-manual-sync.ts"
   },
