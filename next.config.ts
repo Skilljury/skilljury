@@ -17,7 +17,11 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  // Emergency incident mitigation: disable Cache Components/PPR until the
+  // upstream metadata-resume fix is available in a stable Next.js release.
+  // This prevents crawler requests from resuming a prerendered tree with a
+  // different metadata boundary shape and falling back to client rendering.
+  cacheComponents: false,
   poweredByHeader: false,
   async redirects() {
     // Bare domain → www redirect runs at the Vercel CDN edge (no function
