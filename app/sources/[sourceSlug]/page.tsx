@@ -7,21 +7,18 @@ import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
   EMERGENCY_LEADERBOARD,
 } from "@/lib/data/emergencyCatalog";
-import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
-import { buildPageMetadata } from "@/lib/seo/metadata";
+import { decodeSourceSlug } from "@/lib/routing/sourceSlug";
 
 type SourcePageProps = { params: Promise<{ sourceSlug: string }> };
 
+export const metadata: Metadata = {
+  title: "Source recovery snapshot | SkillJury",
+  description: "Read-only AI skill source details from SkillJury's verified recovery snapshot.",
+  robots: { index: false, follow: true },
+};
+
 function getSourceSkills(sourceSlug: string) {
   return EMERGENCY_LEADERBOARD.filter((skill) => skill.source.slug === sourceSlug);
-}
-
-export async function generateMetadata({ params }: SourcePageProps): Promise<Metadata> {
-  const { sourceSlug } = await params;
-  const decodedSlug = decodeSourceSlug(sourceSlug);
-  const skills = getSourceSkills(decodedSlug);
-  if (skills.length === 0) return buildPageMetadata({ title: "Source unavailable in recovery snapshot | SkillJury", description: "This source is not included in SkillJury's temporary recovery snapshot.", indexable: false, pathname: `/sources/${sourceSlug}` });
-  return buildPageMetadata({ title: `${skills[0].source.name} AI skills | SkillJury`, description: `Browse ${skills.length} visible skills from ${skills[0].source.name} in SkillJury's verified recovery snapshot.`, pathname: `/sources/${encodeSourceSlug(decodedSlug)}` });
 }
 
 async function SourceContent({ params }: SourcePageProps) {
