@@ -2,10 +2,6 @@ const ANGLED_VALUE = /^<([\s\S]+)>$/;
 const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
 const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
 
-const RECOVERY_SUPABASE_URL = "https://yqalyaaetcwrhkmxivbh.supabase.co";
-const RECOVERY_SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_LARgrxSgGjt2Y30HaL4D5g_0WZ3ADsX";
-
 function sanitizeEnvValue(value: string | undefined): string {
   if (!value) {
     return "";
@@ -68,10 +64,14 @@ function resolveSupabaseUrl(): string {
 }
 
 export function getPublicSupabaseConfig() {
-  return {
-    url: RECOVERY_SUPABASE_URL,
-    anonKey: RECOVERY_SUPABASE_PUBLISHABLE_KEY,
-  };
+  const url = resolveSupabaseUrl();
+  const anonKey = sanitizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  if (!anonKey) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+  }
+
+  return { url, anonKey };
 }
 
 export function getServiceRoleConfig() {
