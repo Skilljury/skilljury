@@ -75,15 +75,28 @@ function isRestrictedSupabaseProject(url: string, anonKey: string): boolean {
   );
 }
 
+function getRecoveryPublicSupabaseConfig() {
+  return {
+    url: RECOVERY_SUPABASE_URL,
+    anonKey: RECOVERY_SUPABASE_PUBLISHABLE_KEY,
+  };
+}
+
 export function getPublicSupabaseConfig() {
-  const url = resolveSupabaseUrl();
+  const configuredUrl = sanitizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL);
   const anonKey = sanitizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
+  if (
+    (!configuredUrl && !anonKey) ||
+    anonKey === RECOVERY_SUPABASE_PUBLISHABLE_KEY
+  ) {
+    return getRecoveryPublicSupabaseConfig();
+  }
+
+  const url = resolveSupabaseUrl();
+
   if (isRestrictedSupabaseProject(url, anonKey)) {
-    return {
-      url: RECOVERY_SUPABASE_URL,
-      anonKey: RECOVERY_SUPABASE_PUBLISHABLE_KEY,
-    };
+    return getRecoveryPublicSupabaseConfig();
   }
 
   if (!anonKey) {
