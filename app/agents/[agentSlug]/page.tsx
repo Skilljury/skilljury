@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import {
   EMERGENCY_AGENT_RAIL,
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: AgentPageProps): Promise<Meta
   });
 }
 
-export default async function AgentPage({ params }: AgentPageProps) {
+async function AgentContent({ params }: AgentPageProps) {
   const { agentSlug } = await params;
   const agent = EMERGENCY_AGENT_RAIL.find((item) => item.slug === agentSlug);
 
@@ -47,7 +48,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+    <>
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         href="/"
@@ -81,6 +82,20 @@ export default async function AgentPage({ params }: AgentPageProps) {
           </Link>
         </div>
       </section>
+    </>
+  );
+}
+
+function AgentSkeleton() {
+  return <div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" />;
+}
+
+export default function AgentPage({ params }: AgentPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+      <Suspense fallback={<AgentSkeleton />}>
+        <AgentContent params={params} />
+      </Suspense>
     </div>
   );
 }
