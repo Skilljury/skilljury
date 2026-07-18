@@ -8,16 +8,14 @@ import {
   EMERGENCY_LEADERBOARD,
 } from "@/lib/data/emergencyCatalog";
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
-import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type SkillPageProps = { params: Promise<{ skillSlug: string }> };
 
-export async function generateMetadata({ params }: SkillPageProps): Promise<Metadata> {
-  const { skillSlug } = await params;
-  const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
-  if (!skill) return buildPageMetadata({ title: "Skill unavailable in recovery snapshot | SkillJury", description: "This skill is not included in SkillJury's temporary recovery snapshot.", indexable: false, pathname: `/skills/${skillSlug}` });
-  return buildPageMetadata({ title: `${skill.name} security signals and installs | SkillJury`, description: `${skill.name} has ${skill.weeklyInstalls.toLocaleString("en-US")} weekly installs in SkillJury's verified recovery snapshot, with available security audit signals.`, pathname: `/skills/${skill.slug}` });
-}
+export const metadata: Metadata = {
+  title: "Skill recovery snapshot | SkillJury",
+  description: "Read-only AI skill details from SkillJury's verified recovery snapshot.",
+  robots: { index: false, follow: true },
+};
 
 async function SkillContent({ params }: SkillPageProps) {
   const { skillSlug } = await params;
