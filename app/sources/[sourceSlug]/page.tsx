@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
 import {
@@ -40,17 +39,19 @@ export async function generateMetadata({ params }: SourcePageProps): Promise<Met
   });
 }
 
-async function SourceContent({ params }: SourcePageProps) {
+export default async function SourcePage({ params }: SourcePageProps) {
   const { sourceSlug } = await params;
   const decodedSlug = decodeSourceSlug(sourceSlug);
   const skills = getSourceSkills(decodedSlug);
 
   if (skills.length === 0) {
     return (
-      <UnavailableSnapshotRecord
-        kind="source"
-        requestedLabel={decodedSlug}
-      />
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <UnavailableSnapshotRecord
+          kind="source"
+          requestedLabel={decodedSlug}
+        />
+      </div>
     );
   }
 
@@ -61,7 +62,7 @@ async function SourceContent({ params }: SourcePageProps) {
   );
 
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         href="/search"
@@ -114,25 +115,6 @@ async function SourceContent({ params }: SourcePageProps) {
           ))}
         </div>
       </section>
-    </>
-  );
-}
-
-function SourceSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="h-5 w-40 animate-pulse rounded bg-muted/30" />
-      <div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" />
-    </div>
-  );
-}
-
-export default function SourcePage({ params }: SourcePageProps) {
-  return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-      <Suspense fallback={<SourceSkeleton />}>
-        <SourceContent params={params} />
-      </Suspense>
     </div>
   );
 }
