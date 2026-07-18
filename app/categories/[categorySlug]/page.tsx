@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import {
   EMERGENCY_CATEGORIES,
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   });
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+async function CategoryContent({ params }: CategoryPageProps) {
   const { categorySlug } = await params;
   const category = EMERGENCY_CATEGORIES.find((item) => item.slug === categorySlug);
 
@@ -47,7 +48,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+    <>
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         href="/"
@@ -81,6 +82,20 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </Link>
         </div>
       </section>
+    </>
+  );
+}
+
+function CategorySkeleton() {
+  return <div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" />;
+}
+
+export default function CategoryPage({ params }: CategoryPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+      <Suspense fallback={<CategorySkeleton />}>
+        <CategoryContent params={params} />
+      </Suspense>
     </div>
   );
 }
