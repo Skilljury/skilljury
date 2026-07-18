@@ -2,6 +2,11 @@ const ANGLED_VALUE = /^<([\s\S]+)>$/;
 const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
 const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
 
+const RESTRICTED_SUPABASE_PROJECT_REF = "yyftmqwyluqxfhuddqle";
+const RECOVERY_SUPABASE_URL = "https://yqalyaaetcwrhkmxivbh.supabase.co";
+const RECOVERY_SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_LARgrxSgGjt2Y30HaL4D5g_0WZ3ADsX";
+
 function sanitizeEnvValue(value: string | undefined): string {
   if (!value) {
     return "";
@@ -63,9 +68,23 @@ function resolveSupabaseUrl(): string {
   return `https://${projectRef}.supabase.co`;
 }
 
+function isRestrictedSupabaseProject(url: string, anonKey: string): boolean {
+  return (
+    url.includes(`://${RESTRICTED_SUPABASE_PROJECT_REF}.supabase.co`) ||
+    deriveProjectRefFromJwt(anonKey) === RESTRICTED_SUPABASE_PROJECT_REF
+  );
+}
+
 export function getPublicSupabaseConfig() {
   const url = resolveSupabaseUrl();
   const anonKey = sanitizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  if (isRestrictedSupabaseProject(url, anonKey)) {
+    return {
+      url: RECOVERY_SUPABASE_URL,
+      anonKey: RECOVERY_SUPABASE_PUBLISHABLE_KEY,
+    };
+  }
 
   if (!anonKey) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY.");
