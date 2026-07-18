@@ -1,148 +1,113 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 
-import { SortSelect } from "@/components/listing/SortSelect";
-import { PaginationNav } from "@/components/listing/PaginationNav";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { ResultGrid } from "@/components/search/ResultGrid";
-import { SourceHero } from "@/components/sources/SourceHero";
-import { searchSkills } from "@/lib/db/search";
-import { getSourceBySlug } from "@/lib/db/sourcePages";
-import { normalizePageParam, normalizeSortParam } from "@/lib/routing/browseParams";
+import {
+  EMERGENCY_CATALOG_SNAPSHOT_AT,
+  EMERGENCY_LEADERBOARD,
+} from "@/lib/data/emergencyCatalog";
 import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
-import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
-import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
-import { buildSourceMetadataText } from "@/lib/seo/titleTemplates";
-
-type Params = Promise<{ sourceSlug: string }>;
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type SourcePageProps = {
-  params: Params;
-  searchParams: SearchParams;
+  params: Promise<{ sourceSlug: string }>;
 };
 
-export async function generateMetadata({
-  params,
-}: SourcePageProps): Promise<Metadata> {
+function getSourceSkills(sourceSlug: string) {
+  return EMERGENCY_LEADERBOARD.filter((skill) => skill.source.slug === sourceSlug);
+}
+
+export async function generateMetadata({ params }: SourcePageProps): Promise<Metadata> {
   const { sourceSlug } = await params;
   const decodedSlug = decodeSourceSlug(sourceSlug);
-  const source = await getSourceBySlug(decodedSlug);
+  const skills = getSourceSkills(decodedSlug);
 
-  if (!source) {
+  if (skills.length === 0) {
     return buildPageMetadata({
-      title: "Source not found | SkillJury",
-      description: "The requested source page could not be found in the live catalog.",
+      title: "Source unavailable in recovery snapshot | SkillJury",
+      description:
+        "This source is not included in SkillJury's temporary recovery snapshot.",
+      indexable: false,
       pathname: `/sources/${sourceSlug}`,
     });
   }
 
-  const { title, description } = buildSourceMetadataText(source.name);
   return buildPageMetadata({
-    title,
-    description,
-    indexable: (source.skillCount ?? 0) > 3,
-    pathname: `/sources/${encodeSourceSlug(source.slug)}`,
+    title: `${skills[0].source.name} AI skills | SkillJury`,
+    description: `Browse ${skills.length} visible skills from ${skills[0].source.name} in SkillJury's verified recovery snapshot.`,
+    pathname: `/sources/${encodeSourceSlug(decodedSlug)}`,
   });
 }
 
-function SourcePageSkeleton() {
-  return (
-    <>
-      <div className="h-48 animate-pulse rounded-[2rem] bg-muted/30" />
-      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
-    </>
-  );
-}
-
-async function SourcePageContent({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) {
-  const [{ sourceSlug }, resolvedSearchParams] = await Promise.all([
-    params,
-    searchParams,
-  ]);
+export default async function SourcePage({ params }: SourcePageProps) {
+  const { sourceSlug } = await params;
   const decodedSlug = decodeSourceSlug(sourceSlug);
-  const source = await getSourceBySlug(decodedSlug);
+  const skills = getSourceSkills(decodedSlug);
 
-  if (!source) {
+  if (skills.length === 0) {
     notFound();
   }
 
-  const page = normalizePageParam(resolvedSearchParams.page);
-  const sort = normalizeSortParam(resolvedSearchParams.sort);
-  const results = await searchSkills({
-    sourceId: source.id,
-    page,
-    sort,
-  });
-  const canonicalPath = `/sources/${encodeSourceSlug(source.slug)}`;
-  const breadcrumbItems = [
-    { name: "Home", path: "/" },
-    { name: source.name, path: canonicalPath },
-  ];
-  const resultItems = results.items.map((item) => ({
-    name: item.name,
-    url: buildCanonicalUrl(`/skills/${item.slug}`),
-  }));
-
-  return (
-    <>
-      <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
-      {resultItems.length > 0 ? (
-        <JsonLd
-          data={buildItemListJsonLd({
-            canonicalPath,
-            itemName: `${source.name} skills on SkillJury`,
-            items: resultItems,
-          })}
-        />
-      ) : null}
-      <SourceHero source={source} />
-
-      <form
-        action={`/sources/${encodeSourceSlug(source.slug)}`}
-        className="rounded-[1.75rem] border border-border bg-card/80 p-5 shadow-sm"
-        method="get"
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-              Source listing
-            </div>
-            <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground">
-              {results.totalCount.toLocaleString("en-US")} imported skills
-            </h2>
-          </div>
-          <div className="w-full max-w-xs">
-            <SortSelect value={sort} />
-          </div>
-        </div>
-      </form>
-
-      <ResultGrid items={results.items} />
-
-      <PaginationNav
-        basePath={`/sources/${encodeSourceSlug(source.slug)}`}
-        page={results.page}
-        query={{ sort }}
-        totalPages={results.totalPages}
-      />
-    </>
+  const source = skills[0].source;
+  const snapshotDate = new Date(EMERGENCY_CATALOG_SNAPSHOT_AT).toLocaleString(
+    "en-US",
+    { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" },
   );
-}
 
-export default function SourcePage({ params, searchParams }: SourcePageProps) {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <Suspense fallback={<SourcePageSkeleton />}>
-        <SourcePageContent params={params} searchParams={searchParams} />
-      </Suspense>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <Link
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        href="/search"
+      >
+        <span aria-hidden="true">←</span>
+        Back to snapshot search
+      </Link>
+
+      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-9">
+        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-amber-200">
+          Verified snapshot source
+        </div>
+        <h1 className="font-display mt-6 break-words text-balance text-4xl tracking-[-0.04em] text-foreground sm:text-6xl">
+          {source.name}
+        </h1>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground">
+          {skills.length.toLocaleString("en-US")} top-ranked skill{skills.length === 1 ? "" : "s"} from this source are visible in the emergency snapshot captured {snapshotDate}. The complete source listing will return when live provider access is restored.
+        </p>
+      </section>
+
+      <section className="space-y-5">
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            Visible skills
+          </div>
+          <h2 className="font-display mt-3 text-3xl tracking-[-0.04em] text-foreground">
+            Recovery catalog entries
+          </h2>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-border bg-card/80">
+          {skills.map((skill) => (
+            <Link
+              className="grid gap-2 border-b border-border/60 px-5 py-5 last:border-0 hover:bg-surface-hover sm:grid-cols-[minmax(0,1fr)_120px] sm:items-center"
+              href={`/skills/${skill.slug}`}
+              key={skill.id}
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-base font-medium text-foreground">
+                  {skill.name}
+                </span>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  General audit: {skill.securityAudits.gen}; Snyk: {skill.securityAudits.snyk}; Socket: {skill.securityAudits.socket}
+                </span>
+              </span>
+              <span className="text-sm text-muted-foreground sm:text-right">
+                {skill.weeklyInstalls.toLocaleString("en-US")}/week
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
