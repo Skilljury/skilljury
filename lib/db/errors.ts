@@ -2,6 +2,8 @@ const RECOVERABLE_CATALOG_ERROR_PATTERNS = [
   "SkillJury could not resolve the Supabase project URL from the environment.",
   "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY.",
   "Missing SUPABASE_SERVICE_ROLE_KEY.",
+  "exceed_storage_size_quota",
+  "Service for this project is restricted",
   "fetch failed",
   "ENOTFOUND",
   "ECONNREFUSED",
