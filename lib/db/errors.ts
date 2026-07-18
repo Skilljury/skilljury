@@ -10,6 +10,11 @@ const RECOVERABLE_CATALOG_ERROR_PATTERNS = [
   "ETIMEDOUT",
 ] as const;
 
+const QUOTA_INCIDENT_PATTERNS = [
+  "exceed_storage_size_quota",
+  "Service for this project is restricted",
+] as const;
+
 export function isMissingRelationError(message: string) {
   return (
     message.includes("relation") ||
@@ -30,7 +35,11 @@ export function getErrorMessage(error: unknown): string {
     }
   }
 
-  return String(error);
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }
 
 export function canUsePublicCatalogFallbacks() {
@@ -47,8 +56,17 @@ export function isRecoverablePublicCatalogError(error: unknown) {
   );
 }
 
+function isQuotaIncidentError(error: unknown) {
+  const message = getErrorMessage(error);
+  return QUOTA_INCIDENT_PATTERNS.some((pattern) => message.includes(pattern));
+}
+
 export function shouldUsePublicCatalogFallback(error: unknown) {
-  return canUsePublicCatalogFallbacks() && isRecoverablePublicCatalogError(error);
+  if (canUsePublicCatalogFallbacks()) {
+    return true;
+  }
+
+  return isQuotaIncidentError(error);
 }
 
 export function logDataAccessError(scope: string, error: { message: string } | unknown) {
