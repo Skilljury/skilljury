@@ -2,7 +2,6 @@ const ANGLED_VALUE = /^<([\s\S]+)>$/;
 const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
 const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
 
-const RESTRICTED_SUPABASE_PROJECT_REF = "yyftmqwyluqxfhuddqle";
 const RECOVERY_SUPABASE_URL = "https://yqalyaaetcwrhkmxivbh.supabase.co";
 const RECOVERY_SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_LARgrxSgGjt2Y30HaL4D5g_0WZ3ADsX";
@@ -68,42 +67,11 @@ function resolveSupabaseUrl(): string {
   return `https://${projectRef}.supabase.co`;
 }
 
-function isRestrictedSupabaseProject(url: string, anonKey: string): boolean {
-  return (
-    url.includes(`://${RESTRICTED_SUPABASE_PROJECT_REF}.supabase.co`) ||
-    deriveProjectRefFromJwt(anonKey) === RESTRICTED_SUPABASE_PROJECT_REF
-  );
-}
-
-function getRecoveryPublicSupabaseConfig() {
+export function getPublicSupabaseConfig() {
   return {
     url: RECOVERY_SUPABASE_URL,
     anonKey: RECOVERY_SUPABASE_PUBLISHABLE_KEY,
   };
-}
-
-export function getPublicSupabaseConfig() {
-  const configuredUrl = sanitizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const anonKey = sanitizeEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
-  if (
-    (!configuredUrl && !anonKey) ||
-    anonKey === RECOVERY_SUPABASE_PUBLISHABLE_KEY
-  ) {
-    return getRecoveryPublicSupabaseConfig();
-  }
-
-  const url = resolveSupabaseUrl();
-
-  if (isRestrictedSupabaseProject(url, anonKey)) {
-    return getRecoveryPublicSupabaseConfig();
-  }
-
-  if (!anonKey) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_ANON_KEY.");
-  }
-
-  return { url, anonKey };
 }
 
 export function getServiceRoleConfig() {
