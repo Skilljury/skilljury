@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
@@ -7,7 +8,7 @@ import {
 } from "@/lib/data/emergencyCatalog";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
- type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type SearchPageProps = {
   searchParams: SearchParams;
@@ -32,7 +33,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+async function SearchContent({ searchParams }: SearchPageProps) {
   const resolved = await searchParams;
   const query = firstParam(resolved.q).trim();
   const normalizedQuery = query.toLocaleLowerCase("en-US");
@@ -51,19 +52,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-      <section className="space-y-4">
-        <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-          Search
-        </div>
-        <h1 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
-          Search the verified recovery snapshot
-        </h1>
-        <p className="max-w-3xl text-base leading-8 text-muted-foreground">
-          Live Supabase search is temporarily unavailable. These results come from a direct PostgreSQL snapshot captured {snapshotDate}.
-        </p>
-      </section>
-
+    <>
       <form action="/search" className="rounded-2xl border border-border bg-card/80 p-3" method="get">
         <div className="flex flex-col gap-3 sm:flex-row">
           <label className="sr-only" htmlFor="snapshot-search">
@@ -129,7 +118,42 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             No match is present in the 25-skill emergency snapshot. The full 4,274-skill catalog will return when Supabase lifts the provider restriction.
           </div>
         )}
+
+        <p className="text-xs leading-6 text-muted-foreground">
+          Snapshot captured {snapshotDate}. Live search, filters, and pagination are temporarily unavailable.
+        </p>
       </section>
+    </>
+  );
+}
+
+function SearchSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="h-20 animate-pulse rounded-2xl bg-muted/30" />
+      <div className="h-80 animate-pulse rounded-2xl bg-muted/30" />
+    </div>
+  );
+}
+
+export default function SearchPage({ searchParams }: SearchPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <section className="space-y-4">
+        <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+          Search
+        </div>
+        <h1 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
+          Search the verified recovery snapshot
+        </h1>
+        <p className="max-w-3xl text-base leading-8 text-muted-foreground">
+          Live Supabase search is temporarily unavailable. These results come from a direct PostgreSQL snapshot.
+        </p>
+      </section>
+
+      <Suspense fallback={<SearchSkeleton />}>
+        <SearchContent searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }
