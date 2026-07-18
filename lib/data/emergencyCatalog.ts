@@ -1,0 +1,71 @@
+export const EMERGENCY_CATALOG_SNAPSHOT_AT = "2026-07-18T09:57:00.000Z";
+export const EMERGENCY_SKILL_COUNT = 4274;
+export const EMERGENCY_SOURCE_COUNT = 784;
+export const EMERGENCY_AGENT_COUNT = 29;
+
+export const EMERGENCY_AGENT_RAIL = [
+  { id: 2, name: "Gemini CLI", slug: "gemini-cli" },
+  { id: 1, name: "Codex", slug: "codex" },
+  { id: 3, name: "OpenCode", slug: "opencode" },
+  { id: 14, name: "GitHub Copilot", slug: "github-copilot" },
+  { id: 4, name: "Cursor", slug: "cursor" },
+  { id: 17, name: "Claude Code", slug: "claude-code" },
+  { id: 5, name: "Kimi CLI", slug: "kimi-cli" },
+  { id: 6, name: "Amp", slug: "amp" },
+  { id: 18, name: "Antigravity", slug: "antigravity" },
+  { id: 13, name: "Cline", slug: "cline" },
+  { id: 15, name: "OpenClaw", slug: "openclaw" },
+  { id: 23, name: "Trae", slug: "trae" },
+  { id: 16, name: "Replit", slug: "replit" },
+  { id: 19, name: "Windsurf", slug: "windsurf" },
+  { id: 102, name: "Junie", slug: "junie" },
+  { id: 101, name: "MCPJam", slug: "mcpjam" },
+  { id: 103, name: "Zencoder", slug: "zencoder" },
+  { id: 20, name: "Goose", slug: "goose" },
+  { id: 22, name: "CodeBuddy", slug: "codebuddy" },
+  { id: 24, name: "ClawdBot", slug: "clawdbot" },
+] as const;
+
+export const EMERGENCY_CATEGORIES = [
+  { id: 1, name: "Software Engineering", slug: "software-engineering", skillCount: 4274 },
+  { id: 2, name: "Frontend and Design", slug: "frontend-design", skillCount: 3745 },
+  { id: 3, name: "Testing and QA", slug: "testing-qa", skillCount: 2058 },
+  { id: 5, name: "Data and Analytics", slug: "data-analytics", skillCount: 1728 },
+  { id: 4, name: "DevOps and Cloud", slug: "devops-cloud", skillCount: 1632 },
+  { id: 6, name: "Research and Audits", slug: "research-audits", skillCount: 844 },
+  { id: 13, name: "AI and Automation", slug: "ai-automation", skillCount: 680 },
+  { id: 7, name: "Marketing and Growth", slug: "marketing-growth", skillCount: 635 },
+  { id: 9, name: "Writing and Content", slug: "writing-content", skillCount: 414 },
+  { id: 8, name: "SEO and GEO", slug: "seo-geo", skillCount: 211 },
+  { id: 11, name: "Security and Privacy", slug: "security-privacy", skillCount: 184 },
+  { id: 12, name: "Video and Media", slug: "video-media", skillCount: 166 },
+  { id: 10, name: "Jobs and Career", slug: "job-career", skillCount: 143 },
+] as const;
+
+export const EMERGENCY_LEADERBOARD = [
+  { id: 1199, slug: "telegram-bot-builder", name: "Telegram Bot Builder", weeklyInstalls: 998, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "sickn33/antigravity-awesome-skills", slug: "sickn33/antigravity-awesome-skills" } },
+  { id: 1357, slug: "flutter-app-size", name: "Flutter App Size", weeklyInstalls: 996, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "flutter/skills", slug: "flutter/skills" } },
+  { id: 1282, slug: "sharp-edges", name: "Sharp Edges", weeklyInstalls: 994, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "fail", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "trailofbits/skills", slug: "trailofbits/skills" } },
+  { id: 1249, slug: "iterative-retrieval", name: "Iterative Retrieval", weeklyInstalls: 993, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "affaan-m/everything-claude-code", slug: "affaan-m/everything-claude-code" } },
+  { id: 1262, slug: "django-patterns", name: "Django Patterns", weeklyInstalls: 992, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "affaan-m/everything-claude-code", slug: "affaan-m/everything-claude-code" } },
+  { id: 1548, slug: "ontology", name: "Ontology", weeklyInstalls: 992, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "sundial-org/awesome-openclaw-skills", slug: "sundial-org/awesome-openclaw-skills" } },
+  { id: 1217, slug: "nestjs-expert", name: "NestJS Expert", weeklyInstalls: 985, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "sickn33/antigravity-awesome-skills", slug: "sickn33/antigravity-awesome-skills" } },
+  { id: 1212, slug: "nodejs-best-practices", name: "Node.js Best Practices", weeklyInstalls: 985, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "sickn33/antigravity-awesome-skills", slug: "sickn33/antigravity-awesome-skills" } },
+  { id: 1288, slug: "technical-seo-checker", name: "Technical SEO Checker", weeklyInstalls: 984, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "aaron-he-zhu/seo-geo-claude-skills", slug: "aaron-he-zhu/seo-geo-claude-skills" } },
+  { id: 1250, slug: "create-design-system-rules", name: "Create Design System Rules", weeklyInstalls: 982, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "figma/mcp-server-guide", slug: "figma/mcp-server-guide" } },
+  { id: 1283, slug: "content-gap-analysis", name: "Content Gap Analysis", weeklyInstalls: 981, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "warn", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "aaron-he-zhu/seo-geo-claude-skills", slug: "aaron-he-zhu/seo-geo-claude-skills" } },
+  { id: 1367, slug: "flutter-concurrency", name: "Flutter Concurrency", weeklyInstalls: 980, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "flutter/skills", slug: "flutter/skills" } },
+  { id: 1230, slug: "openrouter-typescript-sdk", name: "OpenRouter TypeScript SDK", weeklyInstalls: 978, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "openrouterteam/agent-skills", slug: "openrouterteam/agent-skills" } },
+  { id: 1364, slug: "flutter-localization", name: "Flutter Localization", weeklyInstalls: 978, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "flutter/skills", slug: "flutter/skills" } },
+  { id: 1242, slug: "strategy-advisor", name: "Strategy Advisor", weeklyInstalls: 978, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "shubhamsaboo/awesome-llm-apps", slug: "shubhamsaboo/awesome-llm-apps" } },
+  { id: 1215, slug: "astro-framework", name: "Astro Framework", weeklyInstalls: 977, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "delineas/astro-framework-agents", slug: "delineas/astro-framework-agents" } },
+  { id: 1260, slug: "eval-harness", name: "Eval Harness", weeklyInstalls: 976, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "affaan-m/everything-claude-code", slug: "affaan-m/everything-claude-code" } },
+  { id: 1298, slug: "property-based-testing", name: "Property Based Testing", weeklyInstalls: 976, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "fail", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "trailofbits/skills", slug: "trailofbits/skills" } },
+  { id: 1378, slug: "flutter-accessibility", name: "Flutter Accessibility", weeklyInstalls: 973, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "flutter/skills", slug: "flutter/skills" } },
+  { id: 1382, slug: "flutter-http-and-json", name: "Flutter HTTP and JSON", weeklyInstalls: 971, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "flutter/skills", slug: "flutter/skills" } },
+  { id: 1227, slug: "csharp-developer", name: "C# Developer", weeklyInstalls: 970, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "jeffallan/claude-skills", slug: "jeffallan/claude-skills" } },
+  { id: 1240, slug: "color-palette", name: "Color Palette", weeklyInstalls: 970, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "jezweb/claude-skills", slug: "jezweb/claude-skills" } },
+  { id: 1359, slug: "clawhub-skill-vetting", name: "ClawHub Skill Vetting", weeklyInstalls: 969, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "hugomrtz/skill-vetting-clawhub", slug: "hugomrtz/skill-vetting-clawhub" } },
+  { id: 1286, slug: "claude-automation-recommender", name: "Claude Automation Recommender", weeklyInstalls: 967, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "pass", snyk: "warn", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "anthropics/claude-plugins-official", slug: "anthropics/claude-plugins-official" } },
+  { id: 1236, slug: "pretty-mermaid", name: "Pretty Mermaid", weeklyInstalls: 966, createdAt: "2026-03-11T10:58:55.854Z", securityAudits: { gen: "warn", snyk: "pass", socket: "pass", scraped_at: "2026-03-14T21:27:10.594Z" }, source: { name: "imxv/pretty-mermaid-skills", slug: "imxv/pretty-mermaid-skills" } },
+] as const;

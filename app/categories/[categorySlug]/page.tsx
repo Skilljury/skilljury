@@ -3,163 +3,98 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { PaginationNav } from "@/components/listing/PaginationNav";
-import { SortButtonGroup } from "@/components/listing/SortButtonGroup";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { ResultGrid } from "@/components/search/ResultGrid";
-import { getCategoryDescription } from "@/lib/catalog/categoryDescriptions";
-import { getCategoryBySlug } from "@/lib/db/categories";
-import { searchSkills } from "@/lib/db/search";
-import { normalizePageParam, normalizeSortParam } from "@/lib/routing/browseParams";
-import { buildCanonicalUrl, buildPageMetadata } from "@/lib/seo/metadata";
-import { buildBreadcrumbJsonLd, buildItemListJsonLd } from "@/lib/seo/schema";
-import { buildCategoryMetadataText } from "@/lib/seo/titleTemplates";
-
-type Params = Promise<{ categorySlug: string }>;
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+import {
+  EMERGENCY_CATEGORIES,
+  EMERGENCY_CATALOG_SNAPSHOT_AT,
+} from "@/lib/data/emergencyCatalog";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
 type CategoryPageProps = {
-  params: Params;
-  searchParams: SearchParams;
+  params: Promise<{ categorySlug: string }>;
 };
 
-export async function generateMetadata({
-  params,
-}: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { categorySlug } = await params;
-  const category = await getCategoryBySlug(categorySlug);
+  const category = EMERGENCY_CATEGORIES.find((item) => item.slug === categorySlug);
 
   if (!category) {
     return buildPageMetadata({
-      title: "Category not found | SkillJury",
-      description: "The requested category does not exist in the current SkillJury taxonomy.",
+      title: "Category unavailable in recovery snapshot | SkillJury",
+      description:
+        "This category is not included in SkillJury's temporary recovery snapshot.",
+      indexable: false,
       pathname: `/categories/${categorySlug}`,
     });
   }
 
-  const editorialDescription = getCategoryDescription(category.slug);
-  const { title, description } = buildCategoryMetadataText(category.name);
   return buildPageMetadata({
-    title,
-    description: editorialDescription ?? description,
+    title: `${category.name} AI skills | SkillJury`,
+    description: `${category.skillCount.toLocaleString("en-US")} skills are classified under ${category.name} in SkillJury's verified recovery snapshot.`,
     pathname: `/categories/${category.slug}`,
   });
 }
 
-function CategoryPageSkeleton() {
-  return (
-    <>
-      <div className="h-40 animate-pulse rounded-[1.5rem] bg-muted/30" />
-      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
-    </>
-  );
-}
-
-async function CategoryPageContent({
-  params,
-  searchParams,
-}: {
-  params: Params;
-  searchParams: SearchParams;
-}) {
-  const [{ categorySlug }, resolvedSearchParams] = await Promise.all([
-    params,
-    searchParams,
-  ]);
-  const category = await getCategoryBySlug(categorySlug);
+async function CategoryContent({ params }: CategoryPageProps) {
+  const { categorySlug } = await params;
+  const category = EMERGENCY_CATEGORIES.find((item) => item.slug === categorySlug);
 
   if (!category) {
     notFound();
   }
 
-  const page = normalizePageParam(resolvedSearchParams.page);
-  const sort = normalizeSortParam(resolvedSearchParams.sort);
-  const results = await searchSkills({
-    categoryId: category.id,
-    page,
-    sort,
-  });
-  const canonicalPath = `/categories/${category.slug}`;
-  const breadcrumbItems = [
-    { name: "Home", path: "/" },
-    { name: category.name, path: canonicalPath },
-  ];
-  const editorialDescription = getCategoryDescription(category.slug);
-  const resultItems = results.items.map((item) => ({
-    name: item.name,
-    url: buildCanonicalUrl(`/skills/${item.slug}`),
-  }));
+  const snapshotDate = new Date(EMERGENCY_CATALOG_SNAPSHOT_AT).toLocaleString(
+    "en-US",
+    { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" },
+  );
 
   return (
     <>
-      <JsonLd data={buildBreadcrumbJsonLd(breadcrumbItems)} />
-      {resultItems.length > 0 ? (
-        <JsonLd
-          data={buildItemListJsonLd({
-            canonicalPath,
-            itemName: `${category.name} skills on SkillJury`,
-            items: resultItems,
-          })}
-        />
-      ) : null}
-      <section className="space-y-4">
-        <Link
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-default hover:text-foreground"
-          href="/"
-        >
-          <span aria-hidden="true">←</span>
-          <span>Back to registry</span>
-        </Link>
-        <div className="space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {category.name}
-          </h1>
-          {(editorialDescription ?? category.description) ? (
-            <p className="max-w-3xl text-lg text-foreground/80">
-              {editorialDescription ?? category.description}
-            </p>
-          ) : null}
-          <p className="mt-3 font-mono text-sm text-muted-foreground">
-            {results.totalCount.toLocaleString("en-US")} skills
-            {category.reviewedSkillCount > 0
-              ? ` · ${category.reviewedSkillCount.toLocaleString("en-US")} reviewed`
-              : ""}
-          </p>
+      <Link
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        href="/"
+      >
+        <span aria-hidden="true">←</span>
+        Back to recovery catalog
+      </Link>
+
+      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-10">
+        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-amber-200">
+          Verified snapshot category
+        </div>
+        <h1 className="font-display mt-6 text-balance text-4xl tracking-[-0.04em] text-foreground sm:text-6xl">
+          {category.name}
+        </h1>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground">
+          {category.skillCount.toLocaleString("en-US")} skills were assigned to this category in the PostgreSQL snapshot captured {snapshotDate}. Live category filtering is temporarily unavailable while Supabase API access is restricted.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-95"
+            href="/search"
+          >
+            Browse visible skills
+          </Link>
+          <Link
+            className="rounded-full border border-border px-5 py-3 text-sm text-foreground hover:border-primary/30"
+            href="/"
+          >
+            View all snapshot categories
+          </Link>
         </div>
       </section>
-
-      <section className="space-y-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-[11px] font-bold uppercase tracking-[0.34em] text-muted-foreground">
-            Skills in this category
-          </h2>
-          <SortButtonGroup basePath={`/categories/${category.slug}`} value={sort} />
-        </div>
-        <ResultGrid
-          emptyCopy="No skills in this category yet."
-          emptyTitle="Category empty"
-          items={results.items}
-        />
-      </section>
-
-      <PaginationNav
-        basePath={`/categories/${category.slug}`}
-        page={results.page}
-        query={{ sort }}
-        totalPages={results.totalPages}
-      />
     </>
   );
 }
 
-export default function CategoryPage({
-  params,
-  searchParams,
-}: CategoryPageProps) {
+function CategorySkeleton() {
+  return <div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" />;
+}
+
+export default function CategoryPage({ params }: CategoryPageProps) {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-      <Suspense fallback={<CategoryPageSkeleton />}>
-        <CategoryPageContent params={params} searchParams={searchParams} />
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+      <Suspense fallback={<CategorySkeleton />}>
+        <CategoryContent params={params} />
       </Suspense>
     </div>
   );

@@ -2,10 +2,17 @@ const RECOVERABLE_CATALOG_ERROR_PATTERNS = [
   "SkillJury could not resolve the Supabase project URL from the environment.",
   "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY.",
   "Missing SUPABASE_SERVICE_ROLE_KEY.",
+  "exceed_storage_size_quota",
+  "Service for this project is restricted",
   "fetch failed",
   "ENOTFOUND",
   "ECONNREFUSED",
   "ETIMEDOUT",
+] as const;
+
+const QUOTA_INCIDENT_PATTERNS = [
+  "exceed_storage_size_quota",
+  "Service for this project is restricted",
 ] as const;
 
 export function isMissingRelationError(message: string) {
@@ -28,7 +35,11 @@ export function getErrorMessage(error: unknown): string {
     }
   }
 
-  return String(error);
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }
 
 export function canUsePublicCatalogFallbacks() {
@@ -45,8 +56,17 @@ export function isRecoverablePublicCatalogError(error: unknown) {
   );
 }
 
+function isQuotaIncidentError(error: unknown) {
+  const message = getErrorMessage(error);
+  return QUOTA_INCIDENT_PATTERNS.some((pattern) => message.includes(pattern));
+}
+
 export function shouldUsePublicCatalogFallback(error: unknown) {
-  return canUsePublicCatalogFallbacks() && isRecoverablePublicCatalogError(error);
+  if (canUsePublicCatalogFallbacks()) {
+    return true;
+  }
+
+  return isQuotaIncidentError(error);
 }
 
 export function logDataAccessError(scope: string, error: { message: string } | unknown) {

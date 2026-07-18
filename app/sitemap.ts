@@ -1,87 +1,60 @@
 import type { MetadataRoute } from "next";
 
-import { shouldUsePublicCatalogFallback } from "@/lib/db/errors";
-import { getAllAgentSlugs } from "@/lib/db/agents";
-import { getAllCategorySlugs } from "@/lib/db/categories";
-import { getAllSkillSitemapEntries } from "@/lib/db/skills";
-import { getAllSourceSitemapEntries } from "@/lib/db/sourcePages";
+import {
+  EMERGENCY_AGENT_RAIL,
+  EMERGENCY_CATEGORIES,
+  EMERGENCY_CATALOG_SNAPSHOT_AT,
+  EMERGENCY_LEADERBOARD,
+} from "@/lib/data/emergencyCatalog";
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 import { buildCanonicalUrl } from "@/lib/seo/metadata";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticLastModified = new Date("2026-03-14T00:00:00.000Z");
-  const highPriorityStaticRoutes = [
-    { pathname: "", priority: 1.0, changeFrequency: "daily" as const },
+export default function sitemap(): MetadataRoute.Sitemap {
+  const snapshotDate = new Date(EMERGENCY_CATALOG_SNAPSHOT_AT);
+  const staticRoutes = [
+    { pathname: "/", priority: 1, changeFrequency: "daily" as const },
     { pathname: "/search", priority: 0.9, changeFrequency: "daily" as const },
-    { pathname: "/top-rated", priority: 0.9, changeFrequency: "daily" as const },
-    { pathname: "/trending", priority: 0.9, changeFrequency: "daily" as const },
-    { pathname: "/new", priority: 0.9, changeFrequency: "daily" as const },
+    { pathname: "/about", priority: 0.4, changeFrequency: "monthly" as const },
+    { pathname: "/how-scores-work", priority: 0.4, changeFrequency: "monthly" as const },
+    { pathname: "/moderation-policy", priority: 0.4, changeFrequency: "monthly" as const },
+    { pathname: "/privacy", priority: 0.4, changeFrequency: "monthly" as const },
+    { pathname: "/review-guidelines", priority: 0.4, changeFrequency: "monthly" as const },
+    { pathname: "/terms", priority: 0.4, changeFrequency: "monthly" as const },
   ];
-  const standardStaticRoutes = [
-    "/about",
-    "/how-scores-work",
-    "/moderation-policy",
-    "/privacy",
-    "/review-guidelines",
-    "/terms",
-  ];
-  let skillEntries: Awaited<ReturnType<typeof getAllSkillSitemapEntries>> = [];
-  let categorySlugs: Awaited<ReturnType<typeof getAllCategorySlugs>> = [];
-  let agentSlugs: Awaited<ReturnType<typeof getAllAgentSlugs>> = [];
-  let sourceEntries: Awaited<ReturnType<typeof getAllSourceSitemapEntries>> = [];
-
-  try {
-    [skillEntries, categorySlugs, agentSlugs, sourceEntries] = await Promise.all([
-      getAllSkillSitemapEntries(),
-      getAllCategorySlugs(),
-      getAllAgentSlugs(),
-      getAllSourceSitemapEntries(),
-    ]);
-  } catch (error) {
-    if (!shouldUsePublicCatalogFallback(error)) {
-      throw error;
-    }
-
-    console.warn(
-      "[sitemap] Supabase public environment variables are missing. Emitting static sitemap entries only.",
-    );
-  }
+  const sourceSlugs = Array.from(
+    new Set(EMERGENCY_LEADERBOARD.map((skill) => skill.source.slug)),
+  );
 
   return [
-    ...highPriorityStaticRoutes.map((route) => ({
-      url: buildCanonicalUrl(route.pathname || "/"),
-      lastModified: staticLastModified,
+    ...staticRoutes.map((route) => ({
+      url: buildCanonicalUrl(route.pathname),
+      lastModified: snapshotDate,
       changeFrequency: route.changeFrequency,
       priority: route.priority,
     })),
-    ...standardStaticRoutes.map((pathname) => ({
-      url: buildCanonicalUrl(pathname),
-      lastModified: staticLastModified,
-      changeFrequency: "monthly" as const,
-      priority: 0.4,
-    })),
-    ...skillEntries.map((entry) => ({
-      url: buildCanonicalUrl(`/skills/${entry.slug}`),
-      lastModified: entry.lastModified ? new Date(entry.lastModified) : undefined,
+    ...EMERGENCY_LEADERBOARD.map((skill) => ({
+      url: buildCanonicalUrl(`/skills/${skill.slug}`),
+      lastModified: snapshotDate,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
-    ...categorySlugs.map((slug) => ({
-      url: buildCanonicalUrl(`/categories/${slug}`),
+    ...EMERGENCY_CATEGORIES.map((category) => ({
+      url: buildCanonicalUrl(`/categories/${category.slug}`),
+      lastModified: snapshotDate,
       changeFrequency: "weekly" as const,
-      priority: 0.9,
+      priority: 0.7,
     })),
-    ...agentSlugs.map((slug) => ({
-      url: buildCanonicalUrl(`/agents/${slug}`),
+    ...EMERGENCY_AGENT_RAIL.map((agent) => ({
+      url: buildCanonicalUrl(`/agents/${agent.slug}`),
+      lastModified: snapshotDate,
       changeFrequency: "weekly" as const,
-      priority: 0.9,
+      priority: 0.7,
     })),
-    ...sourceEntries
-      .filter((entry) => entry.skillCount > 0)
-      .map((entry) => ({
-        url: buildCanonicalUrl(`/sources/${encodeSourceSlug(entry.slug)}`),
-        changeFrequency: "weekly" as const,
-        priority: entry.skillCount > 3 ? 0.7 : 0.5,
-      })),
+    ...sourceSlugs.map((sourceSlug) => ({
+      url: buildCanonicalUrl(`/sources/${encodeSourceSlug(sourceSlug)}`),
+      lastModified: snapshotDate,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
   ];
 }
