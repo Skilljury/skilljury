@@ -17,11 +17,7 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  // Recovery mode favors deterministic server rendering over Partial
-  // Prerendering. Next.js resume mismatches were still reaching production
-  // after the upstream runtime patch, causing crawler/client-render fallbacks.
-  // Re-enable only after live verification on a stable Next.js release.
-  cacheComponents: false,
+  cacheComponents: true,
   poweredByHeader: false,
   async redirects() {
     // Bare domain → www redirect runs at the Vercel CDN edge (no function
