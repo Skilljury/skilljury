@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: SkillPageProps): Promise<Meta
   });
 }
 
-export default async function SkillPage({ params }: SkillPageProps) {
+async function SkillContent({ params }: SkillPageProps) {
   const { skillSlug } = await params;
   const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
 
@@ -53,7 +54,7 @@ export default async function SkillPage({ params }: SkillPageProps) {
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <>
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         href="/search"
@@ -105,7 +106,7 @@ export default async function SkillPage({ params }: SkillPageProps) {
             </p>
           </section>
 
-          <section className="rounded-[1.5rem] border border-border bg-card/80 p-6">
+          <section className="rounded-[1.5rem]] border border-border bg-card/80 p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
               Source
             </div>
@@ -119,6 +120,25 @@ export default async function SkillPage({ params }: SkillPageProps) {
           </section>
         </aside>
       </section>
+    </>
+  );
+}
+
+function SkillSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-5 w-40 animate-pulse rounded bg-muted/30" />
+      <div className="h-96 animate-pulse rounded-[2rem] bg-muted/30" />
+    </div>
+  );
+}
+
+export default function SkillPage({ params }: SkillPageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <Suspense fallback={<SkillSkeleton />}>
+        <SkillContent params={params} />
+      </Suspense>
     </div>
   );
 }
