@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: SourcePageProps): Promise<Met
   });
 }
 
-export default async function SourcePage({ params }: SourcePageProps) {
+async function SourceContent({ params }: SourcePageProps) {
   const { sourceSlug } = await params;
   const decodedSlug = decodeSourceSlug(sourceSlug);
   const skills = getSourceSkills(decodedSlug);
@@ -55,7 +56,7 @@ export default async function SourcePage({ params }: SourcePageProps) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <>
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         href="/search"
@@ -108,6 +109,25 @@ export default async function SourcePage({ params }: SourcePageProps) {
           ))}
         </div>
       </section>
+    </>
+  );
+}
+
+function SourceSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-5 w-40 animate-pulse rounded bg-muted/30" />
+      <div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" />
+    </div>
+  );
+}
+
+export default function SourcePage({ params }: SourcePageProps) {
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <Suspense fallback={<SourceSkeleton />}>
+        <SourceContent params={params} />
+      </Suspense>
     </div>
   );
 }
