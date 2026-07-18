@@ -122,7 +122,7 @@ test("refuses to patch when the framework insertion anchor changes", async () =>
   );
 });
 
-test("recovery routes keep a stable PPR tree for unavailable snapshot records", async () => {
+test("recovery routes keep a stable PPR tree for snapshot records", async () => {
   const routeFiles = [
     "app/skills/[skillSlug]/page.tsx",
     "app/sources/[sourceSlug]/page.tsx",
@@ -140,6 +140,11 @@ test("recovery routes keep a stable PPR tree for unavailable snapshot records", 
       source,
       /UnavailableSnapshotRecord/,
       `${routeFile} must render the shared unavailable snapshot state`,
+    );
+    assert.doesNotMatch(
+      source,
+      /<Suspense\b/,
+      `${routeFile} must not place static recovery content behind a PPR suspense boundary`,
     );
   }
 });
