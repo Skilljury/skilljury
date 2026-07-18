@@ -121,3 +121,25 @@ test("refuses to patch when the framework insertion anchor changes", async () =>
     },
   );
 });
+
+test("recovery routes keep a stable PPR tree for unavailable snapshot records", async () => {
+  const routeFiles = [
+    "app/skills/[skillSlug]/page.tsx",
+    "app/sources/[sourceSlug]/page.tsx",
+  ];
+
+  for (const routeFile of routeFiles) {
+    const source = await readFile(join(process.cwd(), routeFile), "utf8");
+
+    assert.doesNotMatch(
+      source,
+      /\bnotFound\s*\(/,
+      `${routeFile} must render a stable unavailable state instead of throwing notFound inside PPR`,
+    );
+    assert.match(
+      source,
+      /UnavailableSnapshotRecord/,
+      `${routeFile} must render the shared unavailable snapshot state`,
+    );
+  }
+});
