@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
 import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
   EMERGENCY_LEADERBOARD,
@@ -40,7 +40,12 @@ async function SkillContent({ params }: SkillPageProps) {
   const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
 
   if (!skill) {
-    notFound();
+    return (
+      <UnavailableSnapshotRecord
+        kind="skill"
+        requestedLabel={skillSlug}
+      />
+    );
   }
 
   const snapshotDate = new Date(EMERGENCY_CATALOG_SNAPSHOT_AT).toLocaleString(
