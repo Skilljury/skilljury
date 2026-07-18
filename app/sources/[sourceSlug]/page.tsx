@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
 import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
   EMERGENCY_LEADERBOARD,
@@ -46,7 +46,12 @@ async function SourceContent({ params }: SourcePageProps) {
   const skills = getSourceSkills(decodedSlug);
 
   if (skills.length === 0) {
-    notFound();
+    return (
+      <UnavailableSnapshotRecord
+        kind="source"
+        requestedLabel={decodedSlug}
+      />
+    );
   }
 
   const source = skills[0].source;
