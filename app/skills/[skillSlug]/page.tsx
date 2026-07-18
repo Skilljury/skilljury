@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
 import {
@@ -35,16 +34,18 @@ export async function generateMetadata({ params }: SkillPageProps): Promise<Meta
   });
 }
 
-async function SkillContent({ params }: SkillPageProps) {
+export default async function SkillPage({ params }: SkillPageProps) {
   const { skillSlug } = await params;
   const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
 
   if (!skill) {
     return (
-      <UnavailableSnapshotRecord
-        kind="skill"
-        requestedLabel={skillSlug}
-      />
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <UnavailableSnapshotRecord
+          kind="skill"
+          requestedLabel={skillSlug}
+        />
+      </div>
     );
   }
 
@@ -59,7 +60,7 @@ async function SkillContent({ params }: SkillPageProps) {
   ];
 
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
       <Link
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         href="/search"
@@ -111,7 +112,7 @@ async function SkillContent({ params }: SkillPageProps) {
             </p>
           </section>
 
-          <section className="rounded-[1.5rem]] border border-border bg-card/80 p-6">
+          <section className="rounded-[1.5rem] border border-border bg-card/80 p-6">
             <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
               Source
             </div>
@@ -125,25 +126,6 @@ async function SkillContent({ params }: SkillPageProps) {
           </section>
         </aside>
       </section>
-    </>
-  );
-}
-
-function SkillSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="h-5 w-40 animate-pulse rounded bg-muted/30" />
-      <div className="h-96 animate-pulse rounded-[2rem] bg-muted/30" />
-    </div>
-  );
-}
-
-export default function SkillPage({ params }: SkillPageProps) {
-  return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-      <Suspense fallback={<SkillSkeleton />}>
-        <SkillContent params={params} />
-      </Suspense>
     </div>
   );
 }
