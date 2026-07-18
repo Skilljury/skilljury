@@ -1,162 +1,135 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import Link from "next/link";
 
-import { PaginationNav } from "@/components/listing/PaginationNav";
-import { ResultGrid } from "@/components/search/ResultGrid";
-import { SearchBar } from "@/components/search/SearchBar";
-import { getAllAgents } from "@/lib/db/agents";
-import { getAllCategories } from "@/lib/db/categories";
-import { searchSkills } from "@/lib/db/search";
-import { getAllSources } from "@/lib/db/sourcePages";
 import {
-  firstParam,
-  normalizePageParam,
-  normalizeSortParam,
-} from "@/lib/routing/browseParams";
-import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
+  EMERGENCY_CATALOG_SNAPSHOT_AT,
+  EMERGENCY_LEADERBOARD,
+} from "@/lib/data/emergencyCatalog";
 import { buildPageMetadata } from "@/lib/seo/metadata";
-import { buildSearchMetadataText } from "@/lib/seo/titleTemplates";
 
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type SearchPageProps = {
   searchParams: SearchParams;
 };
 
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
 export async function generateMetadata({
   searchParams,
 }: SearchPageProps): Promise<Metadata> {
-  const resolvedSearchParams = await searchParams;
-  const { title, description } = buildSearchMetadataText(
-    firstParam(resolvedSearchParams.q),
-  );
+  const resolved = await searchParams;
+  const query = firstParam(resolved.q).trim();
 
-  const query = firstParam(resolvedSearchParams.q);
   return buildPageMetadata({
-    title,
-    description,
-    indexable: !!query && query.length >= 2,
+    title: query ? `${query} AI skills | SkillJury` : "Search AI agent skills | SkillJury",
+    description:
+      "Search SkillJury's verified recovery snapshot of popular AI agent skills and security signals.",
+    indexable: query.length >= 2,
     pathname: query ? `/search?q=${encodeURIComponent(query)}` : "/search",
   });
 }
 
-function SearchBodySkeleton() {
-  return (
-    <>
-      <div className="h-24 animate-pulse rounded-[1.5rem] bg-muted/30" />
-      <div className="h-96 animate-pulse rounded-[1.5rem] bg-muted/30" />
-    </>
-  );
-}
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolved = await searchParams;
+  const query = firstParam(resolved.q).trim();
+  const normalizedQuery = query.toLocaleLowerCase("en-US");
+  const results = EMERGENCY_LEADERBOARD.filter((skill) => {
+    if (!normalizedQuery) {
+      return true;
+    }
 
-async function SearchPageContent({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const resolvedSearchParams = await searchParams;
-  const [categories, agents, sources] = await Promise.all([
-    getAllCategories(),
-    getAllAgents(),
-    getAllSources(),
-  ]);
-
-  const query = firstParam(resolvedSearchParams.q);
-  const selectedCategory = firstParam(resolvedSearchParams.category);
-  const selectedAgent = firstParam(resolvedSearchParams.agent);
-  const selectedSource = firstParam(resolvedSearchParams.source);
-  const page = normalizePageParam(resolvedSearchParams.page);
-  const sort = normalizeSortParam(resolvedSearchParams.sort);
-
-  const category = categories.find((item) => item.slug === selectedCategory) ?? null;
-  const agent = agents.find((item) => item.slug === selectedAgent) ?? null;
-  const source =
-    sources.find((item) => item.slug === decodeSourceSlug(selectedSource)) ?? null;
-
-  const results = await searchSkills({
-    query,
-    categoryId: category?.id ?? null,
-    agentId: agent?.id ?? null,
-    sourceId: source?.id ?? null,
-    page,
-    sort,
+    return [skill.name, skill.slug, skill.source.name, skill.source.slug].some((value) =>
+      value.toLocaleLowerCase("en-US").includes(normalizedQuery),
+    );
   });
-
-  return (
-    <>
-      <form action="/search" className="space-y-8" method="get">
-        <SearchBar
-          agents={agents.map((item) => ({ name: item.name, slug: item.slug }))}
-          categories={categories.map((item) => ({
-            name: item.name,
-            slug: item.slug,
-          }))}
-          defaultValue={query}
-          selectedAgent={selectedAgent}
-          selectedCategory={selectedCategory}
-          selectedSource={selectedSource}
-          sort={sort}
-          sources={sources.map((item) => ({
-            name: item.name,
-            slug: encodeSourceSlug(item.slug),
-          }))}
-        />
-      </form>
-
-      <section className="space-y-5">
-        <div className="flex flex-col gap-2">
-          <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-            Results
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {results.totalCount.toLocaleString("en-US")} results
-            {query ? (
-              <>
-                {" "}
-                for <span className="font-mono text-foreground">{query}</span>
-              </>
-            ) : null}
-          </p>
-        </div>
-
-        <ResultGrid items={results.items} />
-
-        <PaginationNav
-          basePath="/search"
-          page={results.page}
-          query={{
-            agent: selectedAgent || undefined,
-            category: selectedCategory || undefined,
-            q: query || undefined,
-            sort,
-            source: selectedSource || undefined,
-          }}
-          totalPages={results.totalPages}
-        />
-      </section>
-    </>
+  const snapshotDate = new Date(EMERGENCY_CATALOG_SNAPSHOT_AT).toLocaleString(
+    "en-US",
+    { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" },
   );
-}
 
-export default function SearchPage({ searchParams }: SearchPageProps) {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
       <section className="space-y-4">
         <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
           Search
         </div>
         <h1 className="text-balance text-3xl font-semibold tracking-[-0.02em] text-foreground sm:text-4xl">
-          Search the live skill catalog
+          Search the verified recovery snapshot
         </h1>
-        <p className="max-w-3xl text-lg leading-8 text-muted-foreground">
-          Search by skill name, then narrow the registry by category, agent, source,
-          or sort order.
+        <p className="max-w-3xl text-base leading-8 text-muted-foreground">
+          Live Supabase search is temporarily unavailable. These results come from a direct PostgreSQL snapshot captured {snapshotDate}.
         </p>
       </section>
 
-      <Suspense fallback={<SearchBodySkeleton />}>
-        <SearchPageContent searchParams={searchParams} />
-      </Suspense>
+      <form action="/search" className="rounded-2xl border border-border bg-card/80 p-3" method="get">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <label className="sr-only" htmlFor="snapshot-search">
+            Search skills
+          </label>
+          <input
+            className="h-12 min-w-0 flex-1 rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            defaultValue={query}
+            id="snapshot-search"
+            name="q"
+            placeholder="Try Flutter, SEO, testing, or a source name"
+            type="search"
+          />
+          <button
+            className="h-12 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground hover:opacity-95"
+            type="submit"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+
+      <section className="space-y-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+              Snapshot results
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {results.length.toLocaleString("en-US")} visible result{results.length === 1 ? "" : "s"}
+              {query ? <> for <span className="font-mono text-foreground">{query}</span></> : null}
+            </p>
+          </div>
+          <Link className="text-sm text-primary hover:underline" href="/">
+            Back to recovery homepage
+          </Link>
+        </div>
+
+        {results.length > 0 ? (
+          <div className="overflow-hidden rounded-2xl border border-border bg-card/80">
+            {results.map((skill) => (
+              <Link
+                className="grid gap-2 border-b border-border/60 px-5 py-5 last:border-0 hover:bg-surface-hover sm:grid-cols-[minmax(0,1fr)_120px] sm:items-center"
+                href={`/skills/${skill.slug}`}
+                key={skill.id}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-base font-medium text-foreground">
+                    {skill.name}
+                  </span>
+                  <span className="mt-1 block truncate text-sm text-muted-foreground">
+                    {skill.source.name}
+                  </span>
+                </span>
+                <span className="text-sm text-muted-foreground sm:text-right">
+                  {skill.weeklyInstalls.toLocaleString("en-US")}/week
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border bg-card/70 p-8 text-sm leading-7 text-muted-foreground">
+            No match is present in the 25-skill emergency snapshot. The full 4,274-skill catalog will return when Supabase lifts the provider restriction.
+          </div>
+        )}
+      </section>
     </div>
   );
 }
