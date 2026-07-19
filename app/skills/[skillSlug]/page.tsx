@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -10,12 +9,6 @@ import {
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 
 type SkillPageProps = { params: Promise<{ skillSlug: string }> };
-
-export const metadata: Metadata = {
-  title: "Skill recovery snapshot | SkillJury",
-  description: "Read-only AI skill details from SkillJury's verified recovery snapshot.",
-  robots: { index: false, follow: true },
-};
 
 async function SkillContent({ params }: SkillPageProps) {
   const { skillSlug } = await params;

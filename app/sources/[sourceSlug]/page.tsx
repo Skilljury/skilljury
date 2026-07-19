@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -10,12 +9,6 @@ import {
 import { decodeSourceSlug } from "@/lib/routing/sourceSlug";
 
 type SourcePageProps = { params: Promise<{ sourceSlug: string }> };
-
-export const metadata: Metadata = {
-  title: "Source recovery snapshot | SkillJury",
-  description: "Read-only AI skill source details from SkillJury's verified recovery snapshot.",
-  robots: { index: false, follow: true },
-};
 
 function getSourceSkills(sourceSlug: string) {
   return EMERGENCY_LEADERBOARD.filter((skill) => skill.source.slug === sourceSlug);
