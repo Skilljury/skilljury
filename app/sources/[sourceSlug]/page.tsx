@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
@@ -15,6 +16,7 @@ function getSourceSkills(sourceSlug: string) {
 }
 
 async function SourceContent({ params }: SourcePageProps) {
+  await connection();
   const { sourceSlug } = await params;
   const decodedSlug = decodeSourceSlug(sourceSlug);
   const skills = getSourceSkills(decodedSlug);
