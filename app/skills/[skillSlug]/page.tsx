@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
@@ -11,6 +12,7 @@ import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 type SkillPageProps = { params: Promise<{ skillSlug: string }> };
 
 async function SkillContent({ params }: SkillPageProps) {
+  await connection();
   const { skillSlug } = await params;
   const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
   if (!skill) return <div className="mx-auto flex w-full max-w-6xl flex-col gap-8"><UnavailableSnapshotRecord kind="skill" requestedLabel={skillSlug} /></div>;
