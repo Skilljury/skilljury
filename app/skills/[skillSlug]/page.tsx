@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { Suspense } from "react";
 
 import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
 import {
@@ -10,7 +11,7 @@ import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 
 type SkillPageProps = { params: Promise<{ skillSlug: string }> };
 
-export default async function SkillPage({ params }: SkillPageProps) {
+async function SkillContent({ params }: SkillPageProps) {
   await connection();
   const { skillSlug } = await params;
   const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
@@ -40,5 +41,9 @@ export default async function SkillPage({ params }: SkillPageProps) {
     </section>
   </div>;
 }
+
+function SkillSkeleton() { return <div className="mx-auto flex w-full max-w-6xl flex-col gap-8"><div className="space-y-6"><div className="h-5 w-40 animate-pulse rounded bg-muted/30" /><div className="h-96 animate-pulse rounded-[2rem] bg-muted/30" /></div></div>; }
+
+export default function SkillPage({ params }: SkillPageProps) { return <Suspense fallback={<SkillSkeleton />}><SkillContent params={params} /></Suspense>; }
 
 function Fact({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl border border-border/70 bg-background/50 p-4"><div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</div><div className="mt-2 text-sm leading-6 text-foreground">{value}</div></div>; }
