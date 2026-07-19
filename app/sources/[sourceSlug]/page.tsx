@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Suspense } from "react";
 
 import { UnavailableSnapshotRecord } from "@/components/recovery/UnavailableSnapshotRecord";
 import {
@@ -15,7 +14,7 @@ function getSourceSkills(sourceSlug: string) {
   return EMERGENCY_LEADERBOARD.filter((skill) => skill.source.slug === sourceSlug);
 }
 
-async function SourceContent({ params }: SourcePageProps) {
+export default async function SourcePage({ params }: SourcePageProps) {
   await connection();
   const { sourceSlug } = await params;
   const decodedSlug = decodeSourceSlug(sourceSlug);
@@ -38,7 +37,3 @@ async function SourceContent({ params }: SourcePageProps) {
     </section>
   </div>;
 }
-
-function SourceSkeleton() { return <div className="mx-auto flex w-full max-w-6xl flex-col gap-8"><div className="space-y-6"><div className="h-5 w-40 animate-pulse rounded bg-muted/30" /><div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" /></div></div>; }
-
-export default function SourcePage({ params }: SourcePageProps) { return <Suspense fallback={<SourceSkeleton />}><SourceContent params={params} /></Suspense>; }
