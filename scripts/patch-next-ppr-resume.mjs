@@ -25,45 +25,28 @@ function countOccurrences(source, value) {
   return source.split(value).length - 1;
 }
 
-export async function patchNextAppRender({
-  projectRoot = process.cwd(),
-  logger = console,
-} = {}) {
-  const nextRoot = join(projectRoot, "node_modules", "next");
-  const nextPackagePath = join(nextRoot, "package.json");
-  const appRenderPath = join(
-    nextRoot,
-    "dist",
-    "server",
-    "app-render",
-    "app-render.js",
-  );
-  const nextPackage = JSON.parse(await readFile(nextPackagePath, "utf8"));
-  const source = await readFile(appRenderPath, "utf8");
+function prepareAppRenderPatch({ source, nextVersion, bundleLabel }) {
   const vulnerableCount = countOccurrences(source, vulnerableStatement);
 
   if (source.includes(helperSignature)) {
     if (vulnerableCount !== 0) {
       throw new Error(
-        `Next.js ${nextPackage.version} contains both patched and vulnerable metadata-resume code. Refusing a partial patch.`,
+        `Next.js ${nextVersion} ${bundleLabel} bundle contains both patched and vulnerable metadata-resume code. Refusing a partial patch.`,
       );
     }
 
-    logger?.log(
-      `[postinstall] Next.js ${nextPackage.version} already contains the PPR metadata-resume patch.`,
-    );
-    return "already-patched";
+    return { status: "already-patched", source };
   }
 
   if (vulnerableCount !== 3) {
     throw new Error(
-      `Expected three vulnerable metadata-resume statements in Next.js ${nextPackage.version}, found ${vulnerableCount}. Review upstream PR #94630 before upgrading Next.js.`,
+      `Expected three vulnerable metadata-resume statements in Next.js ${nextVersion} ${bundleLabel} bundle, found ${vulnerableCount}. Review upstream PR #94630 before upgrading Next.js.`,
     );
   }
 
   if (!source.includes(insertionAnchor)) {
     throw new Error(
-      `Could not find the safe helper insertion point in Next.js ${nextPackage.version}. Refusing to patch an unknown framework layout.`,
+      `Could not find the safe helper insertion point in Next.js ${nextVersion} ${bundleLabel} bundle. Refusing to patch an unknown framework layout.`,
     );
   }
 
@@ -78,13 +61,62 @@ export async function patchNextAppRender({
     countOccurrences(patchedSource, vulnerableStatement) !== 0
   ) {
     throw new Error(
-      `Next.js ${nextPackage.version} PPR metadata-resume patch verification failed.`,
+      `Next.js ${nextVersion} ${bundleLabel} PPR metadata-resume patch verification failed.`,
     );
   }
 
-  await writeFile(appRenderPath, patchedSource, "utf8");
+  return { status: "patched", source: patchedSource };
+}
+
+export async function patchNextAppRender({
+  projectRoot = process.cwd(),
+  logger = console,
+} = {}) {
+  const nextRoot = join(projectRoot, "node_modules", "next");
+  const nextPackagePath = join(nextRoot, "package.json");
+  const appRenderBundles = [
+    {
+      label: "CommonJS",
+      path: join(nextRoot, "dist", "server", "app-render", "app-render.js"),
+    },
+    {
+      label: "ESM",
+      path: join(nextRoot, "dist", "esm", "server", "app-render", "app-render.js"),
+    },
+  ];
+
+  const nextPackage = JSON.parse(await readFile(nextPackagePath, "utf8"));
+  const preparedBundles = await Promise.all(
+    appRenderBundles.map(async (bundle) => {
+      const source = await readFile(bundle.path, "utf8");
+      return {
+        ...bundle,
+        ...prepareAppRenderPatch({
+          source,
+          nextVersion: nextPackage.version,
+          bundleLabel: bundle.label,
+        }),
+      };
+    }),
+  );
+
+  const bundlesToPatch = preparedBundles.filter(
+    (bundle) => bundle.status === "patched",
+  );
+
+  await Promise.all(
+    bundlesToPatch.map((bundle) => writeFile(bundle.path, bundle.source, "utf8")),
+  );
+
+  if (bundlesToPatch.length === 0) {
+    logger?.log(
+      `[postinstall] Next.js ${nextPackage.version} already contains the PPR metadata-resume patch in both runtime bundles.`,
+    );
+    return "already-patched";
+  }
+
   logger?.log(
-    `[postinstall] Applied the upstream PPR metadata-resume fix to Next.js ${nextPackage.version} (PR #94630).`,
+    `[postinstall] Applied the upstream PPR metadata-resume fix to Next.js ${nextPackage.version} ${bundlesToPatch.map((bundle) => bundle.label).join(" and ")} runtime bundles (PR #94630).`,
   );
   return "patched";
 }
