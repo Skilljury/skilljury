@@ -31,26 +31,35 @@ async function getErrorRSCPayload(tree, ctx) {
 async function withNextFixture(source, run) {
   const projectRoot = await mkdtemp(join(tmpdir(), "skilljury-next-ppr-patch-"));
   const nextRoot = join(projectRoot, "node_modules", "next");
-  const appRenderPath = join(nextRoot, "dist", "server", "app-render", "app-render.js");
+  const appRenderPaths = [
+    join(nextRoot, "dist", "server", "app-render", "app-render.js"),
+    join(nextRoot, "dist", "esm", "server", "app-render", "app-render.js"),
+  ];
   try {
-    await mkdir(join(nextRoot, "dist", "server", "app-render"), { recursive: true });
+    for (const appRenderPath of appRenderPaths) {
+      await mkdir(join(appRenderPath, ".."), { recursive: true });
+    }
     await writeFile(join(nextRoot, "package.json"), JSON.stringify({ name: "next", version: "16.2.3" }), "utf8");
-    await writeFile(appRenderPath, source, "utf8");
-    await run({ appRenderPath, projectRoot });
+    await Promise.all(appRenderPaths.map((appRenderPath) => writeFile(appRenderPath, source, "utf8")));
+    await run({ appRenderPaths, projectRoot });
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
   }
 }
 
-test("patches all Next.js PPR metadata resume call sites and is idempotent", async () => {
-  await withNextFixture(vulnerableAppRenderFixture, async ({ appRenderPath, projectRoot }) => {
+test("patches both CommonJS and ESM Next.js PPR metadata resume bundles and is idempotent", async () => {
+  await withNextFixture(vulnerableAppRenderFixture, async ({ appRenderPaths, projectRoot }) => {
     const firstResult = await patchNextAppRender({ projectRoot, logger: null });
-    const patchedSource = await readFile(appRenderPath, "utf8");
     assert.equal(firstResult, "patched");
-    assert.match(patchedSource, /function getServeStreamingMetadata\(renderOpts\)/);
-    assert.match(patchedSource, /typeof renderOpts\.postponed === ["']string["']/);
-    assert.equal(patchedSource.split(fixedStatement).length - 1, 3);
-    assert.doesNotMatch(patchedSource, /const serveStreamingMetadata = !!ctx\.renderOpts\.serveStreamingMetadata;/);
+
+    for (const appRenderPath of appRenderPaths) {
+      const patchedSource = await readFile(appRenderPath, "utf8");
+      assert.match(patchedSource, /function getServeStreamingMetadata\(renderOpts\)/);
+      assert.match(patchedSource, /typeof renderOpts\.postponed === ["']string["']/);
+      assert.equal(patchedSource.split(fixedStatement).length - 1, 3);
+      assert.doesNotMatch(patchedSource, /const serveStreamingMetadata = !!ctx\.renderOpts\.serveStreamingMetadata;/);
+    }
+
     const secondResult = await patchNextAppRender({ projectRoot, logger: null });
     assert.equal(secondResult, "already-patched");
   });
@@ -58,17 +67,21 @@ test("patches all Next.js PPR metadata resume call sites and is idempotent", asy
 
 test("refuses to patch an unexpected number of vulnerable call sites", async () => {
   const unknownLayout = vulnerableAppRenderFixture.replace(vulnerableStatement, fixedStatement);
-  await withNextFixture(unknownLayout, async ({ appRenderPath, projectRoot }) => {
+  await withNextFixture(unknownLayout, async ({ appRenderPaths, projectRoot }) => {
     await assert.rejects(patchNextAppRender({ projectRoot, logger: null }), /Expected three vulnerable metadata-resume statements.*found 2/);
-    assert.equal(await readFile(appRenderPath, "utf8"), unknownLayout);
+    for (const appRenderPath of appRenderPaths) {
+      assert.equal(await readFile(appRenderPath, "utf8"), unknownLayout);
+    }
   });
 });
 
 test("refuses to patch when the framework insertion anchor changes", async () => {
   const unknownLayout = vulnerableAppRenderFixture.replace("This is used by server actions & client-side navigations", "Framework internals changed");
-  await withNextFixture(unknownLayout, async ({ appRenderPath, projectRoot }) => {
+  await withNextFixture(unknownLayout, async ({ appRenderPaths, projectRoot }) => {
     await assert.rejects(patchNextAppRender({ projectRoot, logger: null }), /Could not find the safe helper insertion point/);
-    assert.equal(await readFile(appRenderPath, "utf8"), unknownLayout);
+    for (const appRenderPath of appRenderPaths) {
+      assert.equal(await readFile(appRenderPath, "utf8"), unknownLayout);
+    }
   });
 });
 
