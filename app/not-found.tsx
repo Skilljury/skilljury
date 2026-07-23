@@ -8,17 +8,18 @@ export default function NotFound() {
           Missing route
         </div>
         <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
-          The requested page is not in the catalog.
+          This page is not in the recovery catalog.
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-8 text-muted-foreground">
-          SkillJury exposes the live catalog and imported skill pages. If you
-          expected a skill route here, the import may not have run yet.
+          SkillJury is currently serving a read-only recovery catalog with 25
+          verified records. This route is not included in that verified set,
+          and the full catalog will return when live provider access is restored.
         </p>
         <Link
           className="mt-8 inline-flex rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-default hover:bg-primary/90"
           href="/"
         >
-          Back to the catalog
+          Back to the recovery catalog
         </Link>
       </div>
     </div>
