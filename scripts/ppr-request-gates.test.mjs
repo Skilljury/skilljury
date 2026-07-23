@@ -96,3 +96,10 @@ test("recovery routes keep stable matching PPR suspense roots", async () => {
     assert.doesNotMatch(source, /return\s*\(\s*<>/, `${routeFile} resolved content must not switch from a div fallback to a fragment root`);
   }
 });
+
+test("recovery homepage distinguishes aggregate snapshot counts from browsable records", async () => {
+  const source = await readFile(join(process.cwd(), "app/page.tsx"), "utf8");
+  assert.match(source, /aggregate snapshot covers/);
+  assert.match(source, /Fully browsable/);
+  assert.doesNotMatch(source, /Browse a verified recovery snapshot of \{EMERGENCY_SKILL_COUNT/);
+});
