@@ -22,7 +22,7 @@ export const siteKeywords = [
 ];
 
 const defaultDescription =
-  "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline with community reviews, install rankings, security audits, and compatibility data.";
+  "SkillJury is a read-only recovery catalog for AI agent skills, with 25 fully browsable verified records from an aggregate snapshot covering 4,274 skills and 784 sources.";
 
 function trimSlashes(pathname: string) {
   if (!pathname || pathname === "/") {
@@ -88,7 +88,7 @@ export function buildPageMetadata({
           url: imagePath,
           width: 1200,
           height: 630,
-          alt: `${siteName} - AI agent skill reviews and install rankings`,
+          alt: `${siteName} - verified AI agent skill recovery catalog`,
         },
       ],
     },
@@ -110,8 +110,8 @@ export function buildPageMetadata({
 }
 
 export const rootMetadata = buildPageMetadata({
-  title: buildSeoTitle("AI agent skill reviews and rankings"),
+  title: buildSeoTitle("AI agent skill recovery catalog and rankings"),
   description:
-    "SkillJury is a live directory of AI agent skills for Claude Code, Cursor, Windsurf, Codex, and Cline. Browse community reviews, weekly install rankings, security audit signals, and compatibility data across thousands of skills and hundreds of sources.",
+    "SkillJury is a read-only recovery catalog for AI agent skills. Explore 25 fully browsable verified records from an aggregate snapshot covering 4,274 skills and 784 sources while live reviews, sign-in, submissions, and sync are temporarily unavailable.",
   pathname: "/",
 });

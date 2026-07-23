@@ -103,3 +103,11 @@ test("recovery homepage distinguishes aggregate snapshot counts from browsable r
   assert.match(source, /Fully browsable/);
   assert.doesNotMatch(source, /Browse a verified recovery snapshot of \{EMERGENCY_SKILL_COUNT/);
 });
+
+test("root metadata describes the current recovery experience truthfully", async () => {
+  const source = await readFile(join(process.cwd(), "lib/seo/metadata.ts"), "utf8");
+  assert.match(source, /read-only recovery catalog/i);
+  assert.match(source, /25 fully browsable verified records/i);
+  assert.doesNotMatch(source, /SkillJury is a live directory/);
+  assert.doesNotMatch(source, /Browse community reviews/);
+});
