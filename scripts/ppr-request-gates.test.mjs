@@ -115,7 +115,7 @@ test("root metadata describes the current recovery experience truthfully", async
 test("missing-route copy describes recovery mode instead of a live import pipeline", async () => {
   const source = await readFile(join(process.cwd(), "app/not-found.tsx"), "utf8");
   assert.match(source, /read-only recovery catalog/i);
-  assert.match(source, /25 verified records/i);
+  assert.match(source, /25\s+verified records/i);
   assert.doesNotMatch(source, /exposes the live catalog/i);
   assert.doesNotMatch(source, /import may not have run yet/i);
 });
