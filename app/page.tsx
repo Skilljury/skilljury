@@ -29,19 +29,19 @@ export default function Home() {
           </h1>
 
           <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-            Browse a verified recovery snapshot of {EMERGENCY_SKILL_COUNT.toLocaleString("en-US")} skills from {EMERGENCY_SOURCE_COUNT.toLocaleString("en-US")} sources while live catalog sync is temporarily unavailable.
+            The aggregate snapshot covers {EMERGENCY_SKILL_COUNT.toLocaleString("en-US")} skills from {EMERGENCY_SOURCE_COUNT.toLocaleString("en-US")} sources. During recovery, {EMERGENCY_LEADERBOARD.length.toLocaleString("en-US")} verified records are fully browsable while live catalog sync is unavailable.
           </p>
 
           <form action="/search" className="max-w-2xl" method="get">
             <div className="search-glow flex flex-col gap-2 rounded-2xl border border-border/80 bg-card/80 p-2 sm:flex-row sm:items-center">
               <label className="sr-only" htmlFor="homepage-search">
-                Search the recovery catalog
+                Search the browsable recovery records
               </label>
               <input
                 className="h-12 min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                 id="homepage-search"
                 name="q"
-                placeholder="Search the verified snapshot"
+                placeholder="Search fully browsable records"
                 type="search"
               />
               <button
@@ -54,10 +54,10 @@ export default function Home() {
           </form>
 
           <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-            <Metric label="Skills" value={EMERGENCY_SKILL_COUNT} />
-            <Metric label="Sources" value={EMERGENCY_SOURCE_COUNT} />
-            <Metric label="Agents" value={29} />
-            <Metric label="Visible now" value={EMERGENCY_LEADERBOARD.length} />
+            <Metric label="Snapshot skills" value={EMERGENCY_SKILL_COUNT} />
+            <Metric label="Snapshot sources" value={EMERGENCY_SOURCE_COUNT} />
+            <Metric label="Agents tracked" value={29} />
+            <Metric label="Fully browsable" value={EMERGENCY_LEADERBOARD.length} />
           </div>
         </div>
 
