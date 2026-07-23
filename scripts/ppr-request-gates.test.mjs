@@ -119,3 +119,16 @@ test("missing-route copy describes recovery mode instead of a live import pipeli
   assert.doesNotMatch(source, /exposes the live catalog/i);
   assert.doesNotMatch(source, /import may not have run yet/i);
 });
+
+test("login route does not advertise working account creation during recovery", async () => {
+  const source = await readFile(join(process.cwd(), "app/login/page.tsx"), "utf8");
+  assert.match(source, /sign-in is temporarily unavailable/i);
+  assert.match(source, /read-only recovery catalog/i);
+  assert.doesNotMatch(source, /Create a real SkillJury account/);
+  assert.doesNotMatch(source, /<AuthPanel\b/);
+});
+
+test("static recovery login bypasses the Supabase session proxy", async () => {
+  const source = await readFile(join(process.cwd(), "proxy.ts"), "utf8");
+  assert.doesNotMatch(source, /["']\/login["']/);
+});

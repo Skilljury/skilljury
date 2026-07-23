@@ -1,110 +1,46 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import Link from "next/link";
 
-import { AuthPanel } from "@/components/auth/AuthPanel";
-import { getSafeNextPath } from "@/lib/auth/redirects";
-import { isGoogleAuthEnabled } from "@/lib/auth/providerFlags";
-import { getCurrentViewer } from "@/lib/auth/session";
 import { buildPageMetadata } from "@/lib/seo/metadata";
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-type LoginPageProps = {
-  searchParams: SearchParams;
-};
-
-function firstParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
-}
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
-    title: "Log in or sign up for SkillJury",
+    title: "Sign-in temporarily unavailable | SkillJury",
     description:
-      "Create a SkillJury account with Google or email and password so you can review skills and manage your public profile.",
+      "SkillJury is currently serving a read-only recovery catalog. Sign-in, account creation, reviews, submissions, and profile management are temporarily unavailable.",
     indexable: false,
     pathname: "/login",
   });
 }
 
-function LoginShell({
-  googleAuthEnabled,
-}: {
-  googleAuthEnabled: boolean;
-}) {
-  return (
-    <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
-      <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-        Account access
-      </div>
-      <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
-        Create a real SkillJury account.
-      </h1>
-      <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-        {googleAuthEnabled
-          ? "Use Google or create an account with email, password, and a public reviewer ID. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."
-          : "Create an account with email, password, and a public reviewer ID. Google sign-in will appear here once the provider is enabled for this deployment. Once you are in, you can review skills, link GitHub as an extra trust signal, and manage your public profile."}
-      </p>
-    </section>
-  );
-}
-
-function AuthPanelSkeleton() {
-  return (
-    <div className="rounded-[2rem] border border-border bg-card/80 p-8 shadow-sm">
-      <div className="h-6 w-40 animate-pulse rounded bg-muted/40" />
-      <div className="mt-6 space-y-4">
-        <div className="h-11 w-full animate-pulse rounded bg-muted/30" />
-        <div className="h-11 w-full animate-pulse rounded bg-muted/30" />
-        <div className="h-11 w-32 animate-pulse rounded bg-muted/40" />
-      </div>
-    </div>
-  );
-}
-
-async function LoginContent({
-  searchParams,
-  googleAuthEnabled,
-}: {
-  searchParams: SearchParams;
-  googleAuthEnabled: boolean;
-}) {
-  const resolvedSearchParams = await searchParams;
-  const nextPath = getSafeNextPath(firstParam(resolvedSearchParams.next));
-  const errorMessage = firstParam(resolvedSearchParams.error);
-
-  const viewer = await getCurrentViewer();
-
-  if (viewer.user) {
-    if (!viewer.profile?.username) {
-      redirect(`/account/setup?next=${encodeURIComponent(nextPath)}`);
-    }
-
-    redirect(nextPath);
-  }
-
-  return (
-    <>
-      {errorMessage ? (
-        <div className="rounded-[1.5rem] border border-destructive/20 bg-destructive/10 p-5 text-sm leading-7 text-destructive">
-          {errorMessage}
-        </div>
-      ) : null}
-      <AuthPanel googleAuthEnabled={googleAuthEnabled} nextPath={nextPath} />
-    </>
-  );
-}
-
-export default function LoginPage({ searchParams }: LoginPageProps) {
-  const googleAuthEnabled = isGoogleAuthEnabled();
-
+export default function LoginPage() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <LoginShell googleAuthEnabled={googleAuthEnabled} />
-      <Suspense fallback={<AuthPanelSkeleton />}>
-        <LoginContent searchParams={searchParams} googleAuthEnabled={googleAuthEnabled} />
-      </Suspense>
+      <section className="rounded-[2rem] border border-border bg-card/80 px-6 py-8 shadow-sm lg:px-10">
+        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-amber-200">
+          Recovery snapshot
+        </div>
+        <h1 className="mt-6 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
+          Sign-in is temporarily unavailable.
+        </h1>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground">
+          SkillJury is currently serving a read-only recovery catalog while live provider access is restricted. Account creation, sign-in, reviews, submissions, saved skills, and profile management will return when live service is restored.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            className="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-default hover:bg-primary/90"
+            href="/search"
+          >
+            Search the recovery catalog
+          </Link>
+          <Link
+            className="inline-flex rounded-full border border-border px-5 py-3 text-sm font-semibold text-foreground transition-default hover:bg-surface-hover"
+            href="/"
+          >
+            Back to catalog
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
