@@ -127,3 +127,8 @@ test("login route does not advertise working account creation during recovery", 
   assert.doesNotMatch(source, /Create a real SkillJury account/);
   assert.doesNotMatch(source, /<AuthPanel\b/);
 });
+
+test("static recovery login bypasses the Supabase session proxy", async () => {
+  const source = await readFile(join(process.cwd(), "proxy.ts"), "utf8");
+  assert.doesNotMatch(source, /["']\/login["']/);
+});
