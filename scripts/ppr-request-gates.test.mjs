@@ -132,3 +132,10 @@ test("static recovery login bypasses the Supabase session proxy", async () => {
   const source = await readFile(join(process.cwd(), "proxy.ts"), "utf8");
   assert.doesNotMatch(source, /["']\/login["']/);
 });
+
+test("aggregate-only recovery category pages stay out of search indexes", async () => {
+  const source = await readFile(join(process.cwd(), "app/categories/[categorySlug]/page.tsx"), "utf8");
+  assert.match(source, /indexable:\s*false/);
+  assert.match(source, /aggregate snapshot count/i);
+  assert.match(source, /does not currently expose a browsable category result set/i);
+});
