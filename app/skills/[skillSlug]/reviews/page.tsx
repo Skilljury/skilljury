@@ -10,19 +10,12 @@ type SkillReviewsPageProps = {
   }>;
 };
 
-export async function generateMetadata({
-  params,
-}: SkillReviewsPageProps): Promise<Metadata> {
-  const { skillSlug } = await params;
-
-  return buildPageMetadata({
-    title: "Reviews temporarily unavailable | SkillJury",
-    description:
-      "Skill reviews are temporarily unavailable while SkillJury operates as a read-only recovery catalog.",
-    indexable: false,
-    pathname: `/skills/${skillSlug}/reviews`,
-  });
-}
+export const metadata: Metadata = buildPageMetadata({
+  title: "Reviews temporarily unavailable | SkillJury",
+  description:
+    "Skill reviews are temporarily unavailable while SkillJury operates as a read-only recovery catalog.",
+  indexable: false,
+});
 
 function SkillReviewsFallback() {
   return (
