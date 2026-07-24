@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 
 import {
   EMERGENCY_AGENT_RAIL,
-  EMERGENCY_CATEGORIES,
   EMERGENCY_CATALOG_SNAPSHOT_AT,
   EMERGENCY_LEADERBOARD,
 } from "@/lib/data/emergencyCatalog";
@@ -37,12 +36,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: snapshotDate,
       changeFrequency: "weekly" as const,
       priority: 0.8,
-    })),
-    ...EMERGENCY_CATEGORIES.map((category) => ({
-      url: buildCanonicalUrl(`/categories/${category.slug}`),
-      lastModified: snapshotDate,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
     })),
     ...EMERGENCY_AGENT_RAIL.map((agent) => ({
       url: buildCanonicalUrl(`/agents/${agent.slug}`),
