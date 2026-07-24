@@ -28,8 +28,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
 
   return buildPageMetadata({
-    title: `${category.name} AI skills | SkillJury`,
-    description: `${category.skillCount.toLocaleString("en-US")} skills are classified under ${category.name} in SkillJury's verified recovery snapshot.`,
+    title: `${category.name} snapshot count | SkillJury`,
+    description: `${category.skillCount.toLocaleString("en-US")} skills were assigned to ${category.name} in SkillJury's aggregate recovery snapshot. A browsable category result set is temporarily unavailable.`,
+    indexable: false,
     pathname: `/categories/${category.slug}`,
   });
 }
@@ -59,26 +60,26 @@ async function CategoryContent({ params }: CategoryPageProps) {
 
       <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-amber-200">
-          Verified snapshot category
+          Aggregate snapshot count
         </div>
         <h1 className="font-display mt-6 text-balance text-4xl tracking-[-0.04em] text-foreground sm:text-6xl">
           {category.name}
         </h1>
         <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground">
-          {category.skillCount.toLocaleString("en-US")} skills were assigned to this category in the PostgreSQL snapshot captured {snapshotDate}. Live category filtering is temporarily unavailable while Supabase API access is restricted.
+          {category.skillCount.toLocaleString("en-US")} skills were assigned to this category in the PostgreSQL snapshot captured {snapshotDate}. This page does not currently expose a browsable category result set while Supabase API access is restricted.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-95"
             href="/search"
           >
-            Browse visible skills
+            Browse fully visible skills
           </Link>
           <Link
             className="rounded-full border border-border px-5 py-3 text-sm text-foreground hover:border-primary/30"
             href="/"
           >
-            View all snapshot categories
+            View snapshot overview
           </Link>
         </div>
       </section>
