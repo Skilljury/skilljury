@@ -2,20 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { buildPageMetadata } from "@/lib/seo/metadata";
-
 type SkillReviewsPageProps = {
   params: Promise<{
     skillSlug: string;
   }>;
 };
 
-export const metadata: Metadata = buildPageMetadata({
+export const metadata: Metadata = {
   title: "Reviews temporarily unavailable | SkillJury",
   description:
     "Skill reviews are temporarily unavailable while SkillJury operates as a read-only recovery catalog.",
-  indexable: false,
-});
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 function SkillReviewsFallback() {
   return (
