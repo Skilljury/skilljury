@@ -145,3 +145,19 @@ test("noindex recovery categories are excluded from the sitemap", async () => {
   assert.doesNotMatch(source, /EMERGENCY_CATEGORIES/);
   assert.doesNotMatch(source, /\/categories\//);
 });
+
+test("review archives do not call unavailable live services during recovery", async () => {
+  const source = await readFile(
+    join(process.cwd(), "app/skills/[skillSlug]/reviews/page.tsx"),
+    "utf8",
+  );
+  assert.match(source, /reviews are temporarily unavailable/i);
+  assert.match(source, /read-only recovery catalog/i);
+  assert.match(source, /robots:\s*\{/);
+  assert.match(source, /index:\s*false/);
+  assert.match(source, /follow:\s*false/);
+  assert.doesNotMatch(source, /getCurrentViewer/);
+  assert.doesNotMatch(source, /getSkillBySlug/);
+  assert.doesNotMatch(source, /getSkillReviews/);
+  assert.doesNotMatch(source, /getTurnstileSiteKey/);
+});

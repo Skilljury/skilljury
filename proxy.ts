@@ -8,10 +8,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Supabase session refresh only runs on auth-sensitive routes. Public
-  // browsing (homepage, login recovery notice, skill detail pages,
-  // categories, agents, sources, sitemap, robots, static assets) skips the
-  // proxy entirely so crawlers and anonymous visitors don't burn Fluid Active
-  // CPU or fail when Supabase environment access is unavailable. Server
+  // browsing (homepage, login recovery notice, skill detail and review archive
+  // recovery pages, categories, agents, sources, sitemap, robots, static assets)
+  // skips the proxy entirely so crawlers and anonymous visitors don't burn Fluid
+  // Active CPU or fail when Supabase environment access is unavailable. Server
   // components on authenticated pages can still read cookies via `cookies()`;
   // the proxy is only needed to refresh near-expired tokens before the user
   // performs an auth-gated action.
@@ -25,7 +25,6 @@ export const config = {
     "/reset-password",
     "/submit-skill",
     "/skills/:skillSlug/review",
-    "/skills/:skillSlug/reviews",
     "/api/auth/:path*",
     "/api/moderation/:path*",
     "/api/reports/:path*",
