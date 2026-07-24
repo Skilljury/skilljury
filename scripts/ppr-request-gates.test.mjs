@@ -153,7 +153,9 @@ test("review archives do not call unavailable live services during recovery", as
   );
   assert.match(source, /reviews are temporarily unavailable/i);
   assert.match(source, /read-only recovery catalog/i);
-  assert.match(source, /indexable:\s*false/);
+  assert.match(source, /robots:\s*\{/);
+  assert.match(source, /index:\s*false/);
+  assert.match(source, /follow:\s*false/);
   assert.doesNotMatch(source, /getCurrentViewer/);
   assert.doesNotMatch(source, /getSkillBySlug/);
   assert.doesNotMatch(source, /getSkillReviews/);
