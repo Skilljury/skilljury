@@ -139,3 +139,9 @@ test("aggregate-only recovery category pages stay out of search indexes", async 
   assert.match(source, /aggregate snapshot count/i);
   assert.match(source, /does not currently expose a browsable category result set/i);
 });
+
+test("noindex recovery categories are excluded from the sitemap", async () => {
+  const source = await readFile(join(process.cwd(), "app/sitemap.ts"), "utf8");
+  assert.doesNotMatch(source, /EMERGENCY_CATEGORIES/);
+  assert.doesNotMatch(source, /\/categories\//);
+});
