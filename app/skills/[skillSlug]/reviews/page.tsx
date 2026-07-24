@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
@@ -23,7 +24,15 @@ export async function generateMetadata({
   });
 }
 
-export default async function SkillReviewsPage({
+function SkillReviewsFallback() {
+  return (
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
+      <div className="h-80 animate-pulse rounded-[2rem] bg-muted/30" />
+    </div>
+  );
+}
+
+async function SkillReviewsContent({
   params,
 }: SkillReviewsPageProps) {
   const { skillSlug } = await params;
@@ -58,5 +67,13 @@ export default async function SkillReviewsPage({
         </div>
       </section>
     </div>
+  );
+}
+
+export default function SkillReviewsPage({ params }: SkillReviewsPageProps) {
+  return (
+    <Suspense fallback={<SkillReviewsFallback />}>
+      <SkillReviewsContent params={params} />
+    </Suspense>
   );
 }
