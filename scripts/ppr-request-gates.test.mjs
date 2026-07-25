@@ -161,3 +161,17 @@ test("review archives do not call unavailable live services during recovery", as
   assert.doesNotMatch(source, /getSkillReviews/);
   assert.doesNotMatch(source, /getTurnstileSiteKey/);
 });
+
+test("submit-skill is truthful and provider-independent during recovery", async () => {
+  const pageSource = await readFile(join(process.cwd(), "app/submit-skill/page.tsx"), "utf8");
+  const proxySource = await readFile(join(process.cwd(), "proxy.ts"), "utf8");
+
+  assert.match(pageSource, /submissions are temporarily unavailable/i);
+  assert.match(pageSource, /read-only recovery catalog/i);
+  assert.match(pageSource, /indexable:\s*false/);
+  assert.doesNotMatch(pageSource, /SubmitSkillForm/);
+  assert.doesNotMatch(pageSource, /requireProfileIdentity/);
+  assert.doesNotMatch(pageSource, /getTurnstileSiteKey/);
+  assert.doesNotMatch(pageSource, /Submit a New AI Agent Skill for Review/);
+  assert.doesNotMatch(proxySource, /["']\/submit-skill["']/);
+});
