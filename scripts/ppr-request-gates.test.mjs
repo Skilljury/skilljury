@@ -183,3 +183,21 @@ test("cron sync skips provider writes during recovery", async () => {
   assert.match(source, /provider-restricted/);
   assert.match(source, /if\s*\(RECOVERY_MODE_ACTIVE\)[\s\S]*runSkillsShSync/);
 });
+
+test("account routes are truthful and provider-independent during recovery", async () => {
+  const accountSource = await readFile(join(process.cwd(), "app/account/page.tsx"), "utf8");
+  const setupSource = await readFile(join(process.cwd(), "app/account/setup/page.tsx"), "utf8");
+  const proxySource = await readFile(join(process.cwd(), "proxy.ts"), "utf8");
+
+  for (const source of [accountSource, setupSource]) {
+    assert.match(source, /account access is temporarily unavailable/i);
+    assert.match(source, /read-only recovery catalog/i);
+    assert.match(source, /indexable:\s*false/);
+    assert.doesNotMatch(source, /requireSignedInUser/);
+    assert.doesNotMatch(source, /ProfileSettingsForm/);
+    assert.doesNotMatch(source, /GitHubConnectButton/);
+    assert.doesNotMatch(source, /animate-pulse/);
+  }
+
+  assert.doesNotMatch(proxySource, /["']\/account\/:path\*["']/);
+});
