@@ -1,189 +1,46 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import Link from "next/link";
 
-import { GitHubConnectButton } from "@/components/auth/GitHubConnectButton";
-import { ProfileSettingsForm } from "@/components/auth/ProfileSettingsForm";
-import { SignOutButton } from "@/components/auth/SignOutButton";
-import { requireSignedInUser } from "@/lib/auth/guards";
-import { createServiceRoleSupabaseClient } from "@/lib/supabase/server";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
-    title: "Your SkillJury account",
+    title: "SkillJury account access temporarily unavailable",
     description:
-      "Manage your SkillJury reviewer account, public identity, and optional GitHub trust signal.",
+      "Account access is temporarily unavailable while SkillJury serves a read-only recovery catalog.",
     indexable: false,
     pathname: "/account",
   });
 }
 
-function formatDate(value: string | null) {
-  if (!value) {
-    return "Unknown";
-  }
-
-  return new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function AccountShellHeader() {
-  return (
-    <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm">
-      <div className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-        Reviewer profile
-      </div>
-      <h1 className="mt-4 text-5xl font-semibold tracking-tight text-foreground">
-        Your SkillJury account
-      </h1>
-      <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">
-        Manage the public ID used on your reviews, connect GitHub as an optional
-        trust signal, and control the account you use across SkillJury.
-      </p>
-    </section>
-  );
-}
-
-function AccountContentSkeleton() {
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
-        <div className="h-6 w-40 animate-pulse rounded bg-muted/40" />
-        <div className="mt-5 space-y-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i}>
-              <div className="h-3 w-24 animate-pulse rounded bg-muted/30" />
-              <div className="mt-2 h-4 w-48 animate-pulse rounded bg-muted/40" />
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
-        <div className="h-6 w-32 animate-pulse rounded bg-muted/40" />
-        <div className="mt-5 space-y-5">
-          <div className="h-16 w-full animate-pulse rounded bg-muted/30" />
-          <div className="h-16 w-full animate-pulse rounded bg-muted/30" />
-        </div>
-      </section>
-    </div>
-  );
-}
-
-async function AccountContent() {
-  const viewer = await requireSignedInUser("/account");
-  const user = viewer.user!;
-  const supabase = createServiceRoleSupabaseClient();
-  const { count: reviewCount } = await supabase
-    .from("reviews")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  return (
-    <>
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-foreground">Account details</h2>
-          <dl className="mt-5 grid gap-4 text-sm">
-            <div>
-              <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Email
-              </dt>
-              <dd className="mt-2 text-foreground">{user.email ?? "Unknown"}</dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Username / ID
-              </dt>
-              <dd className="mt-2 text-foreground">
-                {viewer.profile?.username ?? "Not chosen yet"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Display name
-              </dt>
-              <dd className="mt-2 text-foreground">
-                {viewer.profile?.displayName ?? viewer.profile?.username ?? "SkillJury user"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Role
-              </dt>
-              <dd className="mt-2 text-foreground">{viewer.profile?.role ?? "user"}</dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Account status
-              </dt>
-              <dd className="mt-2 text-foreground">
-                {viewer.profile?.accountStatus ?? "active"}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Joined
-              </dt>
-              <dd className="mt-2 text-foreground">
-                {formatDate(viewer.profile?.joinedAt ?? null)}
-              </dd>
-            </div>
-          </dl>
-          <div className="mt-6">
-            <SignOutButton />
-          </div>
-        </section>
-
-        <section className="rounded-[2rem] border border-border bg-card/80 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-foreground">Trust signals</h2>
-          <div className="mt-5 space-y-5 text-sm leading-7 text-muted-foreground">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                Reviews submitted
-              </div>
-              <div className="mt-2 font-mono text-3xl font-semibold text-foreground">
-                {(reviewCount ?? 0).toLocaleString("en-US")}
-              </div>
-            </div>
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-                GitHub identity
-              </div>
-              <p className="mt-2">
-                Link GitHub to show that your reviews come from a real builder profile.
-              </p>
-            </div>
-            <GitHubConnectButton
-              githubUsername={viewer.profile?.githubUsername ?? null}
-              isLinked={viewer.profile?.isGithubLinked ?? false}
-              nextPath="/account"
-            />
-          </div>
-        </section>
-      </div>
-
-      <ProfileSettingsForm
-        initialDisplayName={
-          viewer.profile?.displayName ?? viewer.profile?.username ?? user.email?.split("@")[0] ?? ""
-        }
-        initialUsername={viewer.profile?.username ?? ""}
-        mode="account"
-        nextPath="/account"
-      />
-    </>
-  );
-}
-
 export default function AccountPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10 lg:px-10 lg:py-14">
-      <AccountShellHeader />
-      <Suspense fallback={<AccountContentSkeleton />}>
-        <AccountContent />
-      </Suspense>
+      <section className="rounded-[2rem] border border-border bg-card/80 p-7 shadow-sm sm:p-10">
+        <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-amber-200">
+          Read-only recovery catalog
+        </div>
+        <h1 className="font-display mt-6 text-balance text-4xl tracking-[-0.04em] text-foreground sm:text-6xl">
+          Account access is temporarily unavailable.
+        </h1>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground">
+          SkillJury is currently serving a verified read-only recovery catalog while live provider access is restricted. Sign-in, reviewer profiles, saved skills, GitHub linking, and account settings will return when the live service is restored.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            className="rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-95"
+            href="/search"
+          >
+            Browse visible skills
+          </Link>
+          <Link
+            className="rounded-full border border-border px-5 py-3 text-sm text-foreground hover:border-primary/30"
+            href="/"
+          >
+            Back to recovery catalog
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

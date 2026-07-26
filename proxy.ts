@@ -7,19 +7,15 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Supabase session refresh only runs on auth-sensitive routes. Public
-  // browsing (homepage, login and submission recovery notices, skill detail
-  // and review archive recovery pages, categories, agents, sources, sitemap,
-  // robots, static assets) skips the proxy entirely so crawlers and anonymous
-  // visitors don't burn Fluid Active CPU or fail when Supabase environment
-  // access is unavailable. Server components on authenticated pages can still
-  // read cookies via `cookies()`; the proxy is only needed to refresh
-  // near-expired tokens before the user performs an auth-gated action.
+  // Supabase session refresh only runs on routes that still require live auth.
+  // Public recovery surfaces (homepage, login, account and submission notices,
+  // skill detail and review archive pages, categories, agents, sources, sitemap,
+  // robots and static assets) skip the proxy so anonymous visitors do not hit
+  // the restricted provider during read-only recovery.
   //
-  // The bare-domain → www redirect moved to `next.config.ts` redirects() so
-  // it runs at the CDN edge with zero function invocation.
+  // The bare-domain → www redirect lives in next.config.ts redirects() so it
+  // runs at the CDN edge with zero function invocation.
   matcher: [
-    "/account/:path*",
     "/admin/:path*",
     "/auth/:path*",
     "/reset-password",
