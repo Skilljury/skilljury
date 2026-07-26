@@ -175,3 +175,11 @@ test("submit-skill is truthful and provider-independent during recovery", async 
   assert.doesNotMatch(pageSource, /Submit a New AI Agent Skill for Review/);
   assert.doesNotMatch(proxySource, /["']\/submit-skill["']/);
 });
+
+test("cron sync skips provider writes during recovery", async () => {
+  const source = await readFile(join(process.cwd(), "app/api/cron/sync/route.ts"), "utf8");
+  assert.match(source, /RECOVERY_MODE_ACTIVE/);
+  assert.match(source, /skipped:\s*true/);
+  assert.match(source, /provider-restricted/);
+  assert.match(source, /if\s*\(RECOVERY_MODE_ACTIVE\)[\s\S]*runSkillsShSync/);
+});
