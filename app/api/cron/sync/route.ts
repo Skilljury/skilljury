@@ -5,6 +5,11 @@ import { runSkillsShSync } from "@/lib/ingestion/syncSkillsSh";
 
 export const maxDuration = 300;
 
+// SkillJury is intentionally serving the verified read-only snapshot while the
+// live Supabase project is restricted. Set this to false only as part of the
+// provider-restoration change after live write verification succeeds.
+const RECOVERY_MODE_ACTIVE = true;
+
 function getCronSecret() {
   return process.env.CRON_SECRET?.trim() || null;
 }
@@ -25,6 +30,13 @@ export async function GET(request: NextRequest) {
 
   if (!isAuthorized(request, expectedSecret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (RECOVERY_MODE_ACTIVE) {
+    return NextResponse.json({
+      skipped: true,
+      reason: "provider-restricted",
+    });
   }
 
   const limitParam = request.nextUrl.searchParams.get("limit");
