@@ -9,9 +9,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Supabase session refresh only runs on routes that still require live auth.
   // Public recovery surfaces (homepage, login, account and submission notices,
-  // skill detail and review archive pages, categories, agents, sources, sitemap,
-  // robots and static assets) skip the proxy so anonymous visitors do not hit
-  // the restricted provider during read-only recovery.
+  // skill detail, review archive and review submission pages, categories, agents,
+  // sources, sitemap, robots and static assets) skip the proxy so anonymous
+  // visitors do not hit the restricted provider during read-only recovery.
   //
   // The bare-domain → www redirect lives in next.config.ts redirects() so it
   // runs at the CDN edge with zero function invocation.
@@ -19,7 +19,6 @@ export const config = {
     "/admin/:path*",
     "/auth/:path*",
     "/reset-password",
-    "/skills/:skillSlug/review",
     "/api/auth/:path*",
     "/api/moderation/:path*",
     "/api/reports/:path*",
