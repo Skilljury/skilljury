@@ -201,3 +201,23 @@ test("account routes are truthful and provider-independent during recovery", asy
 
   assert.doesNotMatch(proxySource, /["']\/account\/:path\*["']/);
 });
+
+test("review submission is truthful and provider-independent during recovery", async () => {
+  const pageSource = await readFile(
+    join(process.cwd(), "app/skills/[skillSlug]/review/page.tsx"),
+    "utf8",
+  );
+  const proxySource = await readFile(join(process.cwd(), "proxy.ts"), "utf8");
+
+  assert.match(pageSource, /review submission is temporarily unavailable/i);
+  assert.match(pageSource, /read-only recovery catalog/i);
+  assert.match(pageSource, /robots:\s*\{/);
+  assert.match(pageSource, /index:\s*false/);
+  assert.match(pageSource, /follow:\s*false/);
+  assert.doesNotMatch(pageSource, /ReviewForm/);
+  assert.doesNotMatch(pageSource, /requireProfileIdentity/);
+  assert.doesNotMatch(pageSource, /getSkillBySlug/);
+  assert.doesNotMatch(pageSource, /getSkillReviews/);
+  assert.doesNotMatch(pageSource, /getTurnstileSiteKey/);
+  assert.doesNotMatch(proxySource, /["']\/skills\/:skillSlug\/review["']/);
+});
