@@ -6,6 +6,7 @@ import test from "node:test";
 test("trust methodology explains evidence and limits without overstating verification", async () => {
   const pageSource = await readFile(join(process.cwd(), "app/methodology/page.tsx"), "utf8");
   const footerSource = await readFile(join(process.cwd(), "components/layout/SiteFooter.tsx"), "utf8");
+  const sitemapSource = await readFile(join(process.cwd(), "app/sitemap.ts"), "utf8");
 
   assert.match(pageSource, /What a verified record means/);
   assert.match(pageSource, /not warranties, endorsements/i);
@@ -15,4 +16,5 @@ test("trust methodology explains evidence and limits without overstating verific
   assert.match(pageSource, /distinguish observed facts from inference/i);
   assert.doesNotMatch(pageSource, /guaranteed safe/i);
   assert.match(footerSource, /href="\/methodology"/);
+  assert.match(sitemapSource, /pathname: "\/methodology"/);
 });
