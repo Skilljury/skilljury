@@ -8,6 +8,9 @@ export function SiteFooter() {
           SkillJury. Read-only recovery catalog for AI agent skills.
         </p>
         <div className="flex flex-wrap gap-x-5 gap-y-3">
+          <Link className="transition-default hover:text-foreground hover:underline underline-offset-4" href="/methodology">
+            Methodology
+          </Link>
           <Link className="transition-default hover:text-foreground hover:underline underline-offset-4" href="/terms">
             Terms
           </Link>
