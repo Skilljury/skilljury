@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     { pathname: "/", priority: 1, changeFrequency: "daily" as const },
     { pathname: "/search", priority: 0.9, changeFrequency: "daily" as const },
+    { pathname: "/methodology", priority: 0.6, changeFrequency: "monthly" as const },
     { pathname: "/about", priority: 0.4, changeFrequency: "monthly" as const },
     { pathname: "/how-scores-work", priority: 0.4, changeFrequency: "monthly" as const },
     { pathname: "/moderation-policy", priority: 0.4, changeFrequency: "monthly" as const },
