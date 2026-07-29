@@ -38,6 +38,26 @@ Future runs must read this ledger together with recent commits, pull requests, d
 
 ## Durable learnings
 
+### 2026-07-29 — PPR recurrence crossed the material-change threshold
+
+- **Area:** Reliability / Incident
+- **Status:** Running
+- **Hypothesis:** The recurring metadata-resume mismatch is a framework or emitted-runtime problem rather than a collection of independent route defects.
+- **Evidence before action:** Vercel's 24-hour production error aggregation reported 24 occurrences affecting 9 users across both `/skills/[skillSlug]` and `/sources/[sourceSlug]`; the latest occurrence was 2026-07-29 02:03:33 UTC on production deployment `dpl_9RrALyuy8kNEGm8aRr18UJ1fWHYr`. Production 5xx aggregation was empty, so routes remained usable. The same deployment still served commit `ef20db995587f9c0917a216018039e0e0bf805cf` while GitHub `main` had advanced to `4caac2f2ee865a9d2fe39f340eeb0084c03e292e`, leaving PR #53 unverified in production.
+- **Action taken:** Recorded the materially worsened recurrence in durable project memory and issue #22. No route-level workaround or cache/PPR architecture change was attempted. This documentation-only branch also creates a fresh, reversible Git-integrated deployment opportunity so production can catch up with `main`.
+- **Result and measurement window:** Pending merge and production deployment verification. The incident is not resolved.
+- **What worked:** Existing recovery routes continued returning usable content, and no HTTP 5xx cluster appeared in the checked 24-hour window.
+- **What failed or was ruled out:** Repeating route-specific mitigations, disabling PPR/cache components, or claiming PR #53 deployed based on its READY preview.
+- **Why it failed:** Prior evidence shows the signature survives route-level changes and the app depends on `use cache`; production remained on an older commit despite the merged sitemap change.
+- **Do not repeat unless:** A framework version, emitted runtime artifact, build pipeline, route tree, or reproducible test materially changes and is documented with production-equivalent evidence.
+- **Remaining unknowns:** Which CommonJS or ESM app-render artifact handled each affected request; why Git-integrated production did not deploy merge commit `4caac2f2`; whether a controlled Next.js version change removes the signature under real traffic.
+- **Decision:** Continue narrowly at the framework/emitted-runtime level; preserve current degraded-but-usable production behavior and verify any deployment before claiming improvement.
+- **Rollback:** Revert the documentation commit. Any future runtime experiment must use an isolated branch and single-commit rollback.
+- **Links:**
+  - Issue: https://github.com/Skilljury/skilljury/issues/22
+  - PR #53: https://github.com/Skilljury/skilljury/pull/53
+  - Current production deployment: https://vercel.com/gmajo006-4973s-projects/skills-review-platform/9RrALyuy8kNEGm8aRr18UJ1fWHYr
+
 ### 2026-07-27 — Recurring Next.js PPR metadata-resume mismatch
 
 - **Area:** Reliability / Incident
@@ -69,4 +89,5 @@ Add one concise row after each measured experiment. Do not add rows for cosmetic
 
 | Date | Area | Hypothesis or problem | Result | Decision | Evidence |
 |---|---|---|---|---|---|
+| 2026-07-29 | Reliability | PPR recurrence materially increased while production remained one merge behind `main` | 24 errors / 9 users / 2 dynamic route families; no 5xx; deployment verification pending | Continue narrowly | Issue #22, PR #53, Vercel production errors |
 | 2026-07-27 | Reliability | PPR mismatch requires emitted-runtime/framework diagnosis rather than repeated route workarounds | Investigation remains open | Continue narrowly | Issue #22 |
