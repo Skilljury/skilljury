@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -10,6 +11,39 @@ import {
 import { encodeSourceSlug } from "@/lib/routing/sourceSlug";
 
 type SkillPageProps = { params: Promise<{ skillSlug: string }> };
+
+export async function generateMetadata({ params }: SkillPageProps): Promise<Metadata> {
+  const { skillSlug } = await params;
+  const skill = EMERGENCY_LEADERBOARD.find((item) => item.slug === skillSlug);
+
+  if (!skill) {
+    return {
+      title: "Skill unavailable | SkillJury",
+      description: "This skill is not included in SkillJury's verified recovery snapshot.",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const canonical = `https://www.skilljury.com/skills/${skillSlug}`;
+  const description = `${skill.name} from ${skill.source.name}: a read-only SkillJury recovery record with snapshot install and security-audit signals.`;
+
+  return {
+    title: `${skill.name} — AI agent skill | SkillJury`,
+    description,
+    alternates: { canonical: `https://www.skilljury.com/skills/${skillSlug}` },
+    openGraph: {
+      title: `${skill.name} — AI agent skill | SkillJury`,
+      description,
+      url: canonical,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${skill.name} — AI agent skill | SkillJury`,
+      description,
+    },
+  };
+}
 
 async function SkillContent({ params }: SkillPageProps) {
   await connection();
