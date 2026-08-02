@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -7,12 +8,48 @@ import {
   EMERGENCY_CATALOG_SNAPSHOT_AT,
   EMERGENCY_LEADERBOARD,
 } from "@/lib/data/emergencyCatalog";
-import { decodeSourceSlug } from "@/lib/routing/sourceSlug";
+import { decodeSourceSlug, encodeSourceSlug } from "@/lib/routing/sourceSlug";
 
 type SourcePageProps = { params: Promise<{ sourceSlug: string }> };
 
 function getSourceSkills(sourceSlug: string) {
   return EMERGENCY_LEADERBOARD.filter((skill) => skill.source.slug === sourceSlug);
+}
+
+export async function generateMetadata({ params }: SourcePageProps): Promise<Metadata> {
+  const { sourceSlug } = await params;
+  const decodedSlug = decodeSourceSlug(sourceSlug);
+  const skills = getSourceSkills(decodedSlug);
+
+  if (skills.length === 0) {
+    return {
+      title: "Source unavailable | SkillJury",
+      description: "This source is not included in SkillJury's verified recovery snapshot.",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const source = skills[0].source;
+  const encodedSlug = encodeSourceSlug(source.slug);
+  const canonical = `https://www.skilljury.com/sources/${encodedSlug}`;
+  const description = `${source.name}: ${skills.length.toLocaleString("en-US")} visible AI agent skill${skills.length === 1 ? "" : "s"} in SkillJury's read-only recovery snapshot.`;
+
+  return {
+    title: `${source.name} — AI agent skill source | SkillJury`,
+    description,
+    alternates: { canonical: `https://www.skilljury.com/sources/${encodedSlug}` },
+    openGraph: {
+      title: `${source.name} — AI agent skill source | SkillJury`,
+      description,
+      url: canonical,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${source.name} — AI agent skill source | SkillJury`,
+      description,
+    },
+  };
 }
 
 async function SourceContent({ params }: SourcePageProps) {
