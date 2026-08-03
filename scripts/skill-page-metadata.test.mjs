@@ -9,3 +9,9 @@ test("skill pages define route-specific metadata", () => {
   assert.match(skillPage, /canonical:\s*`https:\/\/www\.skilljury\.com\/skills\/\$\{skillSlug\}`/);
   assert.match(skillPage, /title:\s*`\$\{skill\.name\}[^`]*SkillJury`/);
 });
+
+test("legacy recovery skill pages explicitly disclose missing immutable provenance", () => {
+  assert.match(skillPage, /Immutable provenance unavailable/);
+  assert.match(skillPage, /exact evaluated commit, skill path, artifact checksum, and scanner versions were not preserved/);
+  assert.match(skillPage, /must not be treated as proof of the current upstream artifact/);
+});
