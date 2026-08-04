@@ -38,10 +38,12 @@ The weekly loop updates competitor/research memory, reviews experiments, and dec
 
 ## Shared durable memory
 
-- `STEWARD_STATE.yaml` — compact machine-readable operating state and fast-gate inputs
-- `EXPERIMENTS.md` — active/completed experiment registry
-- `MARKET_WATCH.md` — weekly market-delta memory
-- `../STEWARD_LEARNING_LEDGER.md` — durable incident/product lessons and failed approaches
+Mutable operating state lives in the non-deployed `Skilljury/skill-hub` control-plane repository so routine steward writes never trigger Vercel deployments or mutate the application SHA being monitored.
+
+- `Skilljury/skill-hub:autonomy/skilljury/STEWARD_STATE.yaml` — compact machine-readable operating state and fast-gate inputs
+- `Skilljury/skill-hub:autonomy/skilljury/EXPERIMENTS.md` — active/completed experiment registry
+- `Skilljury/skill-hub:autonomy/skilljury/MARKET_WATCH.md` — weekly market-delta memory
+- `docs/STEWARD_LEARNING_LEDGER.md` — durable incident/product lessons and failed approaches; update only for meaningful durable learnings, not routine hourly state
 
 ## Operating principles
 
@@ -57,9 +59,10 @@ The weekly loop updates competitor/research memory, reviews experiments, and dec
 10. Prefer rates to raw error counts when denominators exist.
 11. Never invent analytics, incidents, users or verification.
 12. Preserve owner approval for paid, legal, secret-bearing, destructive or irreversible actions.
+13. Never persist mutable sentinel/founder state in `Skilljury/skilljury`; state writes belong in `Skilljury/skill-hub`.
 
 ## Bootstrap behavior
 
-The state files intentionally start conservatively. The first successful specialized runs must populate runtime values using connected-tool evidence rather than guesses.
+The external control-plane files are populated from connected-tool evidence. Do not recreate mutable bootstrap state inside this deployed repository.
 
 Related implementation issue: #63.
