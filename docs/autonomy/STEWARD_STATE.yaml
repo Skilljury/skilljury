@@ -1,0 +1,41 @@
+version: 2
+bootstrap: true
+updated_at: null
+
+# This file is the machine-readable control plane for autonomous stewardship.
+# The next successful sentinel/founder run should replace null/unknown runtime values
+# with evidence verified from connected tools. Do not guess missing state.
+
+runtime:
+  last_main_sha: null
+  last_production_deployment_id: null
+  last_production_status: unknown
+  last_incident_check_at: null
+  last_daily_stewardship_date: null
+  last_weekly_review_week: null
+
+health:
+  known_incidents:
+    - id: 22
+      key: nextjs-ppr-metadata-resume-mismatch
+      status: monitoring
+      handling: aggregate-unless-materially-worse
+  supabase:
+    status: unknown
+    handling: preserve-safe-degraded-mode-until-fresh-evidence
+
+product:
+  current_hypothesis: provenance-first trust layer for agent skills
+  active_experiment_id: null
+  next_highest_leverage_action: null
+
+verification_queue: []
+owner_blockers: []
+
+rules:
+  noop_is_success: true
+  max_product_changing_experiments_per_day: 1
+  prefer_rates_over_raw_counts: true
+  require_production_verification: true
+  require_observation_window: true
+  never_repeat_failed_approach_without_materially_new_evidence: true
