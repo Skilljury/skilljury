@@ -15,3 +15,9 @@ test("legacy recovery skill pages explicitly disclose missing immutable provenan
   assert.match(skillPage, /exact evaluated commit, skill path, artifact checksum, and scanner versions were not preserved/);
   assert.match(skillPage, /must not be treated as proof of the current upstream artifact/);
 });
+
+test("legacy audit evidence is labeled historical in UI and metadata", () => {
+  assert.match(skillPage, /Historical security audit signals/);
+  assert.match(skillPage, /historical security-audit snapshot signals/);
+  assert.doesNotMatch(skillPage, />Security audit signals</);
+});
