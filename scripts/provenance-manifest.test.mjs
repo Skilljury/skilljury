@@ -54,7 +54,8 @@ test("changed content checksum invalidates the prior trust state", () => {
 });
 
 test("missing current evidence produces unknown rather than a false unchanged state", () => {
-  const { checksumValue: _checksumValue, ...incompleteArtifact } = capturedArtifact;
+  const incompleteArtifact = { ...capturedArtifact };
+  delete incompleteArtifact.checksumValue;
   const result = assessArtifactDrift(manifest, incompleteArtifact);
 
   assert.equal(result.state, "unknown");
