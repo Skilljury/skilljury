@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test:ppr-gates": "node --test scripts/ppr-request-gates.test.mjs scripts/trust-methodology.test.mjs scripts/skill-page-metadata.test.mjs scripts/source-page-metadata.test.mjs",
-    "verify:ppr-fix": "npm run test:ppr-gates && npm run lint",
+    "test:provenance": "node --test scripts/provenance-manifest.test.mjs",
+    "verify:ppr-fix": "npm run test:ppr-gates && npm run test:provenance && npm run lint",
     "sync:skills": "tsx scripts/sync-skills-sh.ts",
     "sync:manual": "tsx scripts/run-manual-sync.ts"
   },
