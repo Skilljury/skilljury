@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "skill": {
+    "slug": "sharp-edges",
+    "name": "Sharp Edges"
+  },
+  "source": {
+    "repository": "trailofbits/skills",
+    "defaultBranch": "main"
+  },
+  "artifact": {
+    "commitSha": "9ea55c598763f7cb87ab56933d773d7dc34344a0",
+    "path": "plugins/sharp-edges/skills/sharp-edges/SKILL.md",
+    "checksum": {
+      "algorithm": "git-blob-sha1",
+      "value": "44ea7876d7e5f3b5599c64684eb1a02c1500cb7a"
+    }
+  },
+  "capturedAtUtc": "2026-08-05T02:43:45Z",
+  "evaluation": {
+    "tool": {
+      "name": "skilljury-provenance-capture",
+      "version": "1"
+    },
+    "scanners": []
+  },
+  "capabilities": ["Read", "Grep", "Glob"],
+  "dependencies": {
+    "declared": [],
+    "note": "No dependency inventory or fresh security scan was performed in this provenance-only capture."
+  },
+  "trust": {
+    "state": "captured",
+    "conclusion": "Artifact identity is reproducible; no fresh security verdict is issued by this record."
+  },
+  "evidence": {
+    "immutableUrl": "https://github.com/trailofbits/skills/blob/9ea55c598763f7cb87ab56933d773d7dc34344a0/plugins/sharp-edges/skills/sharp-edges/SKILL.md"
+  }
+}
